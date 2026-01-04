@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - School SMS</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for Sidebar Toggle */
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            padding-top: 70px; /* Add padding for fixed navbar */
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            height: calc(100vh - 70px); /* Subtract navbar height */
+            position: fixed;
+            left: 0;
+            top: 70px; /* Start below navbar */
+            z-index: 100;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            margin-top: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .student-info {
+            text-align: center;
+        }
+        
+        .student-avatar img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4e73df;
+        }
+        
+        .student-details h6 {
+            color: #fff;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: #b0b7c3;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background-color: #4e73df;
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-nav .badge {
+            float: right;
+            margin-top: 2px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #34495e;
+        }
+        
+        .score-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+        
+        .circle-progress {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#4e73df 85%, #2d3748 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: calc(100vh - 70px); /* Subtract navbar height */
+            background-color: #f8f9fc;
+            transition: margin-left 0.3s ease;
+            margin-top: 70px; /* Add margin for fixed navbar */
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-weight: 700;
+            color: #2e3a59;
+        }
+        
+        /* Mobile Sidebar Toggle Styles */
+        .sidebar-toggle {
+            position: fixed;
+            top: 80px; /* Position below navbar */
+            left: 15px;
+            z-index: 1100;
+            background: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 70px; /* Start below navbar */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Navbar Brand */
+        .brand-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .brand-highlight {
+            color: #ffc107;
+        }
+        
+        .user-avatar {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            
+            .sidebar-toggle {
+                display: flex;
+                top: 80px;
+            }
+            
+            .sidebar {
+                height: calc(100vh - 70px);
+                top: 70px;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                margin-top: 70px;
+                padding-top: 20px;
+                min-height: calc(100vh - 70px);
+            }
+            
+            .page-header {
+                margin-top: 0;
+            }
+            
+            .sidebar-overlay {
+                top: 70px;
+            }
+            
+            /* Adjust the toggle button position when navbar expands */
+            .navbar-collapse.show ~ .sidebar-toggle {
+                top: 130px; /* Adjust based on expanded navbar height */
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+        
+        /* Fix navbar to stay on top properly */
+        .navbar {
+            z-index: 1030; /* Bootstrap default for fixed-top */
+        }
+        
+        /* Settings Page Styles */
+        .settings-card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        
+        .settings-card .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .setting-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-info {
+            flex: 1;
+        }
+        
+        .setting-title {
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 3px;
+        }
+        
+        .setting-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .setting-value {
+            color: #6c757d;
+            font-weight: 500;
+            min-width: 150px;
+            text-align: right;
+        }
+        
+        .disabled-setting {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .breadcrumb-item.active {
+            color: #4e73df;
+            font-weight: 500;
+        }
+        
+        /* View Only Indicator */
+        .view-only-badge {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        
+        /* Security Status */
+        .security-status {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-secure {
+            background-color: #d1f7c4;
+            color: #2e7d32;
+        }
+        
+        .status-moderate {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-weak {
+            background-color: #ffeaea;
+            color: #c62828;
+        }
+        
+        /* Toggle Switch */
+        .form-check-input:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button for Mobile -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay for Mobile Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>
+                <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+                <span class="user-role badge bg-light text-primary ms-2">Student</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="User">
+                                <span class="user-name">John Doe</span>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="profile.html">
+                                <i class="fas fa-user me-2"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="settings.html">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="index.html">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark">
+        <div class="sidebar-header">
+            <div class="student-info">
+                <div class="student-avatar">
+                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=4e73df&color=fff&size=80" alt="Student">
+                </div>
+                <div class="student-details">
+                    <h6>John Doe</h6>
+                    <p class="text-muted">Grade 10 • Roll No: S10123</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Performance</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="subjects.html">
+                        <i class="fas fa-book"></i>
+                        <span>Subjects</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Report Cards</span>
+                        <span class="badge bg-success">New</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="profile.html">
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="settings.html">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="average-score-display">
+                <div class="score-circle">
+                    <div class="circle-progress" data-value="85"></div>
+                    <div class="score-text">
+                        <span class="score-value">85%</span>
+                        <span class="score-label">Average</span>
+                    </div>
+                </div>
+                <p class="text-center mt-2 text-light">Current Term</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Settings <span class="view-only-badge">View Only</span></h1>
+            <div class="breadcrumb">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="dashboard.html">Home</a></li>
+                        <li class="breadcrumb-item active">Settings</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-user-cog me-2"></i> Account Settings
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Username</div>
+                        <div class="setting-description">Your unique login identifier</div>
+                    </div>
+                    <div class="setting-value">jdoe_student</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Account Status</div>
+                        <div class="setting-description">Current status of your account</div>
+                    </div>
+                    <div class="setting-value">
+                        <span class="security-status status-secure">Active</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Account Created</div>
+                        <div class="setting-description">Date your account was created</div>
+                    </div>
+                    <div class="setting-value">September 1, 2019</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Last Login</div>
+                        <div class="setting-description">Most recent successful login</div>
+                    </div>
+                    <div class="setting-value">Today, 09:30 AM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-shield-alt me-2"></i> Security Settings
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Password Strength</div>
+                        <div class="setting-description">Security level of your password</div>
+                    </div>
+                    <div class="setting-value">
+                        <span class="security-status status-secure">Strong</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Last Password Change</div>
+                        <div class="setting-description">When you last changed your password</div>
+                    </div>
+                    <div class="setting-value">3 months ago</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Two-Factor Authentication</div>
+                        <div class="setting-description">Extra security layer for your account</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="twoFactorToggle" checked disabled>
+                            <label class="form-check-label" for="twoFactorToggle">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Login Notifications</div>
+                        <div class="setting-description">Get notified of new logins</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="loginNotifications" checked disabled>
+                            <label class="form-check-label" for="loginNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Settings -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-bell me-2"></i> Notification Settings
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Email Notifications</div>
+                        <div class="setting-description">Receive notifications via email</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" checked disabled>
+                            <label class="form-check-label" for="emailNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Grade Updates</div>
+                        <div class="setting-description">Notify when new grades are posted</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gradeNotifications" checked disabled>
+                            <label class="form-check-label" for="gradeNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Assignment Reminders</div>
+                        <div class="setting-description">Reminders for upcoming assignments</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="assignmentNotifications" checked disabled>
+                            <label class="form-check-label" for="assignmentNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Announcements</div>
+                        <div class="setting-description">School announcements and news</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="announcementNotifications" checked disabled>
+                            <label class="form-check-label" for="announcementNotifications">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Display Settings -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-palette me-2"></i> Display Settings
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Theme</div>
+                        <div class="setting-description">Interface color scheme</div>
+                    </div>
+                    <div class="setting-value">Light Theme</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Language</div>
+                        <div class="setting-description">Interface language</div>
+                    </div>
+                    <div class="setting-value">English (US)</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Time Zone</div>
+                        <div class="setting-description">Your local time zone</div>
+                    </div>
+                    <div class="setting-value">Eastern Time (ET)</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Date Format</div>
+                        <div class="setting-description">How dates are displayed</div>
+                    </div>
+                    <div class="setting-value">MM/DD/YYYY</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Settings -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-lock me-2"></i> Privacy Settings
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Profile Visibility</div>
+                        <div class="setting-description">Who can see your profile</div>
+                    </div>
+                    <div class="setting-value">School Staff Only</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Grade Sharing</div>
+                        <div class="setting-description">Share grades with parents</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="gradeSharing" checked disabled>
+                            <label class="form-check-label" for="gradeSharing">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Activity Logging</div>
+                        <div class="setting-description">Record your platform activity</div>
+                    </div>
+                    <div class="setting-value">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="activityLogging" checked disabled>
+                            <label class="form-check-label" for="activityLogging">Enabled</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Information -->
+        <div class="card settings-card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i> System Information
+            </div>
+            <div class="card-body p-0">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Platform Version</div>
+                        <div class="setting-description">Current SchoolSMS version</div>
+                    </div>
+                    <div class="setting-value">v2.5.1</div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Browser</div>
+                        <div class="setting-description">Your current web browser</div>
+                    </div>
+                    <div class="setting-value" id="browserInfo"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Last Updated</div>
+                        <div class="setting-description">When system was last updated</div>
+                    </div>
+                    <div class="setting-value">January 15, 2024</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Notice -->
+        <div class="alert alert-info mt-4">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="fas fa-info-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading">Important Information</h5>
+                    <p class="mb-1">All settings on this page are <strong>view-only</strong> for students.</p>
+                    <p class="mb-0">If you need to update any information or change settings, please contact:</p>
+                    <ul class="mb-0">
+                        <li>Your class teacher: <strong>Mrs. Sarah Johnson</strong></li>
+                        <li>School administration office: <strong>Room 101, Main Building</strong></li>
+                        <li>Email: <strong>administration@school.edu</strong></li>
+                        <li>Phone: <strong>+1 (555) 123-4567</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Sidebar Toggle Functionality
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebarToggle && sidebar) {
+                // Toggle sidebar when button is clicked
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                });
+                
+                // Close sidebar when overlay is clicked
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+                
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                            sidebar.classList.remove('show');
+                            sidebarOverlay.classList.remove('show');
+                            document.body.style.overflow = '';
+                        }
+                    }
+                });
+                
+                // Close sidebar when pressing Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+            
+            // Update main content margin for desktop
+            function updateMainContentMargin() {
+                const mainContent = document.querySelector('.main-content');
+                if (window.innerWidth > 768) {
+                    mainContent.style.marginLeft = '250px';
+                } else {
+                    mainContent.style.marginLeft = '0';
+                }
+            }
+            
+            // Update sidebar and toggle button positions based on navbar state
+            function updateSidebarPosition() {
+                const navbar = document.querySelector('.navbar');
+                const navbarHeight = navbar.offsetHeight;
+                
+                // Update body padding
+                document.body.style.paddingTop = navbarHeight + 'px';
+                
+                // Update sidebar position
+                if (sidebar) {
+                    sidebar.style.top = navbarHeight + 'px';
+                    sidebar.style.height = `calc(100vh - ${navbarHeight}px)`;
+                }
+                
+                // Update main content
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.style.marginTop = navbarHeight + 'px';
+                    mainContent.style.minHeight = `calc(100vh - ${navbarHeight}px)`;
+                }
+                
+                // Update sidebar toggle button
+                if (sidebarToggle) {
+                    sidebarToggle.style.top = (navbarHeight + 10) + 'px';
+                }
+                
+                // Update overlay
+                if (sidebarOverlay) {
+                    sidebarOverlay.style.top = navbarHeight + 'px';
+                }
+            }
+            
+            // Initial call
+            updateMainContentMargin();
+            updateSidebarPosition();
+            
+            // Update on resize
+            window.addEventListener('resize', function() {
+                updateMainContentMargin();
+                updateSidebarPosition();
+            });
+            
+            // Update when navbar expands/collapses on mobile
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            if (navbarToggler) {
+                navbarToggler.addEventListener('click', function() {
+                    // Small delay to let Bootstrap handle the collapse/expand
+                    setTimeout(updateSidebarPosition, 350);
+                });
+            }
+            
+            // Update sidebar progress circle
+            const progressCircle = document.querySelector('.circle-progress');
+            if (progressCircle) {
+                const value = progressCircle.dataset.value || 85;
+                progressCircle.style.background = `conic-gradient(#4e73df ${value}%, #2d3748 0%)`;
+            }
+            
+            // Detect and display browser information
+            function detectBrowser() {
+                const userAgent = navigator.userAgent;
+                let browserName;
+                
+                if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
+                    browserName = "Google Chrome";
+                } else if (userAgent.includes("Firefox")) {
+                    browserName = "Mozilla Firefox";
+                } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+                    browserName = "Apple Safari";
+                } else if (userAgent.includes("Edg")) {
+                    browserName = "Microsoft Edge";
+                } else if (userAgent.includes("Trident") || userAgent.includes("MSIE")) {
+                    browserName = "Internet Explorer";
+                } else {
+                    browserName = "Unknown Browser";
+                }
+                
+                document.getElementById('browserInfo').textContent = browserName;
+            }
+            
+            detectBrowser();
+            
+            // Prevent any interaction with disabled settings
+            const toggleSwitches = document.querySelectorAll('.form-check-input');
+            toggleSwitches.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    if (this.disabled) {
+                        e.preventDefault();
+                        alert('Settings are view-only. Please contact school administration for changes.');
+                    }
+                });
+            });
+            
+            // Show view-only message on any click attempt to edit
+            document.addEventListener('click', function(e) {
+                if (e.target.matches('.form-check-input, .form-check-label, .setting-item')) {
+                    if (e.target.classList.contains('disabled-setting') || 
+                        e.target.disabled || 
+                        e.target.closest('.setting-item')) {
+                        alert('Settings are view-only. Please contact school administration for changes.');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

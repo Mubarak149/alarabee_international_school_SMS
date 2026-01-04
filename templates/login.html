@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School SMS - Login</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --primary-dark: #2e59d9;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+            --sidebar-bg: #4e73df;
+            --sidebar-dark: #3a56c4;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fc;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Mobile Header - Only shows on small screens */
+        .mobile-header {
+            display: none;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .mobile-header .logo i {
+            font-size: 1.8rem;
+            color: #ffc107;
+        }
+        
+        .mobile-header .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .mobile-header .logo span {
+            color: #ffc107;
+        }
+        
+        /* Left Side Styles */
+        .login-left {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .login-left::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.05);
+            transform: rotate(30deg);
+        }
+        
+        .login-brand {
+            margin-bottom: 3rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo i {
+            font-size: 3.5rem;
+            margin-right: 1rem;
+            color: #ffc107;
+        }
+        
+        .logo h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .logo span {
+            color: #ffc107;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-left: 4.5rem;
+        }
+        
+        .features {
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.2rem;
+            border-radius: 10px;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .feature-icon {
+            background: rgba(255, 255, 255, 0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .feature-icon i {
+            font-size: 1.5rem;
+            color: #ffc107;
+        }
+        
+        .feature-text h5 {
+            font-size: 1.1rem;
+            margin-bottom: 0.3rem;
+            color: white;
+        }
+        
+        .feature-text p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
+        
+        .login-quote {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .login-quote blockquote {
+            font-style: italic;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .login-quote footer {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .login-quote i.fa-quote-left {
+            margin-right: 0.5rem;
+            color: #ffc107;
+        }
+        
+        .login-quote i.fa-quote-right {
+            margin-left: 0.5rem;
+            color: #ffc107;
+        }
+        
+        /* Right Side Styles */
+        .login-right {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background-color: white;
+            height: 100%;
+        }
+        
+        .login-form-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .login-header h2 {
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .login-header p {
+            color: var(--secondary-color);
+        }
+        
+        .login-form .form-label {
+            font-weight: 500;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .login-form .form-label i {
+            color: var(--primary-color);
+        }
+        
+        .login-form .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #e3e6f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .login-form .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .input-group .btn-outline-secondary {
+            border-color: #e3e6f0;
+            color: var(--secondary-color);
+        }
+        
+        .input-group .btn-outline-secondary:hover {
+            background-color: #f8f9fc;
+            border-color: #d1d3e2;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .forgot-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .forgot-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.3);
+        }
+        
+        .login-footer {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        .login-footer p {
+            color: var(--secondary-color);
+            margin-bottom: 0;
+        }
+        
+        .register-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .register-link:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        /* Error message styling */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .error-message i {
+            font-size: 0.75rem;
+        }
+        
+        .has-error .form-control {
+            border-color: var(--danger-color);
+        }
+        
+        .has-error .form-control:focus {
+            border-color: var(--danger-color);
+            box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
+        }
+        
+        /* Alert Styles */
+        .custom-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease-out;
+            display: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* ========== MOBILE RESPONSIVE STYLES ========== */
+        @media (max-width: 991.98px) {
+            .login-page {
+                min-height: 100vh;
+            }
+            
+            .mobile-header {
+                display: block;
+            }
+            
+            .login-left {
+                padding: 2rem;
+                display: none; /* Hidden by default on mobile */
+            }
+            
+            .login-left.show-on-mobile {
+                display: flex;
+                min-height: auto;
+                max-height: 60vh;
+                overflow-y: auto;
+                animation: slideDown 0.3s ease-out;
+            }
+            
+            .login-right {
+                padding: 1.5rem;
+                min-height: calc(100vh - 70px);
+                align-items: flex-start;
+                padding-top: 2rem;
+            }
+            
+            .login-form-container {
+                padding: 1.5rem;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                max-width: 100%;
+            }
+            
+            .logo i {
+                font-size: 2.5rem;
+            }
+            
+            .logo h1 {
+                font-size: 2rem;
+            }
+            
+            .tagline {
+                margin-left: 3.5rem;
+                font-size: 1rem;
+            }
+            
+            .feature-item {
+                padding: 1rem;
+            }
+            
+            .feature-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .feature-icon i {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 767.98px) {
+            .login-right {
+                padding: 1rem;
+            }
+            
+            .login-form-container {
+                padding: 1.25rem;
+            }
+            
+            .login-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .login-header p {
+                font-size: 0.9rem;
+            }
+            
+            .custom-alert {
+                min-width: 280px;
+                max-width: 90%;
+                left: 50%;
+                transform: translateX(-50%);
+                right: auto;
+            }
+            
+            .login-left.show-on-mobile .logo {
+                justify-content: center;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .login-left.show-on-mobile .logo i {
+                margin-right: 0;
+                margin-bottom: 0.5rem;
+            }
+            
+            .login-left.show-on-mobile .tagline {
+                margin-left: 0;
+                text-align: center;
+            }
+            
+            .login-left.show-on-mobile .features {
+                margin-top: 1.5rem;
+            }
+            
+            .login-left.show-on-mobile .login-quote {
+                margin-top: 1rem;
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .mobile-header {
+                padding: 0.75rem;
+            }
+            
+            .mobile-header .logo i {
+                font-size: 1.5rem;
+            }
+            
+            .mobile-header .logo h1 {
+                font-size: 1.3rem;
+            }
+            
+            .login-right {
+                padding: 0.75rem;
+            }
+            
+            .login-form-container {
+                padding: 1rem;
+                border-radius: 10px;
+            }
+            
+            .form-label {
+                font-size: 0.9rem;
+            }
+            
+            .form-control {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .btn-primary {
+                padding: 0.6rem;
+                font-size: 1rem;
+            }
+        }
+        
+        /* Mobile Toggle Button */
+        .mobile-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(78, 115, 223, 0.4);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: none;
+        }
+        
+        .mobile-toggle-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
+        .mobile-toggle-btn i {
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 991.98px) {
+            .mobile-toggle-btn {
+                display: flex;
+            }
+        }
+        
+        /* Animation for mobile panel */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Mobile Features Accordion */
+        .mobile-features-btn {
+            display: none;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 991.98px) {
+            .mobile-features-btn {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="login-page">
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+            <h1>School<span>SMS</span></h1>
+        </div>
+        <p class="mb-0">Smart School Management System</p>
+    </div>
+    
+    <div class="container-fluid flex-grow-1">
+        <div class="row min-vh-100">
+            <!-- Left Side - Branding & Info (Hidden on mobile by default) -->
+            <div class="col-lg-6 col-md-5 login-left" id="loginLeftPanel">
+                <div class="login-brand">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <h1>School<span>SMS</span></h1>
+                    </div>
+                    <p class="tagline">Smart School Management System</p>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h5>Performance Analytics</h5>
+                            <p>Track student progress with real-time graphs</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h5>Digital Report Cards</h5>
+                            <p>Generate and download report cards instantly</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div class="feature-text">
+                            <h5>Role-based Access</h5>
+                            <p>Admin, Teacher & Student dashboards</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="login-quote">
+                    <blockquote>
+                        <i class="fas fa-quote-left"></i>
+                        Education is the most powerful weapon which you can use to change the world.
+                        <i class="fas fa-quote-right"></i>
+                        <footer>- Nelson Mandela</footer>
+                    </blockquote>
+                </div>
+                
+                <button class="mobile-features-btn" id="mobileFeaturesToggle">
+                    <i class="fas fa-info-circle me-2"></i> About SchoolSMS
+                </button>
+            </div>
+            
+            <!-- Right Side - Login Form -->
+            <div class="col-lg-6 col-md-7 login-right">
+                <div class="login-form-container">
+                    <div class="login-header">
+                        <h2>Welcome Back!</h2>
+                        <p>Please login to your account</p>
+                    </div>
+                    
+                    <!-- Django Authentication Form -->
+                    <form class="login-form" method="post" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Display form errors -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Your username and password didn't match. Please try again.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Display next parameter message -->
+                        {% if next %}
+                            {% if user.is_authenticated %}
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Your account doesn't have access to this page. To proceed, please login with an account that has access.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Please login to see this page.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                id="id_username" 
+                                name="username" 
+                                placeholder="Enter username" 
+                                required
+                                value="{{ form.username.value|default:'' }}"
+                            >
+                            {% if form.username.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.username.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-group">
+                                <input
+                                    type="password"
+                                    class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                                    id="id_password"
+                                    name="password"
+                                    placeholder="Enter password"
+                                    required
+                                >
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            {% if form.password.errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ form.password.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3 form-check d-flex justify-content-between">
+                            <div>
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label" for="remember">Remember me</label>
+                            </div>
+                            <a href="#" class="forgot-link">Forgot Password?</a>
+                        </div>
+                        
+                        <!-- Hidden next field for redirect -->
+                        {% if next %}
+                            <input type="hidden" name="next" value="{{ next }}">
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="login-footer mt-4">
+                        <p class="text-center">
+                            Don't have an account? 
+                            <a href="#" class="register-link">Contact Administrator</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle-btn" id="mobileToggleBtn">
+        <i class="fas fa-info"></i>
+    </button>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <!-- Custom Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // DOM Elements
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('id_password');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const alertContainer = document.getElementById('alertContainer');
+        const mobileToggleBtn = document.getElementById('mobileToggleBtn');
+        const loginLeftPanel = document.getElementById('loginLeftPanel');
+        const mobileFeaturesToggle = document.getElementById('mobileFeaturesToggle');
+        const loginForm = document.querySelector('.login-form');
+        
+        // Mobile panel toggle functionality
+        let mobilePanelVisible = false;
+        
+        mobileToggleBtn.addEventListener('click', function() {
+            if (mobilePanelVisible) {
+                // Hide panel
+                loginLeftPanel.classList.remove('show-on-mobile');
+                mobileToggleBtn.innerHTML = '<i class="fas fa-info"></i>';
+                mobileToggleBtn.setAttribute('aria-label', 'Show app information');
+            } else {
+                // Show panel
+                loginLeftPanel.classList.add('show-on-mobile');
+                mobileToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+                mobileToggleBtn.setAttribute('aria-label', 'Hide app information');
+            }
+            mobilePanelVisible = !mobilePanelVisible;
+        });
+        
+        // Mobile features toggle
+        mobileFeaturesToggle.addEventListener('click', function() {
+            if (mobilePanelVisible) {
+                // Hide panel
+                loginLeftPanel.classList.remove('show-on-mobile');
+                mobileToggleBtn.innerHTML = '<i class="fas fa-info"></i>';
+                mobilePanelVisible = false;
+            } else {
+                // Show panel
+                loginLeftPanel.classList.add('show-on-mobile');
+                mobileToggleBtn.innerHTML = '<i class="fas fa-times"></i>';
+                mobilePanelVisible = true;
+            }
+        });
+        
+        // Close mobile panel when clicking outside
+        document.addEventListener('click', function(event) {
+            if (mobilePanelVisible && window.innerWidth <= 991) {
+                const isClickInsidePanel = loginLeftPanel.contains(event.target);
+                const isClickOnToggle = mobileToggleBtn.contains(event.target) || mobileFeaturesToggle.contains(event.target);
+                
+                if (!isClickInsidePanel && !isClickOnToggle) {
+                    loginLeftPanel.classList.remove('show-on-mobile');
+                    mobileToggleBtn.innerHTML = '<i class="fas fa-info"></i>';
+                    mobilePanelVisible = false;
+                }
+            }
+        });
+        
+        // Adjust UI on window resize
+        function handleResize() {
+            if (window.innerWidth > 991) {
+                // On desktop, ensure panel is visible
+                loginLeftPanel.classList.remove('show-on-mobile');
+                mobilePanelVisible = false;
+                mobileToggleBtn.innerHTML = '<i class="fas fa-info"></i>';
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // Toggle password visibility
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+        
+        // Show/hide loading overlay
+        function showLoading(show) {
+            if (show) {
+                loadingOverlay.style.display = 'flex';
+            } else {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        // Show custom alert
+        function showAlert(message, type = 'info') {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.custom-alert');
+            existingAlerts.forEach(alert => {
+                alert.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => alert.remove(), 300);
+            });
+            
+            // Create new alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `custom-alert alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${getAlertIcon(type)} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            alertContainer.appendChild(alertDiv);
+            alertDiv.style.display = 'block';
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => alertDiv.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Get icon for alert type
+        function getAlertIcon(type) {
+            switch(type) {
+                case 'success': return 'check-circle';
+                case 'danger': return 'exclamation-circle';
+                case 'warning': return 'exclamation-triangle';
+                default: return 'info-circle';
+            }
+        }
+        
+        // Check for remembered user on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const rememberedUser = localStorage.getItem('rememberedUser');
+            if (rememberedUser) {
+                document.getElementById('id_username').value = rememberedUser;
+                document.getElementById('remember').checked = true;
+            }
+            
+            // Focus on username input
+            document.getElementById('id_username').focus();
+            
+            // Check if there are form errors and add animation
+            const formErrors = document.querySelector('.alert-danger');
+            if (formErrors) {
+                // Add shake animation to form
+                loginForm.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    loginForm.style.animation = '';
+                }, 500);
+                
+                // Clear password field on error
+                document.getElementById('id_password').value = '';
+            }
+        });
+        
+        // Contact administrator link
+        document.querySelector('.register-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showAlert('Please email administrator@schoolsms.edu to request an account.', 'info');
+        });
+        
+        // Form submission - let Django handle it, just show loading
+        loginForm.addEventListener('submit', function(e) {
+            // Show loading spinner
+            showLoading(true);
+            
+            // Store username in localStorage if "Remember me" is checked
+            const rememberMe = document.getElementById('remember').checked;
+            const username = document.getElementById('id_username').value;
+            
+            if (rememberMe && username) {
+                localStorage.setItem('rememberedUser', username);
+            } else {
+                localStorage.removeItem('rememberedUser');
+            }
+            
+            // Form will submit normally, Django will handle authentication
+            // The loading overlay will disappear when page reloads/redirects
+        });
+        
+        // Add shake animation CSS for form errors
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

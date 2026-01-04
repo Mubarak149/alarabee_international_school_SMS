@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subjects - School SMS</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for Sidebar Toggle */
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            padding-top: 70px; /* Add padding for fixed navbar */
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            height: calc(100vh - 70px); /* Subtract navbar height */
+            position: fixed;
+            left: 0;
+            top: 70px; /* Start below navbar */
+            z-index: 100;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            margin-top: 0;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .student-info {
+            text-align: center;
+        }
+        
+        .student-avatar img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4e73df;
+        }
+        
+        .student-details h6 {
+            color: #fff;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: #b0b7c3;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background-color: #4e73df;
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .sidebar-nav .badge {
+            float: right;
+            margin-top: 2px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #34495e;
+        }
+        
+        .score-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+        
+        .circle-progress {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(#4e73df 85%, #2d3748 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+        }
+        
+        .score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: calc(100vh - 70px); /* Subtract navbar height */
+            background-color: #f8f9fc;
+            transition: margin-left 0.3s ease;
+            margin-top: 70px; /* Add margin for fixed navbar */
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-weight: 700;
+            color: #2e3a59;
+        }
+        
+        /* Mobile Sidebar Toggle Styles */
+        .sidebar-toggle {
+            position: fixed;
+            top: 80px; /* Position below navbar */
+            left: 15px;
+            z-index: 1100;
+            background: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 70px; /* Start below navbar */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.show {
+            display: block;
+        }
+        
+        /* Navbar Brand */
+        .brand-text {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .brand-highlight {
+            color: #ffc107;
+        }
+        
+        .user-avatar {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding-top: 70px;
+            }
+            
+            .sidebar-toggle {
+                display: flex;
+                top: 80px;
+            }
+            
+            .sidebar {
+                height: calc(100vh - 70px);
+                top: 70px;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                margin-top: 70px;
+                padding-top: 20px;
+                min-height: calc(100vh - 70px);
+            }
+            
+            .page-header {
+                margin-top: 0;
+            }
+            
+            .sidebar-overlay {
+                top: 70px;
+            }
+            
+            /* Adjust the toggle button position when navbar expands */
+            .navbar-collapse.show ~ .sidebar-toggle {
+                top: 130px; /* Adjust based on expanded navbar height */
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .sidebar-overlay {
+                display: none !important;
+            }
+        }
+        
+        /* Fix navbar to stay on top properly */
+        .navbar {
+            z-index: 1030; /* Bootstrap default for fixed-top */
+        }
+        
+        /* Subject Page Specific Styles */
+        .parent-card {
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .parent-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .parent-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .parent-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid white;
+            margin: 0 auto 15px;
+            overflow: hidden;
+        }
+        
+        .parent-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .contact-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .contact-item i {
+            width: 20px;
+            margin-right: 10px;
+            color: #4e73df;
+        }
+        
+        /* Teacher Cards */
+        .teacher-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            height: 100%;
+        }
+        
+        .teacher-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .teacher-header {
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+        }
+        
+        .teacher-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            margin: 0 auto 15px;
+            overflow: hidden;
+        }
+        
+        .teacher-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .teacher-info {
+            padding: 20px;
+        }
+        
+        .subject-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 2px;
+            color: white;
+        }
+        
+        .subject-badge.math {
+            background-color: #4e73df;
+        }
+        
+        .subject-badge.english {
+            background-color: #1cc88a;
+        }
+        
+        .subject-badge.science {
+            background-color: #f6c23e;
+        }
+        
+        .subject-badge.history {
+            background-color: #e74a3b;
+        }
+        
+        .subject-badge.art {
+            background-color: #36b9cc;
+        }
+        
+        .subject-badge.chemistry {
+            background-color: #6f42c1;
+        }
+        
+        .subject-badge.physics {
+            background-color: #fd7e14;
+        }
+        
+        .subject-badge.geography {
+            background-color: #20c9a6;
+        }
+        
+        /* Contact Buttons */
+        .contact-btn {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            padding: 8px 0;
+            font-weight: 500;
+        }
+        
+        /* Statistics Cards */
+        .stat-card {
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .stat-card-1 {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        }
+        
+        .stat-card-2 {
+            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .breadcrumb-item.active {
+            color: #4e73df;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button for Mobile -->
+    <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Overlay for Mobile Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>
+                <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+                <span class="user-role badge bg-light text-primary ms-2">Student</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <div class="user-avatar">
+                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="User">
+                                <span class="user-name">John Doe</span>
+                            </div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-user me-2"></i> My Profile
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="fas fa-cog me-2"></i> Settings
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="index.html">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark">
+        <div class="sidebar-header">
+            <div class="student-info">
+                <div class="student-avatar">
+                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=4e73df&color=fff&size=80" alt="Student">
+                </div>
+                <div class="student-details">
+                    <h6>John Doe</h6>
+                    <p class="text-muted">Grade 10 • Roll No: S10123</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard.html">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Performance</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-book"></i>
+                        <span>Subjects</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Report Cards</span>
+                        <span class="badge bg-success">New</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="average-score-display">
+                <div class="score-circle">
+                    <div class="circle-progress" data-value="85"></div>
+                    <div class="score-text">
+                        <span class="score-value">85%</span>
+                        <span class="score-label">Average</span>
+                    </div>
+                </div>
+                <p class="text-center mt-2 text-light">Current Term</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Subjects & Teachers</h1>
+            <div class="breadcrumb">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="dashboard.html">Home</a></li>
+                        <li class="breadcrumb-item active">Subjects</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Parent Information Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card parent-card shadow">
+                    <div class="parent-header">
+                        <div class="parent-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Robert+Doe&background=667eea&color=fff&size=100" alt="Parent">
+                        </div>
+                        <h3 class="mb-2">Robert Doe</h3>
+                        <p class="mb-0">Father of John Doe</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Parent Information</h5>
+                                <div class="contact-info">
+                                    <div class="contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>+1 (555) 123-4567</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>robert.doe@email.com</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>123 Main St, New York, NY 10001</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>Software Engineer at Tech Corp</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Emergency Contact</h5>
+                                <div class="contact-info">
+                                    <div class="contact-item">
+                                        <i class="fas fa-user"></i>
+                                        <span><strong>Jane Doe</strong> (Mother)</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>+1 (555) 987-6543</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>jane.doe@email.com</span>
+                                    </div>
+                                    <div class="contact-item">
+                                        <i class="fas fa-stethoscope"></i>
+                                        <span>Emergency: +1 (555) 911-9111</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Row -->
+        <div class="row mb-4">
+            <div class="col-xl-6 col-md-6">
+                <div class="stat-card stat-card-1 shadow">
+                    <div class="stat-icon">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Total Subjects</div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-md-6">
+                <div class="stat-card stat-card-2 shadow">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-value">7</div>
+                    <div class="stat-label">Teachers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teachers and Subjects Section -->
+        <div class="row">
+            <div class="col-12 mb-4">
+                <h3 class="mb-4">Teachers & Their Subjects</h3>
+            </div>
+            
+            <!-- Teacher 1 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=David+Smith&background=4e73df&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Mr. David Smith</h5>
+                        <p class="mb-0">Mathematics Department Head</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge math">Mathematics</span>
+                            <span class="subject-badge math">Calculus</span>
+                            <span class="subject-badge math">Statistics</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            M.Sc. in Mathematics, 15 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Mon, Wed, Fri (9:00 AM - 10:30 AM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 301 (Math Building)
+                        </p>
+                        <button class="btn btn-outline-primary contact-btn">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher 2 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Sarah+Johnson&background=1cc88a&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Mrs. Sarah Johnson</h5>
+                        <p class="mb-0">English Literature Teacher</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge english">English Literature</span>
+                            <span class="subject-badge english">Creative Writing</span>
+                            <span class="subject-badge english">Grammar & Composition</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            M.A. in English Literature, 12 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Tue, Thu (10:30 AM - 12:00 PM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 205 (Language Arts Building)
+                        </p>
+                        <button class="btn btn-outline-success contact-btn">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher 3 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Michael+Williams&background=f6c23e&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Mr. Michael Williams</h5>
+                        <p class="mb-0">Science Department</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge science">Physics</span>
+                            <span class="subject-badge science">Advanced Physics</span>
+                            <span class="subject-badge physics">Laboratory Science</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            Ph.D. in Physics, 18 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Mon, Wed, Fri (1:00 PM - 2:30 PM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 410 (Science Building)
+                        </p>
+                        <button class="btn btn-outline-warning contact-btn">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher 4 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Jennifer+Davis&background=36b9cc&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Ms. Jennifer Davis</h5>
+                        <p class="mb-0">Chemistry Teacher</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge chemistry">Chemistry</span>
+                            <span class="subject-badge chemistry">Organic Chemistry</span>
+                            <span class="subject-badge science">General Science</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            M.Sc. in Chemistry, 10 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Tue, Thu (8:00 AM - 9:30 AM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 315 (Science Building)
+                        </p>
+                        <button class="btn btn-outline-info contact-btn">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher 5 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Robert+Brown&background=e74a3b&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Mr. Robert Brown</h5>
+                        <p class="mb-0">Social Studies Teacher</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge history">World History</span>
+                            <span class="subject-badge geography">Geography</span>
+                            <span class="subject-badge history">Civics</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            M.A. in History, 14 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Mon, Wed (2:30 PM - 4:00 PM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 108 (Social Studies Building)
+                        </p>
+                        <button class="btn btn-outline-danger contact-btn">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teacher 6 -->
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card teacher-card shadow">
+                    <div class="teacher-header">
+                        <div class="teacher-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Amanda+Wilson&background=6f42c1&color=fff&size=80" alt="Teacher">
+                        </div>
+                        <h5 class="mb-1">Mrs. Amanda Wilson</h5>
+                        <p class="mb-0">Arts Department</p>
+                    </div>
+                    <div class="teacher-info">
+                        <h6 class="mb-3">Subjects Teaching:</h6>
+                        <div class="mb-3">
+                            <span class="subject-badge art">Visual Arts</span>
+                            <span class="subject-badge art">Art History</span>
+                            <span class="subject-badge art">Drawing & Painting</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            B.F.A. in Fine Arts, 8 years experience
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-clock me-1"></i>
+                            Classes: Fri (10:30 AM - 1:00 PM)
+                        </p>
+                        <p class="small text-muted mb-3">
+                            <i class="fas fa-door-open me-1"></i>
+                            Room: 501 (Arts Building)
+                        </p>
+                        <button class="btn btn-outline-purple contact-btn" style="border-color: #6f42c1; color: #6f42c1;">
+                            <i class="fas fa-envelope me-1"></i> Contact Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Subjects Overview -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>All Subjects Overview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Teacher</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Mathematics</strong></td>
+                                        <td>Mr. David Smith</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>English Literature</strong></td>
+                                        <td>Mrs. Sarah Johnson</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Physics</strong></td>
+                                        <td>Mr. Michael Williams</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Chemistry</strong></td>
+                                        <td>Ms. Jennifer Davis</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>World History</strong></td>
+                                        <td>Mr. Robert Brown</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Geography</strong></td>
+                                        <td>Mr. Robert Brown</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Visual Arts</strong></td>
+                                        <td>Mrs. Amanda Wilson</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Physical Education</strong></td>
+                                        <td>Mr. James Miller</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Sidebar Toggle Functionality
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebarToggle && sidebar) {
+                // Toggle sidebar when button is clicked
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+                });
+                
+                // Close sidebar when overlay is clicked
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+                
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', function(e) {
+                    if (window.innerWidth <= 768) {
+                        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                            sidebar.classList.remove('show');
+                            sidebarOverlay.classList.remove('show');
+                            document.body.style.overflow = '';
+                        }
+                    }
+                });
+                
+                // Close sidebar when pressing Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        sidebar.classList.remove('show');
+                        sidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+            
+            // Update main content margin for desktop
+            function updateMainContentMargin() {
+                const mainContent = document.querySelector('.main-content');
+                if (window.innerWidth > 768) {
+                    mainContent.style.marginLeft = '250px';
+                } else {
+                    mainContent.style.marginLeft = '0';
+                }
+            }
+            
+            // Update sidebar and toggle button positions based on navbar state
+            function updateSidebarPosition() {
+                const navbar = document.querySelector('.navbar');
+                const navbarHeight = navbar.offsetHeight;
+                
+                // Update body padding
+                document.body.style.paddingTop = navbarHeight + 'px';
+                
+                // Update sidebar position
+                if (sidebar) {
+                    sidebar.style.top = navbarHeight + 'px';
+                    sidebar.style.height = `calc(100vh - ${navbarHeight}px)`;
+                }
+                
+                // Update main content
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.style.marginTop = navbarHeight + 'px';
+                    mainContent.style.minHeight = `calc(100vh - ${navbarHeight}px)`;
+                }
+                
+                // Update sidebar toggle button
+                if (sidebarToggle) {
+                    sidebarToggle.style.top = (navbarHeight + 10) + 'px';
+                }
+                
+                // Update overlay
+                if (sidebarOverlay) {
+                    sidebarOverlay.style.top = navbarHeight + 'px';
+                }
+            }
+            
+            // Initial call
+            updateMainContentMargin();
+            updateSidebarPosition();
+            
+            // Update on resize
+            window.addEventListener('resize', function() {
+                updateMainContentMargin();
+                updateSidebarPosition();
+            });
+            
+            // Update when navbar expands/collapses on mobile
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            if (navbarToggler) {
+                navbarToggler.addEventListener('click', function() {
+                    // Small delay to let Bootstrap handle the collapse/expand
+                    setTimeout(updateSidebarPosition, 350);
+                });
+            }
+            
+            // Update sidebar progress circle
+            const progressCircle = document.querySelector('.circle-progress');
+            if (progressCircle) {
+                const value = progressCircle.dataset.value || 85;
+                progressCircle.style.background = `conic-gradient(#4e73df ${value}%, #2d3748 0%)`;
+            }
+            
+            // Contact Teacher Button Handler
+            const contactButtons = document.querySelectorAll('.contact-btn');
+            contactButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const teacherName = this.closest('.teacher-card').querySelector('h5').textContent;
+                    alert(`Contact form for ${teacherName} would open here. This would allow you to send a message to the teacher.`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
