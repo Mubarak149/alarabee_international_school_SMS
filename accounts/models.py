@@ -9,4 +9,6 @@ class User(AbstractUser):
         ('staff', 'Staff'),
     )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    dob = models.DateField(null=True, blank=True)
+    address = models.TextField(null=True, blank=True)
     
