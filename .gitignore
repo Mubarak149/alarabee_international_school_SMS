@@ -81,7 +81,7 @@ dist/
 # Django migrations (OPTIONAL)
 # Uncomment if you don't want migrations
 # =========================
-# */migrations/
-# !*/migrations/__init__.py
+*/migrations/
+!*/migrations/__init__.py
 
 program_test.py

@@ -28,6 +28,8 @@ INSTALLED_APPS = [
 
     'accounts',
     "school_admin",
+    "staff",
+    "students",
     
 ]
 
