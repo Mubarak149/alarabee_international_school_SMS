@@ -4,6 +4,9 @@ from django.shortcuts import render
 def admin_panel(request):
     return render(request, "school_admin/admin_dashboard.html")
 
+def admin_profile(request):
+    return render(request, "school_admin/admin_profile.html")
+
 def manage_students(request):
     return render(request, "school_admin/manage_students.html")
 
@@ -15,4 +18,5 @@ def manage_classes(request):
 
 def manage_subjects(request):
     return render(request, "school_admin/manage_subjects.html")
+
 
