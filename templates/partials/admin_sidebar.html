@@ -1,0 +1,137 @@
+<!-- Mobile Sidebar (for small screens) -->
+<div class="collapse d-lg-none" id="mobileSidebar">
+    <div class="sidebar-mobile bg-dark">
+        <div class="sidebar-header">
+            <div class="admin-info">
+                <div class="admin-avatar">
+                    <img src="https://ui-avatars.com/api/?name=System+Admin&background=E74A3B&color=fff&size=80" alt="Admin">
+                </div>
+                <div class="admin-details">
+                    <h6>System Administrator</h6>
+                    <p class="text-muted">Super User Access</p>
+                    <div class="admin-stats">
+                        <span class="badge bg-primary me-1">Full Control</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}"
+                       href="{% url 'admin_panel' %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_students' %}active{% endif %}"
+                       href="{% url 'manage_students' %}">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>Manage Students</span>
+                        <span class="badge bg-success">1,245</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_teachers' %}active{% endif %}"
+                       href="{% url 'manage_teachers' %}">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <span>Manage Teachers</span>
+                        <span class="badge bg-primary">58</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_classes' %}active{% endif %}"
+                       href="{% url 'manage_classes' %}">
+                        <i class="fas fa-school"></i>
+                        <span>Manage Classes</span>
+                        <span class="badge bg-info">42</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_subjects' %}active{% endif %}"
+                       href="{% url 'manage_subjects' %}">
+                        <i class="fas fa-book"></i>
+                        <span>Manage Subjects</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
+                       href="#">
+                        <i class="fas fa-cogs"></i>
+                        <span>System Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Desktop Sidebar -->
+<div class="sidebar bg-dark d-none d-lg-block">
+    <div class="sidebar-header">
+        <div class="admin-info">
+            <div class="admin-avatar">
+                <img src="https://ui-avatars.com/api/?name=System+Admin&background=E74A3B&color=fff&size=80" alt="Admin">
+            </div>
+            <div class="admin-details">
+                <h6>System Administrator</h6>
+                <p class="text-muted">Super User Access</p>
+                <div class="admin-stats">
+                    <span class="badge bg-primary me-1">Full Control</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}"
+                   href="{% url 'admin_panel' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_students' %}active{% endif %}"
+                   href="{% url 'manage_students' %}">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Manage Students</span>
+                    <span class="badge bg-success">1,245</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_teachers' %}active{% endif %}"
+                   href="{% url 'manage_teachers' %}">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>Manage Teachers</span>
+                    <span class="badge bg-primary">58</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_classes' %}active{% endif %}"
+                   href="{% url 'manage_classes' %}">
+                    <i class="fas fa-school"></i>
+                    <span>Manage Classes</span>
+                    <span class="badge bg-info">42</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_subjects' %}active{% endif %}"
+                   href="{% url 'manage_subjects' %}">
+                    <i class="fas fa-book"></i>
+                    <span>Manage Subjects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
+                   href="#">
+                    <i class="fas fa-cogs"></i>
+                    <span>System Settings</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

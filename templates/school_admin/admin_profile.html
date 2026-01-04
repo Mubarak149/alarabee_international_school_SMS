@@ -1,1680 +1,1129 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Profile - SchoolSMS</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4e73df;
-            --primary-dark: #2e59d9;
-            --secondary-color: #858796;
-            --success-color: #1cc88a;
-            --info-color: #36b9cc;
-            --warning-color: #f6c23e;
-            --danger-color: #e74a3b;
-            --light-color: #f8f9fc;
-            --dark-color: #5a5c69;
-            
-            /* Theme Variables */
-            --bg-primary: #f8f9fc;
-            --bg-secondary: #ffffff;
-            --bg-sidebar: #343a40;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --text-light: #ffffff;
-            --border-color: #e3e6f0;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+{% extends "school_admin/base_admin.html" %}
+
+{% block title %}Admin Profile - SchoolSMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #4e73df;
+        --primary-dark: #2e59d9;
+        --secondary-color: #858796;
+        --success-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+        --danger-color: #e74a3b;
+        --light-color: #f8f9fc;
+        --dark-color: #5a5c69;
         
-        /* Dark Theme Variables */
-        [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --bg-sidebar: #1e1e1e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --text-light: #ffffff;
-            --border-color: #444444;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-            padding-top: 70px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        
-        /* Navbar Styles */
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1030;
-            transition: background-color 0.3s;
-        }
-        
-        .navbar.bg-danger {
-            background-color: var(--danger-color) !important;
-        }
-        
-        .brand-text {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        
-        .brand-highlight {
-            color: #ffc107;
-        }
-        
-        .user-avatar {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-avatar img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .user-name {
-            color: var(--text-light);
-        }
-        
-        /* Theme Toggle Styles */
-        .theme-toggle-container {
-            display: flex;
-            align-items: center;
-            margin-right: 10px;
-        }
-        
-        .theme-toggle-checkbox {
-            display: none;
-        }
-        
-        .theme-toggle-label {
-            position: relative;
-            display: flex;
-            align-items: center;
-            width: 60px;
-            height: 30px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50px;
-            cursor: pointer;
-            padding: 0 5px;
-            transition: background-color 0.3s;
-        }
-        
-        .theme-icon-sun, .theme-icon-moon {
-            font-size: 14px;
-            color: #ffc107;
-            z-index: 1;
-            transition: opacity 0.3s;
-        }
-        
-        .theme-icon-sun {
-            opacity: 1;
-        }
-        
-        .theme-icon-moon {
-            opacity: 0;
-            margin-left: auto;
-        }
-        
-        .theme-toggle-ball {
-            position: absolute;
-            left: 5px;
-            width: 22px;
-            height: 22px;
-            background-color: white;
-            border-radius: 50%;
-            transition: transform 0.3s;
-        }
-        
-        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-toggle-ball {
-            transform: translateX(30px);
-        }
-        
-        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-icon-sun {
-            opacity: 0;
-        }
-        
-        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-icon-moon {
-            opacity: 1;
-        }
-        
-        .theme-toggle-desktop {
-            padding-right: 20px;
-        }
-        
-        .theme-quick-toggle {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .theme-btn-light, .theme-btn-dark {
-            padding: 5px 10px !important;
-            font-size: 0.8rem !important;
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            height: calc(100vh - 70px);
-            position: fixed;
-            left: 0;
-            top: 70px;
-            z-index: 100;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-            background-color: var(--bg-sidebar);
-            transition: background-color 0.3s;
-        }
-        
-        .sidebar-mobile {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            z-index: 999;
-            max-height: calc(100vh - 70px);
-            overflow-y: auto;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .admin-info {
-            text-align: center;
-        }
-        
-        .admin-avatar img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid var(--danger-color);
-        }
-        
-        .admin-details h6 {
-            color: var(--text-light);
-            margin-top: 10px;
-            margin-bottom: 5px;
-        }
-        
-        .admin-details p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        
-        .admin-stats {
-            margin-top: 10px;
-        }
-        
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-        
-        .sidebar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 12px 20px;
-            transition: all 0.3s;
-        }
-        
-        .sidebar-nav .nav-link:hover,
-        .sidebar-nav .nav-link.active {
-            color: var(--text-light);
-            background-color: rgba(231, 74, 59, 0.2);
-            border-left: 4px solid var(--danger-color);
-        }
-        
-        .sidebar-nav .nav-link i {
-            width: 20px;
-            margin-right: 10px;
-        }
-        
-        .sidebar-nav .badge {
-            float: right;
-            margin-top: 2px;
-        }
-        
-        /* Main Content */
+        /* Theme Variables */
+        --bg-primary: #f8f9fc;
+        --bg-secondary: #ffffff;
+        --bg-sidebar: #343a40;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --text-light: #ffffff;
+        --border-color: #e3e6f0;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Dark Theme Variables */
+    [data-theme="dark"] {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --bg-sidebar: #1e1e1e;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --text-light: #ffffff;
+        --border-color: #444444;
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Page-specific styles */
+    .main-content {
+        min-height: calc(100vh - 56px);
+        background-color: var(--bg-primary);
+        transition: margin-left 0.3s ease, background-color 0.3s;
+    }
+    
+    /* Page Header */
+    .page-header {
+        margin-bottom: 30px;
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+    }
+    
+    .breadcrumb-item a {
+        color: var(--danger-color);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Theme Quick Toggle */
+    .theme-quick-toggle {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .theme-btn-light, .theme-btn-dark {
+        padding: 5px 10px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Card Styles */
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 20px;
+        background-color: var(--bg-secondary);
+        transition: background-color 0.3s;
+    }
+    
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        padding: 15px 20px;
+        font-weight: 600;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+    
+    /* Profile Header */
+    .profile-header {
+        background: linear-gradient(135deg, var(--danger-color) 0%, #d62a24 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: rotate(30deg);
+    }
+    
+    .profile-avatar-section {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 600;
+        position: relative;
+        border: 4px solid white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .avatar-upload-btn {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: var(--success-color);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        cursor: pointer;
+        z-index: 2;
+    }
+    
+    .profile-info h2 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    
+    .profile-info .role-badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 0.25rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        border-left: 4px solid white;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stat-card h4 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card p {
+        color: rgba(255, 255, 255, 0.9);
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    /* Profile Tabs */
+    .profile-tabs {
+        background-color: var(--bg-secondary);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+    
+    .nav-tabs {
+        border-bottom: 1px solid var(--border-color);
+        padding: 0 1.5rem;
+        background-color: var(--bg-secondary);
+    }
+    
+    .nav-tabs .nav-link {
+        color: var(--text-secondary);
+        border: none;
+        padding: 1rem 1.5rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: var(--danger-color);
+        border: none;
+        background: transparent;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--danger-color);
+        border-bottom: 3px solid var(--danger-color);
+        background: transparent;
+    }
+    
+    .tab-content {
+        padding: 1.5rem;
+    }
+    
+    /* Form Styles */
+    .profile-form .form-label {
+        font-weight: 500;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .profile-form .form-control,
+    .profile-form .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+    
+    .profile-form .form-control:focus,
+    .profile-form .form-select:focus {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+    
+    .profile-form .input-group-text {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+    
+    .readonly-field {
+        background-color: var(--bg-primary);
+        cursor: not-allowed;
+    }
+    
+    /* Qualification Items */
+    .qualification-item {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .qualification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Security Section */
+    .security-card {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .security-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .security-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .security-info h6 {
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+    
+    .security-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    /* Activity Log */
+    .activity-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .activity-timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--danger-color);
+        opacity: 0.3;
+    }
+    
+    .activity-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -1.5rem;
+        top: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--danger-color);
+        border: 3px solid var(--bg-secondary);
+        box-shadow: 0 0 0 2px var(--danger-color);
+    }
+    
+    .activity-content {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .activity-content h6 {
+        margin-bottom: 0.25rem;
+        color: var(--text-primary);
+    }
+    
+    .activity-content p {
+        color: var(--text-secondary);
+        margin-bottom: 0.5rem;
+    }
+    
+    .activity-time {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Button Styles */
+    .btn-save {
+        background-color: var(--success-color);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-save:hover {
+        background-color: #17a673;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(28, 200, 138, 0.3);
+    }
+    
+    .btn-cancel {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-cancel:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline-light {
+        color: var(--text-light);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .btn-outline-light:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: white;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 991.98px) {
         .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            min-height: calc(100vh - 70px);
-            background-color: var(--bg-primary);
-            transition: margin-left 0.3s ease, background-color 0.3s;
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .breadcrumb {
-            background-color: transparent;
-            padding: 0;
-        }
-        
-        .breadcrumb-item a {
-            color: var(--danger-color);
-            text-decoration: none;
-        }
-        
-        .breadcrumb-item.active {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        
-        /* Mobile Menu Button */
-        .mobile-menu-btn {
-            padding: 6px 12px !important;
-            font-size: 0.9rem !important;
-        }
-        
-        /* Card Styles */
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 20px;
-            background-color: var(--bg-secondary);
-            transition: background-color 0.3s;
-        }
-        
-        .card-header {
-            border-radius: 12px 12px 0 0 !important;
-            padding: 15px 20px;
-            font-weight: 600;
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        /* Profile Header */
-        .profile-header {
-            background: linear-gradient(135deg, var(--danger-color) 0%, #d62a24 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .profile-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(30deg);
+            padding: 15px;
         }
         
         .profile-avatar-section {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 600;
-            position: relative;
-            border: 4px solid white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .avatar-upload-btn {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: var(--success-color);
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid white;
-            cursor: pointer;
-            z-index: 2;
-        }
-        
-        .profile-info h2 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: white;
-        }
-        
-        .profile-info .role-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            flex-direction: column;
+            text-align: center;
         }
         
         .profile-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-            position: relative;
-            z-index: 1;
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 767.98px) {
+        .main-content {
+            padding: 10px;
         }
         
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid white;
-            backdrop-filter: blur(10px);
-        }
-        
-        .stat-card h4 {
+        .page-header h1 {
             font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 0.5rem;
         }
         
-        .stat-card p {
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0;
-            font-size: 0.9rem;
+        .profile-header {
+            padding: 1.5rem;
         }
         
-        /* Profile Tabs */
-        .profile-tabs {
-            background-color: var(--bg-secondary);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-        
-        .nav-tabs {
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 1.5rem;
-            background-color: var(--bg-secondary);
-        }
-        
-        .nav-tabs .nav-link {
-            color: var(--text-secondary);
-            border: none;
-            padding: 1rem 1.5rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-        }
-        
-        .nav-tabs .nav-link:hover {
-            color: var(--danger-color);
-            border: none;
-            background: transparent;
-        }
-        
-        .nav-tabs .nav-link.active {
-            color: var(--danger-color);
-            border-bottom: 3px solid var(--danger-color);
-            background: transparent;
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
         }
         
         .tab-content {
-            padding: 1.5rem;
-        }
-        
-        /* Form Styles */
-        .profile-form .form-label {
-            font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .profile-form .form-control,
-        .profile-form .form-select {
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-        
-        .profile-form .form-control:focus,
-        .profile-form .form-select:focus {
-            border-color: var(--danger-color);
-            box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-        
-        .profile-form .input-group-text {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-        }
-        
-        .readonly-field {
-            background-color: var(--bg-primary);
-            cursor: not-allowed;
-        }
-        
-        /* Qualification Items */
-        .qualification-item {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
             padding: 1rem;
-            margin-bottom: 1rem;
         }
         
-        .qualification-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
+        .nav-tabs {
+            padding: 0 1rem;
         }
         
-        /* Security Section */
-        .security-card {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .profile-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .theme-quick-toggle {
+            flex-direction: column;
+            gap: 5px;
+        }
+    }
+    
+    @media (max-width: 575.98px) {
+        .profile-header {
+            padding: 1rem;
+        }
+        
+        .stat-card h4 {
+            font-size: 1.25rem;
         }
         
         .security-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .security-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        
-        .security-info h6 {
-            margin-bottom: 0.25rem;
-            color: var(--text-primary);
-        }
-        
-        .security-info p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin: 0;
-        }
-        
-        /* Activity Log */
-        .activity-timeline {
-            position: relative;
-            padding-left: 2rem;
-        }
-        
-        .activity-timeline::before {
-            content: '';
-            position: absolute;
-            left: 7px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--danger-color);
-            opacity: 0.3;
-        }
-        
-        .activity-item {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-        
-        .activity-item::before {
-            content: '';
-            position: absolute;
-            left: -1.5rem;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--danger-color);
-            border: 3px solid var(--bg-secondary);
-            box-shadow: 0 0 0 2px var(--danger-color);
-        }
-        
-        .activity-content {
-            background-color: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
-        }
-        
-        .activity-content h6 {
-            margin-bottom: 0.25rem;
-            color: var(--text-primary);
-        }
-        
-        .activity-content p {
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .activity-time {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 0.5rem;
         }
         
-        /* Button Styles */
-        .btn {
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.3s;
+        .security-item .btn {
+            align-self: flex-end;
         }
-        
-        .btn-save {
-            background-color: var(--success-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn-save:hover {
-            background-color: #17a673;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(28, 200, 138, 0.3);
-        }
-        
-        .btn-cancel {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .btn-cancel:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
-        }
-        
-        .btn-outline-danger {
-            color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-outline-danger:hover {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-outline-light {
-            color: var(--text-light);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .btn-outline-light:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: white;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-danger:hover {
-            background-color: #d62a24;
-            border-color: #d62a24;
-        }
-        
-        /* Backdrop */
-        .sidebar-backdrop {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            display: none;
-        }
-        
-        .sidebar-backdrop.show {
-            display: block;
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 991.98px) {
-            body {
-                padding-top: 60px;
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-                top: 60px;
-                height: calc(100vh - 60px);
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0 !important;
-                padding: 15px;
-            }
-            
-            .mobile-menu-btn {
-                display: block !important;
-            }
-            
-            .navbar-toggler.sidebar-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 40px;
-                height: 40px;
-            }
-            
-            .sidebar-backdrop {
-                top: 60px;
-            }
-            
-            .profile-avatar-section {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .profile-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 767.98px) {
-            .main-content {
-                padding: 10px;
-            }
-            
-            .page-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .profile-header {
-                padding: 1.5rem;
-            }
-            
-            .profile-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
-            }
-            
-            .tab-content {
-                padding: 1rem;
-            }
-            
-            .nav-tabs {
-                padding: 0 1rem;
-            }
-            
-            .nav-tabs .nav-link {
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
-            }
-            
-            .profile-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .theme-quick-toggle {
-                flex-direction: column;
-                gap: 5px;
-            }
-        }
-        
-        @media (max-width: 575.98px) {
-            .mobile-menu-btn {
-                font-size: 0.8rem !important;
-                padding: 4px 8px !important;
-            }
-            
-            .profile-header {
-                padding: 1rem;
-            }
-            
-            .stat-card h4 {
-                font-size: 1.25rem;
-            }
-            
-            .security-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-            
-            .security-item .btn {
-                align-self: flex-end;
-            }
-        }
-        
-        /* Theme-specific adjustments */
-        [data-theme="dark"] .card {
-            border: 1px solid var(--border-color);
-        }
-        
-        [data-theme="dark"] .form-control, 
-        [data-theme="dark"] .form-select {
-            background-color: #3a3a3a;
-            border-color: #555;
-            color: #e0e0e0;
-        }
-        
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--bg-primary);
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--danger-color);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #d62a24;
-        }
-    </style>
-</head>
-<body>
-    <!-- Top Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-user-shield me-2"></i>
-                <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
-                <span class="user-role badge bg-light text-danger ms-2">Administrator</span>
-            </a>
-            
-            <!-- Mobile Toggle Buttons -->
-            <div class="d-flex gap-2">
-                <!-- Theme Toggle Button -->
-                <div class="theme-toggle-container">
-                    <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
-                    <label for="themeToggle" class="theme-toggle-label">
-                        <i class="fas fa-sun theme-icon-sun"></i>
-                        <i class="fas fa-moon theme-icon-moon"></i>
-                        <span class="theme-toggle-ball"></span>
-                    </label>
-                </div>
-                
-                <!-- Sidebar Toggle Button (Mobile Only) -->
-                <button class="navbar-toggler d-lg-none sidebar-toggle" type="button" 
-                        data-bs-toggle="collapse" data-bs-target="#mobileSidebar"
-                        aria-controls="mobileSidebar" aria-expanded="false" aria-label="Toggle sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <!-- Navbar Toggle Button -->
-                <button class="navbar-toggler" type="button" 
-                        data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-            </div>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <!-- Theme Toggle for Desktop -->
-                    <li class="nav-item d-none d-lg-block">
-                        <div class="nav-link theme-toggle-desktop">
-                            <input type="checkbox" id="themeToggleDesktop" class="theme-toggle-checkbox">
-                            <label for="themeToggleDesktop" class="theme-toggle-label">
-                                <i class="fas fa-sun theme-icon-sun"></i>
-                                <i class="fas fa-moon theme-icon-moon"></i>
-                                <span class="theme-toggle-ball"></span>
-                            </label>
-                        </div>
-                    </li>
-                    
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <div class="user-avatar">
-                                <img src="https://ui-avatars.com/api/?name=John+Smith&background=E74A3B&color=fff" alt="Admin">
-                                <span class="user-name">John Smith</span>
-                            </div>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-user-cog me-2"></i> Profile Settings
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-cog me-2"></i> System Settings
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="logout.html">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    }
+    
+    /* Theme-specific adjustments */
+    [data-theme="dark"] .card {
+        border: 1px solid var(--border-color);
+    }
+    
+    [data-theme="dark"] .form-control, 
+    [data-theme="dark"] .form-select {
+        background-color: #3a3a3a;
+        border-color: #555;
+        color: #e0e0e0;
+    }
+</style>
+{% endblock %}
 
-    <!-- Mobile Sidebar (for small screens) -->
-    <div class="collapse d-lg-none" id="mobileSidebar">
-        <div class="sidebar-mobile bg-dark">
-            <div class="sidebar-header">
-                <div class="admin-info">
-                    <div class="admin-avatar">
-                        <img src="https://ui-avatars.com/api/?name=John+Smith&background=E74A3B&color=fff&size=80" alt="Admin">
-                    </div>
-                    <div class="admin-details">
-                        <h6>John Smith</h6>
-                        <p class="text-muted">Administrator</p>
-                    </div>
-                </div>
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Admin Profile</h1>
+        <div class="d-flex gap-2">
+            <!-- Theme Quick Toggle -->
+            <div class="theme-quick-toggle">
+                <button class="btn btn-sm btn-outline-light theme-btn-light" data-theme="light">
+                    <i class="fas fa-sun"></i> Light
+                </button>
+                <button class="btn btn-sm btn-outline-light theme-btn-dark" data-theme="dark">
+                    <i class="fas fa-moon"></i> Dark
+                </button>
             </div>
-            
-            <nav class="sidebar-nav">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link" href="dashboard.html">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="students.html">
-                            <i class="fas fa-user-graduate"></i>
-                            <span>Manage Students</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="teachers.html">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span>Manage Teachers</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="classes.html">
-                            <i class="fas fa-school"></i>
-                            <span>Manage Classes</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="subjects.html">
-                            <i class="fas fa-book"></i>
-                            <span>Manage Subjects</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-user-cog"></i>
-                            <span>Profile Settings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="settings.html">
-                            <i class="fas fa-cog"></i>
-                            <span>System Settings</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
         </div>
     </div>
-
-    <!-- Desktop Sidebar -->
-    <div class="sidebar bg-dark d-none d-lg-block">
-        <div class="sidebar-header">
-            <div class="admin-info">
-                <div class="admin-avatar">
-                    <img src="https://ui-avatars.com/api/?name=John+Smith&background=E74A3B&color=fff&size=80" alt="Admin">
-                </div>
-                <div class="admin-details">
-                    <h6>John Smith</h6>
-                    <p class="text-muted">Administrator</p>
-                </div>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.html">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="students.html">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Manage Students</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="teachers.html">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <span>Manage Teachers</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="classes.html">
-                        <i class="fas fa-school"></i>
-                        <span>Manage Classes</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="subjects.html">
-                        <i class="fas fa-book"></i>
-                        <span>Manage Subjects</span>
-                    </a>
-                </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-user-cog"></i>
-                        <span>Profile Settings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="settings.html">
-                        <i class="fas fa-cog"></i>
-                        <span>System Settings</span>
-                    </a>
-                </li>
-            </ul>
+    <div class="breadcrumb">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Profile Settings</li>
+            </ol>
         </nav>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h1>Admin Profile</h1>
-                <div class="d-flex gap-2">
-                    <!-- Theme Quick Toggle -->
-                    <div class="theme-quick-toggle">
-                        <button class="btn btn-sm btn-outline-light theme-btn-light" data-theme="light">
-                            <i class="fas fa-sun"></i> Light
-                        </button>
-                        <button class="btn btn-sm btn-outline-light theme-btn-dark" data-theme="dark">
-                            <i class="fas fa-moon"></i> Dark
-                        </button>
-                    </div>
-                    
-                    <!-- Mobile Menu Button -->
-                    <button class="btn btn-danger d-lg-none mobile-menu-btn" type="button" 
-                            data-bs-toggle="collapse" data-bs-target="#mobileSidebar">
-                        <i class="fas fa-bars"></i> Menu
-                    </button>
-                </div>
-            </div>
-            <div class="breadcrumb">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="dashboard.html">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Profile Settings</li>
-                    </ol>
-                </nav>
+<!-- Profile Header -->
+<div class="profile-header">
+    <div class="profile-avatar-section">
+        <div class="profile-avatar">
+            JS
+            <div class="avatar-upload-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
+                <i class="fas fa-camera"></i>
             </div>
         </div>
+        <div class="profile-info">
+            <h2 id="profileName">John Smith</h2>
+            <span class="role-badge">System Administrator</span>
+            <p class="mt-2">
+                <i class="fas fa-envelope me-1"></i> john.smith@schoolsms.edu
+                <span class="mx-2">•</span>
+                <i class="fas fa-phone me-1"></i> +123 456 7890
+            </p>
+        </div>
+    </div>
+    
+    <div class="profile-stats">
+        <div class="stat-card">
+            <h4>1,254</h4>
+            <p>Total Students</p>
+        </div>
+        <div class="stat-card">
+            <h4>86</h4>
+            <p>Teaching Staff</p>
+        </div>
+        <div class="stat-card">
+            <h4>32</h4>
+            <p>Classes</p>
+        </div>
+        <div class="stat-card">
+            <h4>98.5%</h4>
+            <p>Attendance Rate</p>
+        </div>
+    </div>
+</div>
 
-        <!-- Profile Header -->
-        <div class="profile-header">
-            <div class="profile-avatar-section">
-                <div class="profile-avatar">
-                    JS
-                    <div class="avatar-upload-btn" data-bs-toggle="modal" data-bs-target="#avatarModal">
-                        <i class="fas fa-camera"></i>
+<!-- Profile Tabs -->
+<div class="profile-tabs">
+    <ul class="nav nav-tabs" id="profileTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" 
+                    data-bs-target="#personal" type="button" role="tab">
+                <i class="fas fa-user-circle"></i> Personal Info
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="bank-tab" data-bs-toggle="tab" 
+                    data-bs-target="#bank" type="button" role="tab">
+                <i class="fas fa-university"></i> Bank Details
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="qualification-tab" data-bs-toggle="tab" 
+                    data-bs-target="#qualification" type="button" role="tab">
+                <i class="fas fa-graduation-cap"></i> Qualifications
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="security-tab" data-bs-toggle="tab" 
+                    data-bs-target="#security" type="button" role="tab">
+                <i class="fas fa-shield-alt"></i> Security
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="activity-tab" data-bs-toggle="tab" 
+                    data-bs-target="#activity" type="button" role="tab">
+                <i class="fas fa-history"></i> Activity Log
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="profileTabContent">
+        <!-- Personal Info Tab -->
+        <div class="tab-pane fade show active" id="personal" role="tabpanel">
+            <form class="profile-form" id="personalForm">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name *</label>
+                        <input type="text" class="form-control" id="firstName" 
+                               value="John" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name *</label>
+                        <input type="text" class="form-control" id="lastName" 
+                               value="Smith" required>
                     </div>
                 </div>
-                <div class="profile-info">
-                    <h2 id="profileName">John Smith</h2>
-                    <span class="role-badge">System Administrator</span>
-                    <p class="mt-2">
-                        <i class="fas fa-envelope me-1"></i> john.smith@schoolsms.edu
-                        <span class="mx-2">•</span>
-                        <i class="fas fa-phone me-1"></i> +123 456 7890
-                    </p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Username *</label>
+                        <input type="text" class="form-control readonly-field" id="username" 
+                               value="john.smith" required readonly>
+                        <small class="text-muted">Username cannot be changed</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email Address *</label>
+                        <input type="email" class="form-control" id="email" 
+                               value="john.smith@schoolsms.edu" required>
+                    </div>
                 </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="dob" 
+                               value="1985-06-15">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Gender</label>
+                        <select class="form-select" id="gender">
+                            <option value="M" selected>Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Telephone *</label>
+                        <input type="tel" class="form-control" id="telephone" 
+                               value="+1234567890" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">National ID (NIN)</label>
+                        <input type="text" class="form-control" id="nin" 
+                               value="NIN123456789">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-control" id="address" rows="3">123 Education Street, Knowledge City</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Bank Details Tab -->
+        <div class="tab-pane fade" id="bank" role="tabpanel">
+            <form class="profile-form" id="bankForm">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Bank Name *</label>
+                        <input type="text" class="form-control" id="bankName" 
+                               value="National Bank" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Account Number *</label>
+                        <input type="text" class="form-control" id="accountNumber" 
+                               value="123456789012" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Account Holder Name *</label>
+                        <input type="text" class="form-control" id="accountHolder" 
+                               value="John Smith" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Account Type</label>
+                        <select class="form-select" id="accountType">
+                            <option value="savings" selected>Savings Account</option>
+                            <option value="current">Current Account</option>
+                            <option value="salary">Salary Account</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Bank details are used for salary processing and other financial transactions.
+                </div>
+                
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-save">Save Bank Details</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Qualifications Tab -->
+        <div class="tab-pane fade" id="qualification" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Educational Qualifications</h5>
+                <button class="btn btn-danger" data-bs-toggle="modal" 
+                        data-bs-target="#addQualificationModal">
+                    <i class="fas fa-plus me-2"></i>Add Qualification
+                </button>
             </div>
             
-            <div class="profile-stats">
-                <div class="stat-card">
-                    <h4>1,254</h4>
-                    <p>Total Students</p>
+            <div class="qualification-list">
+                <div class="qualification-item">
+                    <div class="qualification-header">
+                        <h6 class="mb-0">Master of Education (M.Ed)</h6>
+                        <span class="badge bg-success">Highest</span>
+                    </div>
+                    <p class="mb-1"><strong>University:</strong> National University of Education</p>
+                    <p class="mb-1"><strong>Year:</strong> 2010 - 2012</p>
+                    <p class="mb-1"><strong>Grade:</strong> Distinction</p>
+                    <p class="mb-0"><strong>Specialization:</strong> Educational Administration</p>
                 </div>
-                <div class="stat-card">
-                    <h4>86</h4>
-                    <p>Teaching Staff</p>
-                </div>
-                <div class="stat-card">
-                    <h4>32</h4>
-                    <p>Classes</p>
-                </div>
-                <div class="stat-card">
-                    <h4>98.5%</h4>
-                    <p>Attendance Rate</p>
+                
+                <div class="qualification-item">
+                    <div class="qualification-header">
+                        <h6 class="mb-0">Bachelor of Education (B.Ed)</h6>
+                    </div>
+                    <p class="mb-1"><strong>University:</strong> State Teachers College</p>
+                    <p class="mb-1"><strong>Year:</strong> 2006 - 2010</p>
+                    <p class="mb-1"><strong>Grade:</strong> First Class</p>
+                    <p class="mb-0"><strong>Subjects:</strong> Mathematics, Physics</p>
                 </div>
             </div>
         </div>
         
-        <!-- Profile Tabs -->
-        <div class="profile-tabs">
-            <ul class="nav nav-tabs" id="profileTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" 
-                            data-bs-target="#personal" type="button" role="tab">
-                        <i class="fas fa-user-circle"></i> Personal Info
+        <!-- Security Tab -->
+        <div class="tab-pane fade" id="security" role="tabpanel">
+            <div class="security-card">
+                <h5 class="mb-4">Password Settings</h5>
+                
+                <div class="security-item">
+                    <div class="security-info">
+                        <h6>Last Password Change</h6>
+                        <p>2 months ago</p>
+                    </div>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#changePasswordModal">
+                        Change Password
                     </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="bank-tab" data-bs-toggle="tab" 
-                            data-bs-target="#bank" type="button" role="tab">
-                        <i class="fas fa-university"></i> Bank Details
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="qualification-tab" data-bs-toggle="tab" 
-                            data-bs-target="#qualification" type="button" role="tab">
-                        <i class="fas fa-graduation-cap"></i> Qualifications
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="security-tab" data-bs-toggle="tab" 
-                            data-bs-target="#security" type="button" role="tab">
-                        <i class="fas fa-shield-alt"></i> Security
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="activity-tab" data-bs-toggle="tab" 
-                            data-bs-target="#activity" type="button" role="tab">
-                        <i class="fas fa-history"></i> Activity Log
-                    </button>
-                </li>
-            </ul>
+                </div>
+            </div>
             
-            <div class="tab-content" id="profileTabContent">
-                <!-- Personal Info Tab -->
-                <div class="tab-pane fade show active" id="personal" role="tabpanel">
-                    <form class="profile-form" id="personalForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">First Name *</label>
-                                <input type="text" class="form-control" id="firstName" 
-                                       value="John" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Last Name *</label>
-                                <input type="text" class="form-control" id="lastName" 
-                                       value="Smith" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Username *</label>
-                                <input type="text" class="form-control readonly-field" id="username" 
-                                       value="john.smith" required readonly>
-                                <small class="text-muted">Username cannot be changed</small>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Email Address *</label>
-                                <input type="email" class="form-control" id="email" 
-                                       value="john.smith@schoolsms.edu" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Date of Birth</label>
-                                <input type="date" class="form-control" id="dob" 
-                                       value="1985-06-15">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Gender</label>
-                                <select class="form-select" id="gender">
-                                    <option value="M" selected>Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O">Other</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Telephone *</label>
-                                <input type="tel" class="form-control" id="telephone" 
-                                       value="+1234567890" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">National ID (NIN)</label>
-                                <input type="text" class="form-control" id="nin" 
-                                       value="NIN123456789">
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Address</label>
-                            <textarea class="form-control" id="address" rows="3">123 Education Street, Knowledge City</textarea>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-cancel">Cancel</button>
-                            <button type="submit" class="btn btn-save">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
+            <div class="security-card">
+                <h5 class="mb-4">Account Settings</h5>
                 
-                <!-- Bank Details Tab -->
-                <div class="tab-pane fade" id="bank" role="tabpanel">
-                    <form class="profile-form" id="bankForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Bank Name *</label>
-                                <input type="text" class="form-control" id="bankName" 
-                                       value="National Bank" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Account Number *</label>
-                                <input type="text" class="form-control" id="accountNumber" 
-                                       value="123456789012" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Account Holder Name *</label>
-                                <input type="text" class="form-control" id="accountHolder" 
-                                       value="John Smith" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Account Type</label>
-                                <select class="form-select" id="accountType">
-                                    <option value="savings" selected>Savings Account</option>
-                                    <option value="current">Current Account</option>
-                                    <option value="salary">Salary Account</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Bank details are used for salary processing and other financial transactions.
-                        </div>
-                        
-                        <div class="d-flex justify-content-end gap-2">
-                            <button type="button" class="btn btn-cancel">Cancel</button>
-                            <button type="submit" class="btn btn-save">Save Bank Details</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Qualifications Tab -->
-                <div class="tab-pane fade" id="qualification" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="mb-0">Educational Qualifications</h5>
-                        <button class="btn btn-danger" data-bs-toggle="modal" 
-                                data-bs-target="#addQualificationModal">
-                            <i class="fas fa-plus me-2"></i>Add Qualification
-                        </button>
+                <div class="security-item">
+                    <div class="security-info">
+                        <h6>Login Email</h6>
+                        <p>john.smith@schoolsms.edu</p>
                     </div>
-                    
-                    <div class="qualification-list">
-                        <div class="qualification-item">
-                            <div class="qualification-header">
-                                <h6 class="mb-0">Master of Education (M.Ed)</h6>
-                                <span class="badge bg-success">Highest</span>
-                            </div>
-                            <p class="mb-1"><strong>University:</strong> National University of Education</p>
-                            <p class="mb-1"><strong>Year:</strong> 2010 - 2012</p>
-                            <p class="mb-1"><strong>Grade:</strong> Distinction</p>
-                            <p class="mb-0"><strong>Specialization:</strong> Educational Administration</p>
-                        </div>
-                        
-                        <div class="qualification-item">
-                            <div class="qualification-header">
-                                <h6 class="mb-0">Bachelor of Education (B.Ed)</h6>
-                            </div>
-                            <p class="mb-1"><strong>University:</strong> State Teachers College</p>
-                            <p class="mb-1"><strong>Year:</strong> 2006 - 2010</p>
-                            <p class="mb-1"><strong>Grade:</strong> First Class</p>
-                            <p class="mb-0"><strong>Subjects:</strong> Mathematics, Physics</p>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#changeEmailModal">
+                        Change Email
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity Log Tab -->
+        <div class="tab-pane fade" id="activity" role="tabpanel">
+            <h5 class="mb-4">Recent Activity</h5>
+            
+            <div class="activity-timeline">
+                <div class="activity-item">
+                    <div class="activity-content">
+                        <h6>Profile Updated</h6>
+                        <p>You updated your bank account details</p>
+                        <div class="activity-time">
+                            <i class="far fa-clock"></i>
+                            Today, 10:30 AM
                         </div>
                     </div>
                 </div>
                 
-                <!-- Security Tab -->
-                <div class="tab-pane fade" id="security" role="tabpanel">
-                    <div class="security-card">
-                        <h5 class="mb-4">Password Settings</h5>
-                        
-                        <div class="security-item">
-                            <div class="security-info">
-                                <h6>Last Password Change</h6>
-                                <p>2 months ago</p>
-                            </div>
-                            <button class="btn btn-outline-danger btn-sm" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#changePasswordModal">
-                                Change Password
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="security-card">
-                        <h5 class="mb-4">Account Settings</h5>
-                        
-                        <div class="security-item">
-                            <div class="security-info">
-                                <h6>Login Email</h6>
-                                <p>john.smith@schoolsms.edu</p>
-                            </div>
-                            <button class="btn btn-outline-danger btn-sm" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#changeEmailModal">
-                                Change Email
-                            </button>
+                <div class="activity-item">
+                    <div class="activity-content">
+                        <h6>Password Changed</h6>
+                        <p>You successfully changed your account password</p>
+                        <div class="activity-time">
+                            <i class="far fa-clock"></i>
+                            Yesterday, 3:45 PM
                         </div>
                     </div>
                 </div>
                 
-                <!-- Activity Log Tab -->
-                <div class="tab-pane fade" id="activity" role="tabpanel">
-                    <h5 class="mb-4">Recent Activity</h5>
-                    
-                    <div class="activity-timeline">
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <h6>Profile Updated</h6>
-                                <p>You updated your bank account details</p>
-                                <div class="activity-time">
-                                    <i class="far fa-clock"></i>
-                                    Today, 10:30 AM
-                                </div>
-                            </div>
+                <div class="activity-item">
+                    <div class="activity-content">
+                        <h6>New User Added</h6>
+                        <p>Added new teaching staff - Sarah Johnson</p>
+                        <div class="activity-time">
+                            <i class="far fa-clock"></i>
+                            2 days ago, 9:15 AM
                         </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <h6>Password Changed</h6>
-                                <p>You successfully changed your account password</p>
-                                <div class="activity-time">
-                                    <i class="far fa-clock"></i>
-                                    Yesterday, 3:45 PM
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <h6>New User Added</h6>
-                                <p>Added new teaching staff - Sarah Johnson</p>
-                                <div class="activity-time">
-                                    <i class="far fa-clock"></i>
-                                    2 days ago, 9:15 AM
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <h6>Report Generated</h6>
-                                <p>Generated monthly attendance report</p>
-                                <div class="activity-time">
-                                    <i class="far fa-clock"></i>
-                                    1 week ago, 2:30 PM
-                                </div>
-                            </div>
+                    </div>
+                </div>
+                
+                <div class="activity-item">
+                    <div class="activity-content">
+                        <h6>Report Generated</h6>
+                        <p>Generated monthly attendance report</p>
+                        <div class="activity-time">
+                            <i class="far fa-clock"></i>
+                            1 week ago, 2:30 PM
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+</div>
 
-    <!-- Backdrop for Mobile Sidebar -->
-    <div class="sidebar-backdrop fade" id="sidebarBackdrop"></div>
+<!-- Modals -->
 
-    <!-- Modals -->
-    
-    <!-- Avatar Upload Modal -->
-    <div class="modal fade" id="avatarModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Update Profile Picture</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Profile Picture</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="profile-avatar mx-auto mb-3" style="width: 150px; height: 150px;">
+                        JS
+                    </div>
+                    <p class="text-muted">Upload a new profile picture</p>
                 </div>
-                <div class="modal-body">
-                    <div class="text-center mb-4">
-                        <div class="profile-avatar mx-auto mb-3" style="width: 150px; height: 150px;">
-                            JS
-                        </div>
-                        <p class="text-muted">Upload a new profile picture</p>
+                
+                <div class="mb-3">
+                    <input type="file" class="form-control" id="avatarUpload" accept="image/*">
+                    <small class="text-muted">Maximum file size: 2MB. Supported formats: JPG, PNG</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="saveAvatar">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password *</label>
+                        <input type="password" class="form-control" required>
                     </div>
                     
                     <div class="mb-3">
-                        <input type="file" class="form-control" id="avatarUpload" accept="image/*">
-                        <small class="text-muted">Maximum file size: 2MB. Supported formats: JPG, PNG</small>
+                        <label class="form-label">New Password *</label>
+                        <input type="password" class="form-control" required>
+                        <small class="text-muted">Minimum 8 characters with letters and numbers</small>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="saveAvatar">Save Changes</button>
-                </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password *</label>
+                        <input type="password" class="form-control" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger">Update Password</button>
             </div>
         </div>
     </div>
-    
-    <!-- Change Password Modal -->
-    <div class="modal fade" id="changePasswordModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Change Password</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="passwordForm">
-                        <div class="mb-3">
-                            <label class="form-label">Current Password *</label>
-                            <input type="password" class="form-control" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">New Password *</label>
-                            <input type="password" class="form-control" required>
-                            <small class="text-muted">Minimum 8 characters with letters and numbers</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Confirm New Password *</label>
-                            <input type="password" class="form-control" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger">Update Password</button>
-                </div>
-            </div>
-        </div>
-    </div>
+</div>
+{% endblock %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}
+<script>
+    // Global Variables
+    let currentTheme = localStorage.getItem('theme') || 'light';
     
-    <script>
-        // Global Variables
-        let currentTheme = localStorage.getItem('theme') || 'light';
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial theme
+        setTheme(currentTheme);
         
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set initial theme
-            setTheme(currentTheme);
-            
-            // Setup theme toggles
-            setupThemeToggles();
-            
-            // Setup mobile sidebar
-            setupMobileSidebar();
-            
-            // Setup form handlers
-            setupFormHandlers();
-            
-            // Show welcome message
-            setTimeout(() => {
-                showToast('Welcome to your profile settings', 'info');
-            }, 1000);
-        });
-        
-        // Set theme function
-        function setTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            
-            // Update theme toggle checkboxes
-            document.querySelectorAll('.theme-toggle-checkbox').forEach(checkbox => {
-                checkbox.checked = theme === 'dark';
-            });
-            
-            // Update quick toggle buttons
-            document.querySelectorAll('.theme-btn-light, .theme-btn-dark').forEach(btn => {
-                if (btn.dataset.theme === theme) {
-                    btn.classList.remove('btn-outline-light');
-                    btn.classList.add('btn-light');
-                } else {
-                    btn.classList.remove('btn-light');
-                    btn.classList.add('btn-outline-light');
-                }
-            });
-        }
-        
-        // Setup theme toggle functionality
-        function setupThemeToggles() {
-            // Theme toggle checkboxes
-            document.querySelectorAll('.theme-toggle-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const newTheme = this.checked ? 'dark' : 'light';
-                    setTheme(newTheme);
-                    showToast(`Theme changed to ${newTheme} mode`, 'info');
-                });
-            });
-            
-            // Quick theme buttons
-            document.querySelectorAll('.theme-btn-light, .theme-btn-dark').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const newTheme = this.dataset.theme;
-                    setTheme(newTheme);
-                    showToast(`Theme changed to ${newTheme} mode`, 'info');
-                });
-            });
-        }
-        
-        // Setup mobile sidebar functionality
-        function setupMobileSidebar() {
-            const mobileSidebar = document.getElementById('mobileSidebar');
-            const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-            
-            if (mobileSidebar) {
-                mobileSidebar.addEventListener('show.bs.collapse', function () {
-                    sidebarBackdrop.classList.add('show');
-                    document.body.style.overflow = 'hidden';
-                });
-                
-                mobileSidebar.addEventListener('hide.bs.collapse', function () {
-                    sidebarBackdrop.classList.remove('show');
-                    document.body.style.overflow = '';
-                });
-                
-                sidebarBackdrop.addEventListener('click', function () {
-                    const collapse = new bootstrap.Collapse(mobileSidebar);
-                    collapse.hide();
-                });
-            }
-        }
+        // Setup theme toggles
+        setupThemeToggles();
         
         // Setup form handlers
-        function setupFormHandlers() {
-            // Personal form submission
-            document.getElementById('personalForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                // Update display names
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const fullName = `${firstName} ${lastName}`;
-                
-                document.getElementById('profileName').textContent = fullName;
-                document.querySelector('.user-name').textContent = fullName;
-                document.querySelector('.profile-avatar').textContent = getInitials(firstName, lastName);
-                
-                // Update avatar in navbar
-                const navbarAvatar = document.querySelector('.user-avatar img');
-                const newAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E74A3B&color=fff`;
-                navbarAvatar.src = newAvatarUrl;
-                
-                // Update sidebar avatar
-                document.querySelectorAll('.admin-avatar img').forEach(img => {
-                    img.src = newAvatarUrl;
-                });
-                
-                showToast('Personal information updated successfully!', 'success');
-            });
-            
-            // Bank form submission
-            document.getElementById('bankForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                showToast('Bank details updated successfully!', 'success');
-            });
-            
-            // Avatar upload
-            document.getElementById('saveAvatar').addEventListener('click', function() {
-                const fileInput = document.getElementById('avatarUpload');
-                
-                if (fileInput.files.length > 0) {
-                    // In a real app, you would upload the file here
-                    showToast('Profile picture uploaded successfully!', 'success');
-                    
-                    // Close modal
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('avatarModal'));
-                    modal.hide();
-                } else {
-                    showToast('Please select a file to upload', 'warning');
-                }
-            });
-        }
+        setupFormHandlers();
         
-        // Helper function to get initials
-        function getInitials(firstName, lastName) {
-            return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-        }
+        // Show welcome message
+        setTimeout(() => {
+            showToast('Welcome to your profile settings', 'info');
+        }, 1000);
+    });
+    
+    // Set theme function
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
         
-        // Show toast notification
-        function showToast(message, type = 'info') {
-            // Create toast container if it doesn't exist
-            let toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'toastContainer';
-                toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999;';
-                document.body.appendChild(toastContainer);
+        // Update theme toggle checkboxes
+        document.querySelectorAll('.theme-toggle-checkbox').forEach(checkbox => {
+            checkbox.checked = theme === 'dark';
+        });
+        
+        // Update quick toggle buttons
+        document.querySelectorAll('.theme-btn-light, .theme-btn-dark').forEach(btn => {
+            if (btn.dataset.theme === theme) {
+                btn.classList.remove('btn-outline-light');
+                btn.classList.add('btn-light');
+            } else {
+                btn.classList.remove('btn-light');
+                btn.classList.add('btn-outline-light');
             }
+        });
+    }
+    
+    // Setup theme toggle functionality
+    function setupThemeToggles() {
+        // Theme toggle checkboxes
+        document.querySelectorAll('.theme-toggle-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const newTheme = this.checked ? 'dark' : 'light';
+                setTheme(newTheme);
+                showToast(`Theme changed to ${newTheme} mode`, 'info');
+            });
+        });
+        
+        // Quick theme buttons
+        document.querySelectorAll('.theme-btn-light, .theme-btn-dark').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const newTheme = this.dataset.theme;
+                setTheme(newTheme);
+                showToast(`Theme changed to ${newTheme} mode`, 'info');
+            });
+        });
+    }
+    
+    // Setup form handlers
+    function setupFormHandlers() {
+        // Personal form submission
+        document.getElementById('personalForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // Remove existing toasts
-            const existingToasts = toastContainer.querySelectorAll('.custom-toast');
-            existingToasts.forEach(toast => {
-                toast.remove();
+            // Update display names
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const fullName = `${firstName} ${lastName}`;
+            
+            document.getElementById('profileName').textContent = fullName;
+            document.querySelector('.user-name').textContent = fullName;
+            document.querySelector('.profile-avatar').textContent = getInitials(firstName, lastName);
+            
+            // Update avatar in navbar
+            const navbarAvatar = document.querySelector('.user-avatar img');
+            const newAvatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=E74A3B&color=fff`;
+            navbarAvatar.src = newAvatarUrl;
+            
+            // Update sidebar avatar
+            document.querySelectorAll('.admin-avatar img').forEach(img => {
+                img.src = newAvatarUrl;
             });
             
-            // Create new toast
-            const toast = document.createElement('div');
-            toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
-            toast.style.cssText = 'min-width: 300px; max-width: 400px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); animation: slideInRight 0.3s ease-out;';
-            toast.innerHTML = `
-                <i class="fas fa-${getToastIcon(type)} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+            showToast('Personal information updated successfully!', 'success');
+        });
+        
+        // Bank form submission
+        document.getElementById('bankForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showToast('Bank details updated successfully!', 'success');
+        });
+        
+        // Avatar upload
+        document.getElementById('saveAvatar').addEventListener('click', function() {
+            const fileInput = document.getElementById('avatarUpload');
             
-            toastContainer.appendChild(toast);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 5000);
+            if (fileInput.files.length > 0) {
+                // In a real app, you would upload the file here
+                showToast('Profile picture uploaded successfully!', 'success');
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('avatarModal'));
+                modal.hide();
+            } else {
+                showToast('Please select a file to upload', 'warning');
+            }
+        });
+    }
+    
+    // Helper function to get initials
+    function getInitials(firstName, lastName) {
+        return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 9999;';
+            document.body.appendChild(toastContainer);
         }
         
-        function getToastIcon(type) {
-            switch(type) {
-                case 'success': return 'check-circle';
-                case 'danger': return 'exclamation-circle';
-                case 'warning': return 'exclamation-triangle';
-                default: return 'info-circle';
-            }
-        }
+        // Remove existing toasts
+        const existingToasts = toastContainer.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => {
+            toast.remove();
+        });
         
-        // Add CSS for toast animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
+        // Create new toast
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.style.cssText = 'min-width: 300px; max-width: 400px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2); animation: slideInRight 0.3s ease-out;';
+        toast.innerHTML = `
+            <i class="fas fa-${getToastIcon(type)} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
-        document.head.appendChild(style);
-    </script>
-</body>
-</html>
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'check-circle';
+            case 'danger': return 'exclamation-circle';
+            case 'warning': return 'exclamation-triangle';
+            default: return 'info-circle';
+        }
+    }
+    
+    // Add CSS for toast animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

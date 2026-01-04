@@ -1,0 +1,74 @@
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-danger fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'admin_panel' %}">
+            <i class="fas fa-user-shield me-2"></i>
+            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <span class="user-role badge bg-light text-danger ms-2">Administrator</span>
+        </a>
+        
+        <!-- Mobile Toggle Buttons -->
+        <div class="d-flex gap-2">
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container">
+                <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
+                <label for="themeToggle" class="theme-toggle-label">
+                    <i class="fas fa-sun theme-icon-sun"></i>
+                    <i class="fas fa-moon theme-icon-moon"></i>
+                    <span class="theme-toggle-ball"></span>
+                </label>
+            </div>
+            
+            <!-- Sidebar Toggle Button (Mobile Only) -->
+            <button class="navbar-toggler d-lg-none sidebar-toggle" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#mobileSidebar"
+                    aria-controls="mobileSidebar" aria-expanded="false" aria-label="Toggle sidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Navbar Toggle Button -->
+            <button class="navbar-toggler" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Theme Toggle for Desktop -->
+                <li class="nav-item d-none d-lg-block">
+                    <div class="nav-link theme-toggle-desktop">
+                        <input type="checkbox" id="themeToggleDesktop" class="theme-toggle-checkbox">
+                        <label for="themeToggleDesktop" class="theme-toggle-label">
+                            <i class="fas fa-sun theme-icon-sun"></i>
+                            <i class="fas fa-moon theme-icon-moon"></i>
+                            <span class="theme-toggle-ball"></span>
+                        </label>
+                    </div>
+                </li>
+                
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            <img src="https://ui-avatars.com/api/?name=Admin+User&background=E74A3B&color=fff" alt="Admin">
+                            <span class="user-name">System Admin</span>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="{% url 'admin_profile' %}">
+                            <i class="fas fa-user-cog me-2"></i> Admin Profile
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-cog me-2"></i> System Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
