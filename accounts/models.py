@@ -8,7 +8,13 @@ class User(AbstractUser):
         ('student', 'Student'),
         ('staff', 'Staff'),
     )
+    GENDER_CHOICES = (
+        ('M', 'Male'),  
+        ('F', ' Female'),  
+        ('O', 'Other'),
+    )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
     dob = models.DateField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
     
