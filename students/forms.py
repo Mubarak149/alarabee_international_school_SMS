@@ -1,7 +1,7 @@
 # students/forms.py
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import StudentProfile
+from .models import StudentProfile, StudentClass
 
 class StudentProfileForm(forms.ModelForm):
     class Meta:
@@ -24,4 +24,16 @@ class StudentProfileForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Parent Contact'
             }),
+        }
+
+class StudentClassForm(forms.ModelForm):
+    class Meta:
+        model = StudentClass
+        fields = [
+            'school_class',
+            'academic_year',
+        ]
+        widgets = {
+            'school_class': forms.Select(attrs={'class': 'form-select'}),
+            'academic_year': forms.Select(attrs={'class': 'form-select'}),
         }
