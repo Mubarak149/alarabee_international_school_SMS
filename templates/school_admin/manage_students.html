@@ -834,66 +834,79 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addStudentForm">
+                <form method="post" id="addStudentForm">
                     {% csrf_token %}
+
                     <div class="row">
+
+                        <!-- USER INFO -->
                         <div class="col-md-6 mb-3">
                             <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" required>
+                            {{ user_form.first_name }}
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" required>
+                            {{ user_form.last_name }}
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Student ID</label>
-                            <input type="text" class="form-control" id="studentId" required>
-                            <div class="form-text">Auto-generated if left blank</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="dob" required>
-                        </div>
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" required>
+                            {{ user_form.email }}
                         </div>
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone">
+                            {{ user_form.phone }}
                         </div>
+
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Class</label>
-                            <select class="form-select" id="class" required>
-                                <option value="">Select Class</option>
-                                <option value="10A">10A</option>
-                                <option value="10B">10B</option>
-                                <option value="9A">9A</option>
-                                <option value="9B">9B</option>
-                            </select>
+                            <label class="form-label">Date of Birth</label>
+                            {{ user_form.dob }}
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Academic Year</label>
-                            <select class="form-select" id="academicYear" required>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2022-2023">2022-2023</option>
-                                <option value="2021-2022">2021-2022</option>
-                            </select>
-                        </div>
+
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Address</label>
-                            <textarea class="form-control" id="address" rows="2"></textarea>
+                            {{ user_form.address }}
                         </div>
+
+                        <hr>
+
+                        <!-- STUDENT PROFILE -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Parent/Guardian Name</label>
-                            <input type="text" class="form-control" id="parentName">
+                            <label class="form-label">Student ID</label>
+                            {{ profile_form.student_id }}
+                            <div class="form-text">Auto-generated if left blank</div>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Parent / Guardian Name</label>
+                            {{ profile_form.parent_name }}
+                        </div>
+
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Parent Contact</label>
-                            <input type="tel" class="form-control" id="parentContact">
+                            {{ profile_form.parent_contact }}
                         </div>
+
+                        <hr>
+
+                        <!-- CLASS ASSIGNMENT -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Class</label>
+                            {{ class_form.school_class }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Academic Year</label>
+                            {{ class_form.academic_year }}
+                        </div>
+
                     </div>
+
+                    
                 </form>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
