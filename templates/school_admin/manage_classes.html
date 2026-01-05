@@ -4,43 +4,11 @@
 
 {% block extra_css %}
 <style>
-    /* Additional styles specific to manage_classes page */
-    .class-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        font-weight: 700;
-        font-size: 1rem;
-        color: white;
-        margin-right: 10px;
-    }
-    
-    .class-primary {
-        background-color: var(--primary-color);
-    }
-    
-    .class-success {
-        background-color: var(--success-color);
-    }
-    
-    .class-warning {
-        background-color: var(--warning-color);
-    }
-    
-    .class-danger {
-        background-color: var(--danger-color);
-    }
-    
-    .class-info {
-        background-color: var(--info-color);
-    }
-    
+    /* Simplified styles for basic class management */
     .class-info-container {
         display: flex;
         align-items: center;
+        gap: 10px;
     }
     
     .class-name {
@@ -48,28 +16,11 @@
         margin-bottom: 2px;
     }
     
-    .class-teacher {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-    
     /* Status Badges */
-    .status-active {
-        background-color: rgba(28, 200, 138, 0.1);
-        color: var(--success-color);
-    }
-    
-    .status-inactive {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--text-secondary);
-    }
-    
-    /* Student Count */
-    .student-count {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-weight: 600;
+    .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
     }
     
     /* Bulk Actions */
@@ -141,106 +92,6 @@
         font-weight: 500;
     }
     
-    /* Toggle View */
-    .view-toggle {
-        display: flex;
-        border-radius: 6px;
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-        background-color: var(--bg-secondary);
-    }
-    
-    .view-toggle-btn {
-        padding: 8px 15px;
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .view-toggle-btn.active {
-        background-color: var(--primary-color);
-        color: white;
-    }
-    
-    /* Class Card View */
-    .class-card {
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
-        background-color: var(--bg-secondary);
-        transition: all 0.3s;
-        height: 100%;
-    }
-    
-    .class-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--card-shadow);
-    }
-    
-    .class-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    
-    .class-card-title {
-        font-weight: 600;
-        font-size: 1rem;
-        margin-bottom: 5px;
-    }
-    
-    .class-card-teacher {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-    }
-    
-    .class-card-stats {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-        font-size: 0.8rem;
-    }
-    
-    .class-card-stat {
-        text-align: center;
-    }
-    
-    .class-card-stat-value {
-        font-weight: 700;
-        font-size: 1rem;
-        display: block;
-    }
-    
-    .class-card-stat-label {
-        color: var(--text-secondary);
-        font-size: 0.7rem;
-    }
-    
-    .class-card-subjects {
-        margin-bottom: 15px;
-    }
-    
-    .class-card-subject {
-        display: inline-block;
-        background-color: rgba(78, 115, 223, 0.1);
-        color: var(--primary-color);
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        margin: 2px;
-    }
-    
-    .class-card-actions {
-        display: flex;
-        gap: 5px;
-        margin-top: 10px;
-    }
-    
     /* Empty State */
     .empty-state {
         text-align: center;
@@ -255,41 +106,13 @@
     }
     
     @media (max-width: 767.98px) {
-        .class-card {
-            padding: 10px;
-        }
-        
-        .class-card-actions {
-            flex-direction: column;
-        }
-        
-        .class-card-actions .btn {
-            width: 100%;
+        .action-buttons .btn {
             margin-bottom: 5px;
+            width: 100%;
         }
         
         .stats-card .stat-number {
             font-size: 1.1rem;
-        }
-    }
-    
-    @media (max-width: 575.98px) {
-        .class-info-container {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .class-badge {
-            margin-right: 0;
-            margin-bottom: 5px;
-            width: 35px;
-            height: 35px;
-            font-size: 0.9rem;
-        }
-        
-        .view-toggle-btn {
-            padding: 6px 10px;
-            font-size: 0.8rem;
         }
     }
 </style>
@@ -322,7 +145,7 @@
                     <div class="stat-icon stat-icon-primary">
                         <i class="fas fa-school"></i>
                     </div>
-                    <div class="stat-number">24</div>
+                    <div class="stat-number">{{ classes|length }}</div>
                     <div class="stat-label">Total Classes</div>
                 </div>
             </div>
@@ -334,7 +157,7 @@
                     <div class="stat-icon stat-icon-success">
                         <i class="fas fa-user-graduate"></i>
                     </div>
-                    <div class="stat-number">720</div>
+                    <div class="stat-number">0</div>
                     <div class="stat-label">Total Students</div>
                 </div>
             </div>
@@ -346,7 +169,7 @@
                     <div class="stat-icon stat-icon-warning">
                         <i class="fas fa-chalkboard-teacher"></i>
                     </div>
-                    <div class="stat-number">48</div>
+                    <div class="stat-number">0</div>
                     <div class="stat-label">Assigned Teachers</div>
                 </div>
             </div>
@@ -358,106 +181,8 @@
                     <div class="stat-icon stat-icon-info">
                         <i class="fas fa-book"></i>
                     </div>
-                    <div class="stat-number">15</div>
+                    <div class="stat-number">0</div>
                     <div class="stat-label">Active Subjects</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- View Toggle -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="view-toggle">
-            <button class="view-toggle-btn active" id="tableViewBtn" onclick="toggleView('table')">
-                <i class="fas fa-table me-2"></i>Table
-            </button>
-            <button class="view-toggle-btn" id="cardViewBtn" onclick="toggleView('card')">
-                <i class="fas fa-th-large me-2"></i>Cards
-            </button>
-        </div>
-        <div class="export-buttons">
-            <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">
-                <i class="fas fa-file-csv"></i>
-                <span class="d-none d-md-inline ms-1">CSV</span>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i>
-                <span class="d-none d-md-inline ms-1">Excel</span>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="printTable()">
-                <i class="fas fa-print"></i>
-                <span class="d-none d-md-inline ms-1">Print</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Filters and Search -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Search & Filters</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3 col-12">
-                    <div class="filter-group">
-                        <label class="filter-label">Search Classes</label>
-                        <input type="text" class="form-control" id="searchInput" placeholder="Class name, teacher, or subject...">
-                    </div>
-                </div>
-                <div class="col-md-2 col-6">
-                    <div class="filter-group">
-                        <label class="filter-label">Grade Level</label>
-                        <select class="form-select" id="gradeFilter">
-                            <option value="">All Grades</option>
-                            <option value="1">Grade 1</option>
-                            <option value="2">Grade 2</option>
-                            <option value="3">Grade 3</option>
-                            <option value="4">Grade 4</option>
-                            <option value="5">Grade 5</option>
-                            <option value="6">Grade 6</option>
-                            <option value="7">Grade 7</option>
-                            <option value="8">Grade 8</option>
-                            <option value="9">Grade 9</option>
-                            <option value="10">Grade 10</option>
-                            <option value="11">Grade 11</option>
-                            <option value="12">Grade 12</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2 col-6">
-                    <div class="filter-group">
-                        <label class="filter-label">Section</label>
-                        <select class="form-select" id="sectionFilter">
-                            <option value="">All Sections</option>
-                            <option value="A">Section A</option>
-                            <option value="B">Section B</option>
-                            <option value="C">Section C</option>
-                            <option value="D">Section D</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2 col-6">
-                    <div class="filter-group">
-                        <label class="filter-label">Status</label>
-                        <select class="form-select" id="statusFilter">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="filter-group d-flex align-items-end h-100">
-                        <div class="d-flex gap-2 w-100">
-                            <button class="btn btn-primary flex-grow-1" onclick="filterClasses()">
-                                <i class="fas fa-filter me-2"></i>Filter
-                            </button>
-                            <button class="btn btn-outline-primary" onclick="resetFilters()">
-                                <i class="fas fa-redo"></i>
-                                <span class="d-none d-md-inline ms-2">Reset</span>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -473,9 +198,6 @@
                 <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
                     <i class="fas fa-download me-1"></i>Export
                 </button>
-                <button class="btn btn-sm btn-outline-warning" onclick="updateStatusBulk()">
-                    <i class="fas fa-exchange-alt me-1"></i>Status
-                </button>
                 <button class="btn btn-sm btn-outline-danger" onclick="deleteSelected()">
                     <i class="fas fa-trash me-1"></i>Delete
                 </button>
@@ -490,7 +212,7 @@
     <div class="card" id="tableView">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Classes List</h5>
-            <span class="text-muted" id="tableInfo">Showing 0 of 0 classes</span>
+            <span class="text-muted" id="tableInfo">Showing {{ classes|length }} classes</span>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -500,326 +222,164 @@
                             <th width="40">
                                 <input type="checkbox" class="form-check-input" id="selectAll">
                             </th>
-                            <th>Class</th>
-                            <th class="d-none d-md-table-cell">Class Teacher</th>
-                            <th>Students</th>
-                            <th>Subjects</th>
-                            <th>Status</th>
+                            <th>Class Name</th>
+                            <th>ID</th>
+                            <th>Created</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="classesTableBody">
-                        <!-- Classes will be loaded here -->
+                        {% for class in classes %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input class-checkbox" 
+                                       value="{{ class.id }}">
+                            </td>
+                            <td>
+                                <div class="class-info-container">
+                                    <div>
+                                        <div class="class-name">{{ class.name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {{ class.id }}
+                            </td>
+                            <td>
+                                {% if class.created_at %}
+                                    {{ class.created_at|date:"Y-m-d" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-outline-info btn-sm" onclick="viewClassDetails({{ class.id }})" title="View">
+                                        <i class="fas fa-eye"></i>
+                                        <span class="ms-1">View</span>
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="editClass({{ class.id }})" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                        <span class="ms-1">Edit</span>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteClass({{ class.id }})" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                        <span class="ms-1">Delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-school"></i>
+                                    <h5>No classes found</h5>
+                                    <p>Add your first class using the button above</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-                <div class="text-muted mb-2 mb-sm-0">
-                    Showing <span id="currentPageStart">0</span> to <span id="currentPageEnd">0</span> of <span id="totalClasses">0</span> classes
-                </div>
-                <nav>
-                    <ul class="pagination mb-0" id="pagination">
-                        <!-- Pagination will be generated here -->
-                    </ul>
-                </nav>
             </div>
         </div>
     </div>
 
-    <!-- Classes Card View -->
-    <div class="row" id="cardView" style="display: none;">
-        <!-- Classes cards will be loaded here -->
+<!-- Modals Section -->
+<div class="modal fade" id="addClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Add New Class</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Class Name</label>
+                            {{ form.name }}
+                            <div class="form-text">
+                                e.g., Grade 1 Section A, Science Class, etc.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        Create Class
+                    </button>
+                </div>
+            </form>
+
+        </div>
     </div>
+</div>
+
+<div class="modal fade" id="editClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Class</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="#" id="editClassForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Class Name</label>
+                            <input type="text" class="form-control" id="editClassName" name="name" required>
+                            <input type="hidden" id="editClassId" name="class_id">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="viewClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Class Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewClassModalBody">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Global Variables specific to manage_classes page
-    let classesData = [];
-    let filteredClasses = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
+    // Global Variables
     let selectedClasses = new Set();
-    let currentView = 'table';
-    let teachersData = [];
-    
-    // Sample class data
-    const sampleClasses = [
-        {
-            id: 1,
-            classCode: "CLS-001",
-            className: "Grade 1 - Section A",
-            gradeLevel: "1",
-            section: "A",
-            classTeacher: { id: 1, name: "Robert Johnson" },
-            roomNumber: "101",
-            academicYear: "2024-2025",
-            maxStudents: 30,
-            currentStudents: 28,
-            subjects: ["math", "english", "science", "art"],
-            description: "Beginner level class for Grade 1 students",
-            schedule: "morning",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 2,
-            classCode: "CLS-002",
-            className: "Grade 2 - Section B",
-            gradeLevel: "2",
-            section: "B",
-            classTeacher: { id: 2, name: "Sarah Williams" },
-            roomNumber: "102",
-            academicYear: "2024-2025",
-            maxStudents: 32,
-            currentStudents: 30,
-            subjects: ["math", "english", "science", "music"],
-            description: "Grade 2 advanced class",
-            schedule: "morning",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 3,
-            classCode: "CLS-003",
-            className: "Grade 3 - Section A",
-            gradeLevel: "3",
-            section: "A",
-            classTeacher: { id: 3, name: "Michael Brown" },
-            roomNumber: "103",
-            academicYear: "2024-2025",
-            maxStudents: 30,
-            currentStudents: 25,
-            subjects: ["math", "english", "science", "history"],
-            description: "Grade 3 standard class",
-            schedule: "morning",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 4,
-            classCode: "CLS-004",
-            className: "Grade 4 - Section C",
-            gradeLevel: "4",
-            section: "C",
-            classTeacher: { id: 4, name: "Jennifer Davis" },
-            roomNumber: "104",
-            academicYear: "2024-2025",
-            maxStudents: 35,
-            currentStudents: 32,
-            subjects: ["math", "english", "science", "geography"],
-            description: "Grade 4 science focused class",
-            schedule: "afternoon",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 5,
-            classCode: "CLS-005",
-            className: "Grade 5 - Section A",
-            gradeLevel: "5",
-            section: "A",
-            classTeacher: { id: 5, name: "David Miller" },
-            roomNumber: "105",
-            academicYear: "2024-2025",
-            maxStudents: 30,
-            currentStudents: 28,
-            subjects: ["math", "english", "science", "computer"],
-            description: "Grade 5 computer science class",
-            schedule: "full-day",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 6,
-            classCode: "CLS-006",
-            className: "Grade 6 - Section B",
-            gradeLevel: "6",
-            section: "B",
-            classTeacher: { id: 6, name: "Lisa Wilson" },
-            roomNumber: "201",
-            academicYear: "2024-2025",
-            maxStudents: 32,
-            currentStudents: 30,
-            subjects: ["math", "english", "science", "art"],
-            description: "Grade 6 art focused class",
-            schedule: "morning",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 7,
-            classCode: "CLS-007",
-            className: "Grade 7 - Section A",
-            gradeLevel: "7",
-            section: "A",
-            classTeacher: { id: 7, name: "James Taylor" },
-            roomNumber: "202",
-            academicYear: "2024-2025",
-            maxStudents: 35,
-            currentStudents: 33,
-            subjects: ["math", "english", "science", "music"],
-            description: "Grade 7 music program",
-            schedule: "afternoon",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 8,
-            classCode: "CLS-008",
-            className: "Grade 8 - Section D",
-            gradeLevel: "8",
-            section: "D",
-            classTeacher: { id: 8, name: "Mary Anderson" },
-            roomNumber: "203",
-            academicYear: "2024-2025",
-            maxStudents: 30,
-            currentStudents: 26,
-            subjects: ["math", "english", "science", "history"],
-            description: "Grade 8 history class",
-            schedule: "full-day",
-            status: "inactive",
-            createdDate: "2023-01-15"
-        },
-        {
-            id: 9,
-            classCode: "CLS-009",
-            className: "Grade 9 - Section A",
-            gradeLevel: "9",
-            section: "A",
-            classTeacher: { id: 9, name: "William Thomas" },
-            roomNumber: "204",
-            academicYear: "2024-2025",
-            maxStudents: 40,
-            currentStudents: 38,
-            subjects: ["math", "english", "science", "geography"],
-            description: "Grade 9 advanced studies",
-            schedule: "morning",
-            status: "active",
-            createdDate: "2024-01-15"
-        },
-        {
-            id: 10,
-            classCode: "CLS-010",
-            className: "Grade 10 - Section B",
-            gradeLevel: "10",
-            section: "B",
-            classTeacher: { id: 10, name: "Patricia Jackson" },
-            roomNumber: "205",
-            academicYear: "2024-2025",
-            maxStudents: 35,
-            currentStudents: 32,
-            subjects: ["math", "english", "science", "computer"],
-            description: "Grade 10 computer science",
-            schedule: "afternoon",
-            status: "active",
-            createdDate: "2024-01-15"
-        }
-    ];
-    
-    // Sample teachers for dropdown
-    const sampleTeachers = [
-        { id: 1, name: "Robert Johnson" },
-        { id: 2, name: "Sarah Williams" },
-        { id: 3, name: "Michael Brown" },
-        { id: 4, name: "Jennifer Davis" },
-        { id: 5, name: "David Miller" },
-        { id: 6, name: "Lisa Wilson" },
-        { id: 7, name: "James Taylor" },
-        { id: 8, name: "Mary Anderson" },
-        { id: 9, name: "William Thomas" },
-        { id: 10, name: "Patricia Jackson" }
-    ];
-    
-    // Subject names mapping
-    const subjectNames = {
-        "math": "Mathematics",
-        "science": "Science",
-        "english": "English",
-        "history": "History",
-        "geography": "Geography",
-        "computer": "Computer Science",
-        "art": "Art",
-        "music": "Music",
-        "pe": "Physical Education",
-        "language": "Foreign Language"
-    };
-    
-    // Schedule names mapping
-    const scheduleNames = {
-        "morning": "Morning (8:00 AM - 12:00 PM)",
-        "afternoon": "Afternoon (1:00 PM - 5:00 PM)",
-        "full-day": "Full Day (8:00 AM - 3:00 PM)"
-    };
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize data
-        initializeData();
-        
-        // Setup event listeners
         setupEventListeners();
-        
-        // Load initial data
-        loadClasses();
-        loadTeachersDropdown();
-        
-        // Show welcome message
-        setTimeout(() => {
-            showToast('Classes management loaded successfully!', 'success');
-        }, 500);
     });
-    
-    // Initialize data
-    function initializeData() {
-        // Load classes from localStorage or use sample data
-        const savedClasses = localStorage.getItem('classesData');
-        if (savedClasses) {
-            classesData = JSON.parse(savedClasses);
-        } else {
-            classesData = [...sampleClasses];
-            localStorage.setItem('classesData', JSON.stringify(classesData));
-        }
-        
-        // Load teachers
-        const savedTeachers = localStorage.getItem('teachersData');
-        if (savedTeachers) {
-            teachersData = JSON.parse(savedTeachers);
-        } else {
-            teachersData = [...sampleTeachers];
-        }
-        
-        filteredClasses = [...classesData];
-    }
-    
-    // Load teachers dropdown
-    function loadTeachersDropdown() {
-        const dropdown = document.getElementById('classTeacher');
-        if (!dropdown) return;
-        
-        dropdown.innerHTML = '<option value="">Select Teacher</option>';
-        teachersData.forEach(teacher => {
-            const option = document.createElement('option');
-            option.value = teacher.id;
-            option.textContent = teacher.name;
-            dropdown.appendChild(option);
-        });
-    }
     
     // Setup event listeners
     function setupEventListeners() {
-        // Search input
-        document.getElementById('searchInput')?.addEventListener('input', function() {
-            filterClasses();
-        });
-        
-        // Filter select changes
-        document.getElementById('gradeFilter')?.addEventListener('change', filterClasses);
-        document.getElementById('sectionFilter')?.addEventListener('change', filterClasses);
-        document.getElementById('statusFilter')?.addEventListener('change', filterClasses);
-        
         // Select all checkbox
         document.getElementById('selectAll')?.addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('.class-checkbox');
@@ -834,863 +394,87 @@
             updateBulkActions();
         });
         
-        // Add class form
-        document.getElementById('addClassForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            addClass();
-        });
-        
-        // Auto-generate class code if not provided
-        document.getElementById('classCode')?.addEventListener('blur', function() {
-            if (!this.value.trim()) {
-                const lastId = classesData.reduce((max, cls) => {
-                    const num = parseInt(cls.classCode.split('-')[1]) || 0;
-                    return Math.max(max, num);
-                }, 0);
-                this.value = `CLS-${String(lastId + 1).padStart(3, '0')}`;
-            }
-        });
-    }
-    
-    // Toggle between table and card view
-    function toggleView(view) {
-        currentView = view;
-        
-        // Update toggle buttons
-        document.getElementById('tableViewBtn').classList.toggle('active', view === 'table');
-        document.getElementById('cardViewBtn').classList.toggle('active', view === 'card');
-        
-        // Show/hide views
-        document.getElementById('tableView').style.display = view === 'table' ? 'block' : 'none';
-        document.getElementById('cardView').style.display = view === 'card' ? 'block' : 'none';
-        
-        // Load appropriate view
-        if (view === 'table') {
-            loadClassesTable();
-        } else {
-            loadClassesCards();
-        }
-    }
-    
-    // Load classes into table
-    function loadClassesTable() {
-        const tbody = document.getElementById('classesTableBody');
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const currentClasses = filteredClasses.slice(startIndex, endIndex);
-        
-        tbody.innerHTML = '';
-        
-        if (currentClasses.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center py-4">
-                        <div class="empty-state">
-                            <i class="fas fa-school"></i>
-                            <h5>No classes found</h5>
-                            <p>Try adjusting your filters or add a new class</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        } else {
-            currentClasses.forEach(cls => {
-                const row = document.createElement('tr');
-                const isSelected = selectedClasses.has(cls.id);
-                const badgeClass = getClassBadgeClass(cls.gradeLevel);
-                const isMobile = window.innerWidth < 768;
-                const statusClass = `status-${cls.status}`;
-                
-                // Format subjects for display
-                const subjectDisplay = cls.subjects.map(sub => subjectNames[sub] || sub).slice(0, 3).join(', ');
-                const shortSubjects = subjectDisplay.length > 30 ? subjectDisplay.substring(0, 30) + '...' : subjectDisplay;
-                
-                row.innerHTML = `
-                    <td>
-                        <input type="checkbox" class="form-check-input class-checkbox" 
-                               value="${cls.id}" ${isSelected ? 'checked' : ''}
-                               onchange="toggleClassSelection(${cls.id}, this.checked)">
-                    </td>
-                    <td>
-                        <div class="class-info-container">
-                            <div class="class-badge ${badgeClass}">${cls.gradeLevel}</div>
-                            <div>
-                                <div class="class-name">${cls.className}</div>
-                                <div class="class-teacher">${cls.classCode} • Room ${cls.roomNumber}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="${isMobile ? 'd-none d-md-table-cell' : ''}">
-                        ${cls.classTeacher?.name || 'Not assigned'}
-                    </td>
-                    <td>
-                        <div class="student-count">
-                            <i class="fas fa-user-graduate"></i>
-                            <span>${cls.currentStudents}/${cls.maxStudents}</span>
-                        </div>
-                    </td>
-                    <td>
-                        <div title="${subjectDisplay}">${shortSubjects}</div>
-                    </td>
-                    <td>
-                        <span class="badge ${statusClass}">${formatStatus(cls.status)}</span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-outline-info btn-sm" onclick="viewClassDetails(${cls.id})" title="View">
-                                <i class="fas fa-eye"></i>
-                                ${isMobile ? '' : '<span class="ms-1">View</span>'}
-                            </button>
-                            <button class="btn btn-outline-success btn-sm" onclick="editClass(${cls.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                                ${isMobile ? '' : '<span class="ms-1">Edit</span>'}
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm" onclick="manageStudents(${cls.id})" title="Students">
-                                <i class="fas fa-users"></i>
-                                ${isMobile ? '' : '<span class="ms-1">Students</span>'}
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteClass(${cls.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                                ${isMobile ? '' : '<span class="ms-1">Delete</span>'}
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
+        // Individual checkbox changes
+        document.querySelectorAll('.class-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedClasses.add(parseInt(this.value));
+                } else {
+                    selectedClasses.delete(parseInt(this.value));
+                    document.getElementById('selectAll').checked = false;
+                }
+                updateBulkActions();
             });
-        }
-        
-        updateTableInfo();
-        updatePagination();
-        updateStats();
-    }
-    
-    // Load classes as cards
-    function loadClassesCards() {
-        const cardContainer = document.getElementById('cardView');
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const currentClasses = filteredClasses.slice(startIndex, endIndex);
-        
-        cardContainer.innerHTML = '';
-        
-        if (currentClasses.length === 0) {
-            cardContainer.innerHTML = `
-                <div class="col-12">
-                    <div class="empty-state">
-                        <i class="fas fa-school"></i>
-                        <h5>No classes found</h5>
-                        <p>Try adjusting your filters or add a new class</p>
-                    </div>
-                </div>
-            `;
-        } else {
-            currentClasses.forEach(cls => {
-                const col = document.createElement('div');
-                col.className = 'col-xl-4 col-lg-6 col-md-6 mb-4';
-                
-                const badgeClass = getClassBadgeClass(cls.gradeLevel);
-                const statusClass = `status-${cls.status}`;
-                const progressPercent = (cls.currentStudents / cls.maxStudents) * 100;
-                
-                // Format subjects for display (max 3)
-                const displaySubjects = cls.subjects.slice(0, 3).map(sub => subjectNames[sub] || sub);
-                
-                col.innerHTML = `
-                    <div class="class-card">
-                        <div class="class-card-header">
-                            <div class="class-badge ${badgeClass}">${cls.gradeLevel}</div>
-                            <span class="badge ${statusClass}">${formatStatus(cls.status)}</span>
-                        </div>
-                        <h5 class="class-card-title">${cls.className}</h5>
-                        <div class="class-card-teacher">
-                            <i class="fas fa-chalkboard-teacher me-1"></i>
-                            ${cls.classTeacher?.name || 'Not assigned'}
-                        </div>
-                        <div class="class-card-stats">
-                            <div class="class-card-stat">
-                                <span class="class-card-stat-value">${cls.currentStudents}</span>
-                                <span class="class-card-stat-label">Students</span>
-                            </div>
-                            <div class="class-card-stat">
-                                <span class="class-card-stat-value">${cls.maxStudents}</span>
-                                <span class="class-card-stat-label">Capacity</span>
-                            </div>
-                            <div class="class-card-stat">
-                                <span class="class-card-stat-value">${displaySubjects.length}</span>
-                                <span class="class-card-stat-label">Subjects</span>
-                            </div>
-                        </div>
-                        <div class="class-card-subjects">
-                            ${displaySubjects.map(sub => `<span class="class-card-subject">${sub}</span>`).join('')}
-                            ${cls.subjects.length > 3 ? '<span class="class-card-subject">+ more</span>' : ''}
-                        </div>
-                        <div class="mb-3">
-                            <small class="text-muted">Room: ${cls.roomNumber}</small>
-                        </div>
-                        <div class="progress mb-2" style="height: 5px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
-                                 style="width: ${progressPercent}%" 
-                                 aria-valuenow="${progressPercent}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="class-card-actions">
-                            <button class="btn btn-outline-info btn-sm flex-grow-1" onclick="viewClassDetails(${cls.id})">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                            <button class="btn btn-outline-success btn-sm flex-grow-1" onclick="editClass(${cls.id})">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm flex-grow-1" onclick="manageStudents(${cls.id})">
-                                <i class="fas fa-users"></i> Students
-                            </button>
-                        </div>
-                    </div>
-                `;
-                cardContainer.appendChild(col);
-            });
-        }
-        
-        updateCardPagination();
-        updateStats();
-    }
-    
-    // Load classes based on current view
-    function loadClasses() {
-        if (currentView === 'table') {
-            loadClassesTable();
-        } else {
-            loadClassesCards();
-        }
-    }
-    
-    // Get class badge color based on grade level
-    function getClassBadgeClass(gradeLevel) {
-        const grade = parseInt(gradeLevel);
-        if (grade <= 3) return 'class-primary';
-        if (grade <= 6) return 'class-success';
-        if (grade <= 9) return 'class-warning';
-        if (grade <= 12) return 'class-danger';
-        return 'class-info';
-    }
-    
-    // Format status for display
-    function formatStatus(status) {
-        const statusMap = {
-            'active': 'Active',
-            'inactive': 'Inactive'
-        };
-        return statusMap[status] || status;
-    }
-    
-    // Filter classes
-    function filterClasses() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const gradeFilter = document.getElementById('gradeFilter').value;
-        const sectionFilter = document.getElementById('sectionFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
-        
-        filteredClasses = classesData.filter(cls => {
-            const matchesSearch = !searchTerm || 
-                cls.className.toLowerCase().includes(searchTerm) ||
-                cls.classCode.toLowerCase().includes(searchTerm) ||
-                (cls.classTeacher?.name && cls.classTeacher.name.toLowerCase().includes(searchTerm)) ||
-                cls.subjects.some(sub => sub.toLowerCase().includes(searchTerm));
-            
-            const matchesGrade = !gradeFilter || cls.gradeLevel === gradeFilter;
-            const matchesSection = !sectionFilter || cls.section === sectionFilter;
-            const matchesStatus = !statusFilter || cls.status === statusFilter;
-            
-            return matchesSearch && matchesGrade && matchesSection && matchesStatus;
         });
-        
-        currentPage = 1;
-        loadClasses();
-    }
-    
-    // Reset filters
-    function resetFilters() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('gradeFilter').value = '';
-        document.getElementById('sectionFilter').value = '';
-        document.getElementById('statusFilter').value = '';
-        
-        filteredClasses = [...classesData];
-        currentPage = 1;
-        loadClasses();
-        
-        showToast('Filters reset', 'info');
-    }
-    
-    // Update table info
-    function updateTableInfo() {
-        const total = filteredClasses.length;
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-        const endIndex = Math.min(currentPage * itemsPerPage, total);
-        
-        document.getElementById('tableInfo').textContent = 
-            `Showing ${startIndex} to ${endIndex} of ${total} classes`;
-            
-        // Update pagination info
-        document.getElementById('currentPageStart').textContent = startIndex;
-        document.getElementById('currentPageEnd').textContent = endIndex;
-        document.getElementById('totalClasses').textContent = total;
-    }
-    
-    // Update card view pagination info
-    function updateCardPagination() {
-        const total = filteredClasses.length;
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-        const endIndex = Math.min(currentPage * itemsPerPage, total);
-        
-        // Update pagination info
-        document.getElementById('currentPageStart').textContent = startIndex;
-        document.getElementById('currentPageEnd').textContent = endIndex;
-        document.getElementById('totalClasses').textContent = total;
-    }
-    
-    // Update pagination
-    function updatePagination() {
-        const pagination = document.getElementById('pagination');
-        const totalPages = Math.ceil(filteredClasses.length / itemsPerPage);
-        
-        pagination.innerHTML = '';
-        
-        if (totalPages <= 1) return;
-        
-        // Previous button
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `
-            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        `;
-        pagination.appendChild(prevLi);
-        
-        // Page numbers - show fewer on mobile
-        const showPages = window.innerWidth < 768 ? 3 : 5;
-        let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-        let endPage = Math.min(totalPages, startPage + showPages - 1);
-        
-        if (endPage - startPage + 1 < showPages) {
-            startPage = Math.max(1, endPage - showPages + 1);
-        }
-        
-        // First page
-        if (startPage > 1) {
-            const pageLi = document.createElement('li');
-            pageLi.className = 'page-item';
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(1)">1</a>
-            `;
-            pagination.appendChild(pageLi);
-            
-            if (startPage > 2) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
-                pagination.appendChild(ellipsisLi);
-            }
-        }
-        
-        // Page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            const pageLi = document.createElement('li');
-            pageLi.className = `page-item ${currentPage === i ? 'active' : ''}`;
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-            `;
-            pagination.appendChild(pageLi);
-        }
-        
-        // Last page
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
-                pagination.appendChild(ellipsisLi);
-            }
-            
-            const pageLi = document.createElement('li');
-            pageLi.className = 'page-item';
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>
-            `;
-            pagination.appendChild(pageLi);
-        }
-        
-        // Next button
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `
-            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        `;
-        pagination.appendChild(nextLi);
-    }
-    
-    // Change page
-    function changePage(page) {
-        currentPage = page;
-        loadClasses();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    // Update statistics
-    function updateStats() {
-        const totalClasses = classesData.length;
-        const totalStudents = classesData.reduce((sum, cls) => sum + cls.currentStudents, 0);
-        const activeClasses = classesData.filter(c => c.status === 'active').length;
-        const totalSubjects = new Set(classesData.flatMap(cls => cls.subjects)).size;
-        
-        // Update stats cards
-        document.querySelector('.stats-card:nth-child(1) .stat-number').textContent = totalClasses;
-        document.querySelector('.stats-card:nth-child(2) .stat-number').textContent = totalStudents;
-        document.querySelector('.stats-card:nth-child(3) .stat-number').textContent = activeClasses;
-        document.querySelector('.stats-card:nth-child(4) .stat-number').textContent = totalSubjects;
-    }
-    
-    // Add new class
-    function addClass() {
-        const form = document.getElementById('addClassForm');
-        
-        // Generate class code if not provided
-        let classCode = document.getElementById('classCode').value.trim();
-        if (!classCode) {
-            const lastId = classesData.reduce((max, cls) => {
-                const num = parseInt(cls.classCode.split('-')[1]) || 0;
-                return Math.max(max, num);
-            }, 0);
-            classCode = `CLS-${String(lastId + 1).padStart(3, '0')}`;
-        }
-        
-        // Get selected subjects
-        const subjectsSelect = document.getElementById('subjects');
-        const selectedSubjects = Array.from(subjectsSelect.selectedOptions).map(option => option.value);
-        
-        // Get teacher info
-        const teacherId = parseInt(document.getElementById('classTeacher').value);
-        const teacher = teachersData.find(t => t.id === teacherId);
-        
-        const newClass = {
-            id: classesData.length > 0 ? Math.max(...classesData.map(c => c.id)) + 1 : 1,
-            classCode: classCode,
-            className: document.getElementById('className').value.trim() || `Grade ${document.getElementById('gradeLevel').value} - Section ${document.getElementById('section').value}`,
-            gradeLevel: document.getElementById('gradeLevel').value,
-            section: document.getElementById('section').value,
-            classTeacher: teacher ? { id: teacher.id, name: teacher.name } : null,
-            roomNumber: document.getElementById('roomNumber').value.trim() || 'TBD',
-            academicYear: document.getElementById('academicYear').value,
-            maxStudents: parseInt(document.getElementById('maxStudents').value) || 30,
-            currentStudents: 0,
-            subjects: selectedSubjects,
-            description: document.getElementById('description').value.trim(),
-            schedule: document.getElementById('schedule').value,
-            status: document.getElementById('status').value,
-            createdDate: new Date().toISOString().split('T')[0]
-        };
-        
-        classesData.push(newClass);
-        localStorage.setItem('classesData', JSON.stringify(classesData));
-        
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addClassModal'));
-        modal.hide();
-        
-        // Reset form
-        form.reset();
-        
-        // Reload data
-        filterClasses();
-        
-        showToast(`Class ${newClass.className} created successfully!`, 'success');
     }
     
     // View class details
     function viewClassDetails(id) {
-        const cls = classesData.find(c => c.id === id);
-        if (!cls) return;
-        
-        const badgeClass = getClassBadgeClass(cls.gradeLevel);
-        const teacherName = cls.classTeacher?.name || 'Not assigned';
-        const scheduleText = scheduleNames[cls.schedule] || cls.schedule;
-        const subjectList = cls.subjects.map(sub => subjectNames[sub] || sub).join(', ');
-        const progressPercent = (cls.currentStudents / cls.maxStudents) * 100;
+        const className = document.querySelector(`.class-checkbox[value="${id}"]`).closest('tr').querySelector('.class-name').textContent;
+        const classId = id;
+        const createdDate = document.querySelector(`.class-checkbox[value="${id}"]`).closest('tr').querySelector('td:nth-child(4)').textContent;
         
         const modalBody = `
             <div class="row">
-                <div class="col-md-4 text-center mb-4">
-                    <div class="class-badge ${badgeClass} mb-3" style="width: 80px; height: 80px; font-size: 1.5rem; line-height: 80px;">
-                        ${cls.gradeLevel}
-                    </div>
-                    <h4 class="h5">${cls.className}</h4>
-                    <span class="badge bg-primary">${cls.classCode}</span>
+                <div class="col-12 mb-3">
+                    <h6>Class Information</h6>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="30%">Class Name:</th>
+                            <td>${className}</td>
+                        </tr>
+                        <tr>
+                            <th>Class ID:</th>
+                            <td>${classId}</td>
+                        </tr>
+                        <tr>
+                            <th>Created Date:</th>
+                            <td>${createdDate}</td>
+                        </tr>
+                    </table>
                 </div>
-                <div class="col-md-8">
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Class Teacher</label>
-                            <div class="fw-bold">${teacherName}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Room Number</label>
-                            <div class="fw-bold">${cls.roomNumber}</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Academic Year</label>
-                            <div class="fw-bold">${cls.academicYear}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Schedule</label>
-                            <div class="fw-bold">${scheduleText}</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Student Capacity</label>
-                            <div class="fw-bold">${cls.currentStudents} / ${cls.maxStudents}</div>
-                            <div class="progress mt-1" style="height: 8px;">
-                                <div class="progress-bar bg-success" role="progressbar" 
-                                     style="width: ${progressPercent}%" 
-                                     aria-valuenow="${progressPercent}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="100">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Status</label>
-                            <div><span class="badge status-${cls.status}">${formatStatus(cls.status)}</span></div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="text-muted">Subjects</label>
-                            <div class="fw-bold">${subjectList}</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <label class="text-muted">Description</label>
-                            <div class="fw-bold">${cls.description || 'No description provided'}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 text-end">
-                <button class="btn btn-primary" onclick="editClass(${cls.id})">
-                    <i class="fas fa-edit me-2"></i>Edit Class
-                </button>
             </div>
         `;
         
         document.getElementById('viewClassModalBody').innerHTML = modalBody;
-        document.querySelector('#viewClassModal .modal-title').textContent = 'Class Details';
-        
         const modal = new bootstrap.Modal(document.getElementById('viewClassModal'));
         modal.show();
     }
     
     // Edit class
     function editClass(id) {
-        const cls = classesData.find(c => c.id === id);
-        if (!cls) return;
+        const className = document.querySelector(`.class-checkbox[value="${id}"]`).closest('tr').querySelector('.class-name').textContent;
         
-        // Create subjects options HTML
-        const subjectsOptions = Object.entries(subjectNames).map(([value, label]) => {
-            const selected = cls.subjects.includes(value) ? 'selected' : '';
-            return `<option value="${value}" ${selected}>${label}</option>`;
-        }).join('');
-        
-        // Create teacher options HTML
-        const teacherOptions = teachersData.map(teacher => {
-            const selected = cls.classTeacher?.id === teacher.id ? 'selected' : '';
-            return `<option value="${teacher.id}" ${selected}>${teacher.name}</option>`;
-        }).join('');
-        
-        const modalBody = `
-            <form id="editClassForm" onsubmit="updateClass(${id}); return false;">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Grade Level</label>
-                        <select class="form-select" required>
-                            <option value="1" ${cls.gradeLevel === '1' ? 'selected' : ''}>Grade 1</option>
-                            <option value="2" ${cls.gradeLevel === '2' ? 'selected' : ''}>Grade 2</option>
-                            <option value="3" ${cls.gradeLevel === '3' ? 'selected' : ''}>Grade 3</option>
-                            <option value="4" ${cls.gradeLevel === '4' ? 'selected' : ''}>Grade 4</option>
-                            <option value="5" ${cls.gradeLevel === '5' ? 'selected' : ''}>Grade 5</option>
-                            <option value="6" ${cls.gradeLevel === '6' ? 'selected' : ''}>Grade 6</option>
-                            <option value="7" ${cls.gradeLevel === '7' ? 'selected' : ''}>Grade 7</option>
-                            <option value="8" ${cls.gradeLevel === '8' ? 'selected' : ''}>Grade 8</option>
-                            <option value="9" ${cls.gradeLevel === '9' ? 'selected' : ''}>Grade 9</option>
-                            <option value="10" ${cls.gradeLevel === '10' ? 'selected' : ''}>Grade 10</option>
-                            <option value="11" ${cls.gradeLevel === '11' ? 'selected' : ''}>Grade 11</option>
-                            <option value="12" ${cls.gradeLevel === '12' ? 'selected' : ''}>Grade 12</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Section</label>
-                        <select class="form-select" required>
-                            <option value="A" ${cls.section === 'A' ? 'selected' : ''}>Section A</option>
-                            <option value="B" ${cls.section === 'B' ? 'selected' : ''}>Section B</option>
-                            <option value="C" ${cls.section === 'C' ? 'selected' : ''}>Section C</option>
-                            <option value="D" ${cls.section === 'D' ? 'selected' : ''}>Section D</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Class Name</label>
-                        <input type="text" class="form-control" value="${cls.className}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Class Code</label>
-                        <input type="text" class="form-control" value="${cls.classCode}" readonly>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Class Teacher</label>
-                        <select class="form-select" required>
-                            <option value="">Select Teacher</option>
-                            ${teacherOptions}
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Room Number</label>
-                        <input type="text" class="form-control" value="${cls.roomNumber}">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Academic Year</label>
-                        <select class="form-select" required>
-                            <option value="2023-2024" ${cls.academicYear === '2023-2024' ? 'selected' : ''}>2023-2024</option>
-                            <option value="2024-2025" ${cls.academicYear === '2024-2025' ? 'selected' : ''}>2024-2025</option>
-                            <option value="2025-2026" ${cls.academicYear === '2025-2026' ? 'selected' : ''}>2025-2026</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Max Students</label>
-                        <input type="number" class="form-control" value="${cls.maxStudents}" min="1" max="50" required>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Subjects</label>
-                        <select class="form-select" multiple>
-                            ${subjectsOptions}
-                        </select>
-                        <div class="form-text">Hold Ctrl (Cmd on Mac) to select multiple subjects</div>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Class Description</label>
-                        <textarea class="form-control" rows="3">${cls.description || ''}</textarea>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Schedule</label>
-                        <select class="form-select">
-                            <option value="">Select Schedule</option>
-                            <option value="morning" ${cls.schedule === 'morning' ? 'selected' : ''}>Morning (8:00 AM - 12:00 PM)</option>
-                            <option value="afternoon" ${cls.schedule === 'afternoon' ? 'selected' : ''}>Afternoon (1:00 PM - 5:00 PM)</option>
-                            <option value="full-day" ${cls.schedule === 'full-day' ? 'selected' : ''}>Full Day (8:00 AM - 3:00 PM)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" required>
-                            <option value="active" ${cls.status === 'active' ? 'selected' : ''}>Active</option>
-                            <option value="inactive" ${cls.status === 'inactive' ? 'selected' : ''}>Inactive</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Class</button>
-                </div>
-            </form>
-        `;
-        
-        document.getElementById('editClassModalBody').innerHTML = modalBody;
-        document.querySelector('#editClassModal .modal-title').textContent = 'Edit Class';
+        document.getElementById('editClassName').value = className;
+        document.getElementById('editClassId').value = id;
         
         const modal = new bootstrap.Modal(document.getElementById('editClassModal'));
         modal.show();
-    }
-    
-    // Update class
-    function updateClass(id) {
-        const cls = classesData.find(c => c.id === id);
-        if (!cls) return;
-        
-        const form = document.getElementById('editClassForm');
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        // Get selected subjects from multi-select
-        const subjectsSelect = form.querySelector('select[multiple]');
-        const selectedSubjects = Array.from(subjectsSelect.selectedOptions).map(option => option.value);
-        
-        // Get teacher info
-        const teacherId = parseInt(inputs[5].value);
-        const teacher = teachersData.find(t => t.id === teacherId);
-        
-        // Update class data
-        cls.gradeLevel = inputs[0].value;
-        cls.section = inputs[1].value;
-        cls.className = inputs[2].value;
-        // cls.classCode is read-only
-        cls.classTeacher = teacher ? { id: teacher.id, name: teacher.name } : null;
-        cls.roomNumber = inputs[6].value;
-        cls.academicYear = inputs[7].value;
-        cls.maxStudents = parseInt(inputs[8].value);
-        cls.subjects = selectedSubjects;
-        cls.description = inputs[10].value;
-        cls.schedule = inputs[11].value;
-        cls.status = inputs[12].value;
-        
-        // Save to localStorage
-        localStorage.setItem('classesData', JSON.stringify(classesData));
-        
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editClassModal'));
-        modal.hide();
-        
-        // Reload data
-        filterClasses();
-        
-        showToast(`Class ${cls.className} updated successfully!`, 'success');
-    }
-    
-    // Manage students in class
-    function manageStudents(id) {
-        const cls = classesData.find(c => c.id === id);
-        if (!cls) return;
-        
-        document.getElementById('manageClassTitle').textContent = cls.className;
-        
-        // Sample students data
-        const sampleStudents = [
-            { id: 1, studentId: "STU-001", name: "John Smith", grade: cls.gradeLevel },
-            { id: 2, studentId: "STU-002", name: "Emma Johnson", grade: cls.gradeLevel },
-            { id: 3, studentId: "STU-003", name: "Michael Brown", grade: cls.gradeLevel },
-            { id: 4, studentId: "STU-004", name: "Sarah Davis", grade: cls.gradeLevel },
-            { id: 5, studentId: "STU-005", name: "David Wilson", grade: cls.gradeLevel }
-        ];
-        
-        const modalBody = `
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Class Information</h6>
-                            <p><strong>Class:</strong> ${cls.className}</p>
-                            <p><strong>Teacher:</strong> ${cls.classTeacher?.name || 'Not assigned'}</p>
-                            <p><strong>Students:</strong> ${cls.currentStudents} / ${cls.maxStudents}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="card-title">Add New Student</h6>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control" id="newStudentId" placeholder="Student ID">
-                                <button class="btn btn-primary" type="button" onclick="addStudentToClass(${cls.id})">
-                                    <i class="fas fa-plus"></i> Add
-                                </button>
-                            </div>
-                            <small class="text-muted">Enter student ID to add to this class</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0">Students in Class (${sampleStudents.length})</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Name</th>
-                                    <th>Grade</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${sampleStudents.map(student => `
-                                    <tr>
-                                        <td>${student.studentId}</td>
-                                        <td>${student.name}</td>
-                                        <td>Grade ${student.grade}</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="removeStudentFromClass(${cls.id}, ${student.id})">
-                                                <i class="fas fa-trash"></i> Remove
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('manageStudentsModalBody').innerHTML = modalBody;
-        const modal = new bootstrap.Modal(document.getElementById('manageStudentsModal'));
-        modal.show();
-    }
-    
-    // Add student to class (demo function)
-    function addStudentToClass(classId) {
-        const studentId = document.getElementById('newStudentId').value;
-        if (!studentId) {
-            showToast('Please enter a student ID', 'warning');
-            return;
-        }
-        
-        showToast(`Student ${studentId} added to class successfully!`, 'success');
-        document.getElementById('newStudentId').value = '';
-    }
-    
-    // Remove student from class (demo function)
-    function removeStudentFromClass(classId, studentId) {
-        if (!confirm('Are you sure you want to remove this student from the class?')) return;
-        
-        showToast('Student removed from class successfully!', 'warning');
     }
     
     // Delete class
     function deleteClass(id) {
         if (!confirm('Are you sure you want to delete this class? This action cannot be undone.')) return;
         
-        const cls = classesData.find(c => c.id === id);
-        if (!cls) return;
+        // Create a form to submit the deletion
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "#";
         
-        classesData = classesData.filter(c => c.id !== id);
-        localStorage.setItem('classesData', JSON.stringify(classesData));
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
         
-        // Remove from selection if selected
-        selectedClasses.delete(id);
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'class_id';
+        idInput.value = id;
         
-        // Reload data
-        filterClasses();
-        
-        showToast(`Class ${cls.className} deleted successfully!`, 'warning');
-    }
-    
-    // Toggle class selection
-    function toggleClassSelection(id, isChecked) {
-        if (isChecked) {
-            selectedClasses.add(id);
-        } else {
-            selectedClasses.delete(id);
-            document.getElementById('selectAll').checked = false;
-        }
-        updateBulkActions();
+        form.appendChild(csrfInput);
+        form.appendChild(idInput);
+        document.body.appendChild(form);
+        form.submit();
     }
     
     // Update bulk actions visibility
@@ -1724,48 +508,14 @@
             return;
         }
         
-        const selectedData = classesData.filter(c => selectedClasses.has(c.id));
-        exportData(selectedData, 'selected_classes');
-        showToast(`Exported ${selectedClasses.size} class(es)`, 'success');
-    }
-    
-    // Export to CSV
-    function exportToCSV() {
-        exportData(filteredClasses, 'all_classes', 'csv');
-    }
-    
-    // Export to Excel
-    function exportToExcel() {
-        exportData(filteredClasses, 'all_classes', 'excel');
-    }
-    
-    // Export data function
-    function exportData(data, filename, format = 'csv') {
-        if (data.length === 0) {
-            showToast('No data to export', 'warning');
-            return;
-        }
+        // Simple CSV export
+        let csvContent = "Class ID,Class Name\n";
         
-        // Create CSV content
-        const headers = ['Class Code', 'Class Name', 'Grade Level', 'Section', 'Class Teacher', 'Room', 'Students', 'Max Students', 'Subjects', 'Status', 'Academic Year'];
-        const rows = data.map(cls => [
-            cls.classCode,
-            cls.className,
-            `Grade ${cls.gradeLevel}`,
-            cls.section,
-            cls.classTeacher?.name || 'Not assigned',
-            cls.roomNumber,
-            cls.currentStudents,
-            cls.maxStudents,
-            cls.subjects.map(sub => subjectNames[sub] || sub).join(', '),
-            formatStatus(cls.status),
-            cls.academicYear
-        ]);
-        
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.join(','))
-        ].join('\n');
+        selectedClasses.forEach(id => {
+            const row = document.querySelector(`.class-checkbox[value="${id}"]`).closest('tr');
+            const className = row.querySelector('.class-name').textContent;
+            csvContent += `${id},"${className}"\n`;
+        });
         
         // Create and download file
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1773,109 +523,14 @@
         const url = URL.createObjectURL(blob);
         
         link.setAttribute('href', url);
-        link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `classes_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showToast(`Exported ${data.length} class(es)`, 'success');
-    }
-    
-    // Print table
-    function printTable() {
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Classes List - ${new Date().toLocaleDateString()}</title>
-                <style>
-                    body { font-family: Arial, sans-serif; font-size: 12px; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-                    th { background-color: #f5f5f5; font-weight: bold; }
-                    .header { text-align: center; margin-bottom: 20px; }
-                    .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #666; }
-                    @media print {
-                        body { font-size: 11px; }
-                        th, td { padding: 4px; }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1 style="font-size: 18px; margin-bottom: 5px;">Classes List</h1>
-                    <p style="margin: 5px 0;">Generated on ${new Date().toLocaleString()}</p>
-                    <p style="margin: 5px 0;">Total Classes: ${filteredClasses.length}</p>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Class Code</th>
-                            <th>Class Name</th>
-                            <th>Grade</th>
-                            <th>Teacher</th>
-                            <th>Students</th>
-                            <th>Subjects</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filteredClasses.map(cls => `
-                            <tr>
-                                <td>${cls.classCode}</td>
-                                <td>${cls.className}</td>
-                                <td>Grade ${cls.gradeLevel} - Section ${cls.section}</td>
-                                <td>${cls.classTeacher?.name || 'Not assigned'}</td>
-                                <td>${cls.currentStudents} / ${cls.maxStudents}</td>
-                                <td>${cls.subjects.map(sub => subjectNames[sub] || sub).join(', ')}</td>
-                                <td>${formatStatus(cls.status)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="footer">
-                    <p>School SMS - Class Management System</p>
-                </div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        setTimeout(function() {
-                            window.close();
-                        }, 500);
-                    };
-                <\/script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-    }
-    
-    // Update status in bulk
-    function updateStatusBulk() {
-        if (selectedClasses.size === 0) {
-            showToast('No classes selected', 'warning');
-            return;
-        }
-        
-        const newStatus = prompt('Enter new status (active/inactive):');
-        if (!newStatus || !['active', 'inactive'].includes(newStatus.toLowerCase())) {
-            showToast('Invalid status', 'warning');
-            return;
-        }
-        
-        classesData.forEach(cls => {
-            if (selectedClasses.has(cls.id)) {
-                cls.status = newStatus.toLowerCase();
-            }
-        });
-        
-        localStorage.setItem('classesData', JSON.stringify(classesData));
-        filterClasses();
-        clearSelection();
-        
-        showToast(`Updated status for ${selectedClasses.size} class(es) to ${formatStatus(newStatus)}`, 'success');
+        showToast(`Exported ${selectedClasses.size} class(es)`, 'success');
     }
     
     // Delete selected classes
@@ -1889,174 +544,27 @@
             return;
         }
         
-        classesData = classesData.filter(c => !selectedClasses.has(c.id));
-        localStorage.setItem('classesData', JSON.stringify(classesData));
+        // Create a form to submit multiple deletions
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "#";
         
-        filterClasses();
-        clearSelection();
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        form.appendChild(csrfInput);
         
-        showToast(`Deleted ${selectedClasses.size} class(es)`, 'warning');
+        selectedClasses.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'class_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
     }
 </script>
 {% endblock %}
-
-<!-- Modals Section -->
-<div class="modal fade" id="addClassModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Add New Class</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addClassForm">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Grade Level</label>
-                            <select class="form-select" id="gradeLevel" required>
-                                <option value="">Select Grade</option>
-                                <option value="1">Grade 1</option>
-                                <option value="2">Grade 2</option>
-                                <option value="3">Grade 3</option>
-                                <option value="4">Grade 4</option>
-                                <option value="5">Grade 5</option>
-                                <option value="6">Grade 6</option>
-                                <option value="7">Grade 7</option>
-                                <option value="8">Grade 8</option>
-                                <option value="9">Grade 9</option>
-                                <option value="10">Grade 10</option>
-                                <option value="11">Grade 11</option>
-                                <option value="12">Grade 12</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Section</label>
-                            <select class="form-select" id="section" required>
-                                <option value="">Select Section</option>
-                                <option value="A">Section A</option>
-                                <option value="B">Section B</option>
-                                <option value="C">Section C</option>
-                                <option value="D">Section D</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Class Name</label>
-                            <input type="text" class="form-control" id="className" placeholder="e.g., Science Class" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Class Code</label>
-                            <input type="text" class="form-control" id="classCode" required>
-                            <div class="form-text">Auto-generated if left blank</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Class Teacher</label>
-                            <select class="form-select" id="classTeacher" required>
-                                <option value="">Select Teacher</option>
-                                <!-- Teachers will be loaded dynamically -->
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Room Number</label>
-                            <input type="text" class="form-control" id="roomNumber">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Academic Year</label>
-                            <select class="form-select" id="academicYear" required>
-                                <option value="">Select Year</option>
-                                <option value="2023-2024">2023-2024</option>
-                                <option value="2024-2025">2024-2025</option>
-                                <option value="2025-2026">2025-2026</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Max Students</label>
-                            <input type="number" class="form-control" id="maxStudents" min="1" max="50" value="30">
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Subjects</label>
-                            <select class="form-select" id="subjects" multiple>
-                                <option value="math">Mathematics</option>
-                                <option value="science">Science</option>
-                                <option value="english">English</option>
-                                <option value="history">History</option>
-                                <option value="geography">Geography</option>
-                                <option value="computer">Computer Science</option>
-                                <option value="art">Art</option>
-                                <option value="music">Music</option>
-                                <option value="pe">Physical Education</option>
-                                <option value="language">Foreign Language</option>
-                            </select>
-                            <div class="form-text">Hold Ctrl (Cmd on Mac) to select multiple subjects</div>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Class Description</label>
-                            <textarea class="form-control" id="description" rows="3" placeholder="Optional class description..."></textarea>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Schedule</label>
-                            <select class="form-select" id="schedule">
-                                <option value="">Select Schedule</option>
-                                <option value="morning">Morning (8:00 AM - 12:00 PM)</option>
-                                <option value="afternoon">Afternoon (1:00 PM - 5:00 PM)</option>
-                                <option value="full-day">Full Day (8:00 AM - 3:00 PM)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Status</label>
-                            <select class="form-select" id="status" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="addClassForm" class="btn btn-success">Create Class</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="editClassModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Edit Class</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="editClassModalBody">
-                <!-- Content will be loaded dynamically -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="viewClassModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Class Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="viewClassModalBody">
-                <!-- Content will be loaded dynamically -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="manageStudentsModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title">Manage Students - <span id="manageClassTitle"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="manageStudentsModalBody">
-                <!-- Content will be loaded dynamically -->
-            </div>
-        </div>
-    </div>
-</div>

@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from accounts.forms import StudentUserForm
 from students.forms import StudentProfileForm, StudentClassForm
-
+from academics.forms import SchoolClassForm
 # Create your views here.
 def admin_panel(request):
     return render(request, "school_admin/admin_dashboard.html")
@@ -24,7 +24,20 @@ def manage_teachers(request):
     return render(request, "school_admin/manage_teachers.html")
 
 def manage_classes(request):
-    return render(request, "school_admin/manage_classes.html")
+    if request.method == "POST":
+        form = SchoolClassForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            return redirect("manage_classes")  # reload page after save
+
+    else:
+        # GET request → empty form
+        form = SchoolClassForm()
+
+    return render(request, "school_admin/manage_classes.html", {
+        "form": form
+    })
 
 def manage_subjects(request):
     return render(request, "school_admin/manage_subjects.html")
