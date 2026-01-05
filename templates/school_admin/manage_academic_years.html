@@ -1,0 +1,1011 @@
+{% extends "school_admin/base_admin.html" %}
+
+{% block title %}Manage Academic Years - School SMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page-specific styles */
+    .main-content {
+        min-height: calc(100vh - 56px);
+        background-color: var(--bg-primary);
+        transition: margin-left 0.3s ease, background-color 0.3s;
+    }
+    
+    /* Page Header */
+    .page-header {
+        margin-bottom: 20px;
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        font-size: 0.85rem;
+    }
+    
+    .breadcrumb-item a {
+        color: var(--danger-color);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Card Styles */
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+        transition: background-color 0.3s;
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        padding: 12px 15px;
+        font-weight: 600;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.95rem;
+    }
+    
+    /* Toast Messages */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1055;
+    }
+    
+    .custom-toast {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 10px;
+        animation: slideInRight 0.3s ease-out;
+        max-width: 350px;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Academic Year Card */
+    .academic-year-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+        transition: all 0.3s;
+        height: 100%;
+    }
+    
+    .academic-year-card.active {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 2px rgba(28, 200, 138, 0.1);
+    }
+    
+    .academic-year-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .academic-year-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .academic-year-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+    
+    .academic-year-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .badge-active {
+        background-color: rgba(28, 200, 138, 0.1);
+        color: var(--success-color);
+    }
+    
+    .badge-inactive {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--text-secondary);
+    }
+    
+    .academic-year-dates {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+    }
+    
+    .date-item {
+        text-align: center;
+    }
+    
+    .date-label {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        display: block;
+        margin-bottom: 3px;
+    }
+    
+    .date-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .academic-year-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(78, 115, 223, 0.05);
+        border-radius: 8px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--primary-color);
+        display: block;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+    }
+    
+    .academic-year-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    /* Form Controls */
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+        transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        border-radius: 6px;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--danger-color);
+        color: var(--text-primary);
+        box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
+    }
+    
+    /* Button Styles */
+    .btn {
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 500;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+    
+    .btn-success {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+    
+    .btn-success:hover {
+        background-color: #17a673;
+        border-color: #17a673;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2e59d9;
+    }
+    
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-danger {
+        color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+    
+    .btn-outline-danger:hover {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+    
+    /* Statistics Cards */
+    .stats-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 15px;
+        transition: transform 0.3s, background-color 0.3s;
+        background-color: var(--bg-secondary);
+        height: 100%;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .stats-card .card-body {
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        color: white;
+    }
+    
+    .stat-icon-primary {
+        background-color: var(--primary-color);
+    }
+    
+    .stat-icon-success {
+        background-color: var(--success-color);
+    }
+    
+    .stat-icon-warning {
+        background-color: var(--warning-color);
+    }
+    
+    .stat-icon-info {
+        background-color: var(--info-color);
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Bulk Actions */
+    .bulk-actions {
+        background-color: rgba(28, 200, 138, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 30px 15px;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        color: var(--border-color);
+        margin-bottom: 15px;
+    }
+    
+    /* Modal Styles */
+    .modal-content {
+        background-color: var(--bg-secondary);
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 10px 10px 0 0;
+        padding: 15px;
+    }
+    
+    .modal-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        color: var(--text-primary);
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 991.98px) {
+        .stats-card .stat-number {
+            font-size: 1.1rem;
+        }
+        
+        .page-header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .btn {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .academic-year-actions {
+            flex-direction: column;
+        }
+        
+        .academic-year-actions .btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+    }
+    
+    @media (max-width: 767.98px) {
+        .main-content {
+            padding: 10px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+        
+        .academic-year-card {
+            padding: 12px;
+        }
+        
+        .academic-year-stats {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .stats-card {
+            margin-bottom: 10px;
+        }
+    }
+    
+    @media (max-width: 575.98px) {
+        .academic-year-dates {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .date-item {
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .academic-year-stats {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="custom-toast alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Manage Academic Years</h1>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAcademicYearModal">
+                <i class="fas fa-plus-circle me-2"></i>Add Academic Year
+            </button>
+        </div>
+        <div class="breadcrumb">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Academic Years</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-primary">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number">{{ academic_years|length }}</div>
+                    <div class="stat-label">Total Years</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">
+                        {{ active_years|length }}
+                    </div>
+                    <div class="stat-label">Active Year</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-warning">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-info">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Total Teachers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions mb-4" id="bulkActions" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span id="selectedCount">0</span> year(s) selected
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <button class="btn btn-sm btn-outline-danger" type="button" onclick="submitBulkDelete()">
+                    <i class="fas fa-trash me-1"></i>Delete
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Form (Hidden) -->
+    <form method="POST" action="{% url 'manage_academic_years' %}" id="bulkDeleteForm" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="bulk_delete">
+        <!-- Selected IDs will be added here -->
+    </form>
+
+    <!-- Set Active Form (Hidden) -->
+    <form method="POST" action="{% url 'manage_academic_years' %}" id="setActiveForm" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_active">
+        <input type="hidden" name="year_id" id="setActiveYearId">
+    </form>
+
+    <!-- Current Active Year Warning -->
+    {% for year in academic_years %}
+        {% if year.is_active %}
+        <div class="alert alert-success mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fs-4"></i>
+                <div>
+                    <h6 class="mb-1">Current Active Academic Year</h6>
+                    <p class="mb-0">{{ year.year }} 
+                        {% if year.start_date and year.end_date %}
+                            ({{ year.start_date|date:"M d, Y" }} - {{ year.end_date|date:"M d, Y" }})
+                        {% endif %}
+                    </p>
+                    <small>All new enrollments and activities will be recorded under this academic year.</small>
+                </div>
+                <button class="btn btn-outline-success btn-sm ms-auto" onclick="setActiveYear({{ year.id }})">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Academic Years Grid -->
+    <div class="row" id="academicYearsGrid">
+        {% for year in academic_years %}
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+            <div class="academic-year-card {% if year.is_active %}active{% endif %}" data-year-id="{{ year.id }}">
+                <div class="academic-year-header">
+                    <h5 class="academic-year-title">{{ year.year }}</h5>
+                    <span class="academic-year-badge {% if year.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                        {% if year.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+                
+                <div class="academic-year-dates">
+                    <div class="date-item">
+                        <span class="date-label">Start Date</span>
+                        <span class="date-value" data-date="{{ year.start_date|date:'Y-m-d' }}">
+                            {{ year.start_date|date:"M d, Y"|default:"Not set" }}
+                        </span>
+                    </div>
+                    <div class="date-item">
+                        <span class="date-label">End Date</span>
+                        <span class="date-value" data-date="{{ year.end_date|date:'Y-m-d' }}">
+                            {{ year.end_date|date:"M d, Y"|default:"Not set" }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="academic-year-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Classes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Students</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Teachers</span>
+                    </div>
+                </div>
+                
+                <div class="academic-year-actions">
+                    {% if not year.is_active %}
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="setActiveYear({{ year.id }})">
+                        <i class="fas fa-check-circle me-1"></i>Set Active
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-outline-primary btn-sm" onclick="editAcademicYear({{ year.id }})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form method="POST" action="{% url 'manage_academic_years' %}" class="d-inline" onsubmit="return confirmDelete()">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_id" value="{{ year.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                {% if year.is_active %}disabled title="Cannot delete active year"{% endif %}>
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-calendar-alt"></i>
+                <h5>No Academic Years Found</h5>
+                <p>Add your first academic year to get started</p>
+                <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#addAcademicYearModal">
+                    <i class="fas fa-plus-circle me-2"></i>Add Academic Year
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+<!-- Add Academic Year Modal -->
+<div class="modal fade" id="addAcademicYearModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Add Academic Year</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_academic_years' %}" id="addAcademicYearForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Academic Year *</label>
+                            <input type="text" class="form-control" name="year" placeholder="e.g., 2023-2024" required>
+                            <div class="form-text">Format: YYYY-YYYY (e.g., 2023-2024)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="end_date">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="true">
+                                <label class="form-check-label" for="is_active">
+                                    Set as active academic year
+                                </label>
+                                <div class="form-text">Only one academic year can be active at a time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="action" value="add">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Academic Year</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Academic Year Modal -->
+<div class="modal fade" id="editAcademicYearModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Academic Year</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_academic_years' %}" id="editAcademicYearForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Academic Year *</label>
+                            <input type="text" class="form-control" id="editYear" name="year" required>
+                            <input type="hidden" id="editYearId" name="edit_id">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="editStartDate" name="start_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="editEndDate" name="end_date">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="editIsActive" value="true">
+                                <label class="form-check-label" for="editIsActive">
+                                    Set as active academic year
+                                </label>
+                                <div class="form-text">Only one academic year can be active at a time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="action" value="edit">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Academic Year</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global Variables
+    let selectedYears = new Set();
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+        
+        // Auto-hide toast messages after 5 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
+        
+        // Auto-format academic year input
+        const yearInput = document.querySelector('input[name="year"]');
+        if (yearInput) {
+            yearInput.addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (value && value.length === 4 && !value.includes('-')) {
+                    // Convert single year to range
+                    const year = parseInt(value);
+                    if (!isNaN(year)) {
+                        this.value = `${year}-${year + 1}`;
+                    }
+                }
+            });
+        }
+    });
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Year selection checkboxes (if you add them)
+        document.querySelectorAll('.year-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedYears.add(parseInt(this.value));
+                } else {
+                    selectedYears.delete(parseInt(this.value));
+                    document.getElementById('selectAll').checked = false;
+                }
+                updateBulkActions();
+            });
+        });
+    }
+    
+    // Edit academic year
+    function editAcademicYear(id) {
+        // Find the year card
+        const card = document.querySelector(`.academic-year-card[data-year-id="${id}"]`);
+        if (!card) return;
+        
+        const yearText = card.querySelector('.academic-year-title').textContent;
+        const isActive = card.classList.contains('active');
+        
+        // Get dates from data attributes
+        const startDateSpan = card.querySelector('.date-value[data-date]');
+        const endDateSpan = card.querySelectorAll('.date-value[data-date]')[1];
+        
+        const startDate = startDateSpan && startDateSpan.dataset.date !== 'None' ? startDateSpan.dataset.date : '';
+        const endDate = endDateSpan && endDateSpan.dataset.date !== 'None' ? endDateSpan.dataset.date : '';
+        
+        // Populate the edit form
+        document.getElementById('editYear').value = yearText;
+        document.getElementById('editYearId').value = id;
+        document.getElementById('editStartDate').value = startDate;
+        document.getElementById('editEndDate').value = endDate;
+        document.getElementById('editIsActive').checked = isActive;
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('editAcademicYearModal'));
+        modal.show();
+    }
+    
+    // Set active academic year
+    function setActiveYear(id) {
+        if (!confirm('Are you sure you want to set this as the active academic year? This will deactivate the current active year.')) {
+            return;
+        }
+        
+        document.getElementById('setActiveYearId').value = id;
+        document.getElementById('setActiveForm').submit();
+    }
+    
+    // Confirm delete
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this academic year? This action cannot be undone.');
+    }
+    
+    // Update bulk actions visibility
+    function updateBulkActions() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        selectedCount.textContent = selectedYears.size;
+        
+        if (selectedYears.size > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    // Clear selection
+    function clearSelection() {
+        selectedYears.clear();
+        document.getElementById('selectAll').checked = false;
+        document.querySelectorAll('.year-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        updateBulkActions();
+    }
+    
+    // Export selected years
+    function exportSelected() {
+        if (selectedYears.size === 0) {
+            showToast('No academic years selected for export', 'warning');
+            return;
+        }
+        
+        // Simple CSV export
+        let csvContent = "Academic Year,Start Date,End Date,Status\n";
+        
+        selectedYears.forEach(id => {
+            const card = document.querySelector(`.academic-year-card[data-year-id="${id}"]`);
+            if (card) {
+                const yearText = card.querySelector('.academic-year-title').textContent;
+                const startDate = card.querySelector('.date-value').textContent;
+                const endDate = card.querySelectorAll('.date-value')[1].textContent;
+                const status = card.classList.contains('active') ? 'Active' : 'Inactive';
+                csvContent += `"${yearText}","${startDate}","${endDate}","${status}"\n`;
+            }
+        });
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `academic_years_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${selectedYears.size} academic year(s)`, 'success');
+    }
+    
+    // Submit bulk delete
+    function submitBulkDelete() {
+        if (selectedYears.size === 0) {
+            showToast('No academic years selected', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${selectedYears.size} academic year(s)? This action cannot be undone.`)) {
+            return;
+        }
+        
+        // Get the bulk delete form
+        const form = document.getElementById('bulkDeleteForm');
+        
+        // Clear any existing year_ids inputs
+        const existingInputs = form.querySelectorAll('input[name="year_ids"]');
+        existingInputs.forEach(input => input.remove());
+        
+        // Add selected year IDs to the form
+        selectedYears.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'year_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        // Submit the form
+        form.submit();
+    }
+    
+    // Validate academic year format
+    function validateYearFormat(year) {
+        const pattern = /^\d{4}-\d{4}$/;
+        if (!pattern.test(year)) {
+            return false;
+        }
+        
+        const [start, end] = year.split('-').map(Number);
+        return end === start + 1;
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Remove existing alerts
+        const existingToasts = document.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        });
+        
+        // Create new toast
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `
+            <i class="fas fa-${getToastIcon(type)} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.getElementById('toastContainer').appendChild(toast);
+        toast.style.display = 'block';
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'check-circle';
+            case 'danger': 
+            case 'error': return 'exclamation-circle';
+            case 'warning': return 'exclamation-triangle';
+            default: return 'info-circle';
+        }
+    }
+    
+    // Debug form submissions
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Academic Years page loaded');
+        
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                console.log('Form submitted:', this.id);
+                console.log('Action:', this.querySelector('input[name="action"]')?.value);
+            });
+        });
+    });
+</script>
+{% endblock %}
