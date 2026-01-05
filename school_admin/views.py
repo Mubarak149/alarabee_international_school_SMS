@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from accounts.forms import StudentUserForm
 from students.forms import StudentProfileForm, StudentClassForm
+from students.models import StudentProfile, StudentClass
 from academics.forms import SchoolClassForm, AcademicYearForm
 from academics.models import AcademicYear, SchoolClass, Subject
-
+from django.db import transaction
+from datetime import datetime
 # Create your views here.
 def admin_panel(request):
     return render(request, "school_admin/admin_dashboard.html")
@@ -12,15 +14,153 @@ def admin_panel(request):
 def admin_profile(request):
     return render(request, "school_admin/admin_profile.html")
 
+
+# views.py
 def manage_students(request):
-# 🔥 GET request → send empty forms to frontend
+    # Get all students with related data
+    students = StudentProfile.objects.select_related('user').prefetch_related('studentclass_set').all()
+    
+    if request.method == "POST":
+        print("POST request received", request.POST)
+        action = request.POST.get('action')
+        
+        # ADD STUDENT
+        if action == 'add':
+            user_form = StudentUserForm(request.POST)
+            profile_form = StudentProfileForm(request.POST)
+            class_form = StudentClassForm(request.POST)
+            
+            if all([user_form.is_valid(), profile_form.is_valid(), class_form.is_valid()]):
+                try:
+                    with transaction.atomic():
+                        # Save User
+                        user = user_form.save(commit=False)
+                        user.user_type = 'student'
+                        user.set_password('student123')  # Default password
+                        user.save()
+                        
+                        # Save StudentProfile
+                        profile = profile_form.save(commit=False)
+                        profile.user = user
+                        
+                        # Generate student ID if not provided
+                        if not profile.student_id:
+                            year = datetime.now().year % 100
+                            last_student = StudentProfile.objects.filter(
+                                student_id__startswith=f'STU-{year}'
+                            ).order_by('-student_id').first()
+                            
+                            if last_student and last_student.student_id:
+                                try:
+                                    last_num = int(last_student.student_id.split('-')[2])
+                                    new_num = last_num + 1
+                                except (IndexError, ValueError):
+                                    new_num = 1
+                            else:
+                                new_num = 1
+                            
+                            profile.student_id = f'STU-{year}-{new_num:03d}'
+                        
+                        profile.save()
+                        
+                        # Save StudentClass
+                        student_class = class_form.save(commit=False)
+                        student_class.student = profile
+                        student_class.save()
+                    
+                    messages.success(request, f'Student {user.get_full_name()} added successfully!')
+                    return redirect('manage_students')
+                    
+                except Exception as e:
+                    messages.error(request, f'Error adding student: {str(e)}')
+            else:
+                # Handle form errors
+                print("Form errors found", user_form.errors, profile_form.errors, class_form.errors)
+                for form in [user_form, profile_form, class_form]:
+                    for error in form.errors.values():
+                        messages.error(request, error)
+                return redirect('manage_students')
+        
+        # EDIT STUDENT
+        elif action == 'edit':
+            student_id = request.POST.get('edit_id')
+            try:
+                profile = StudentProfile.objects.get(id=student_id)
+                user = profile.user
+                
+                user_form = StudentUserForm(request.POST, instance=user)
+                profile_form = StudentProfileForm(request.POST, instance=profile)
+                
+                # Get or create StudentClass
+                student_class = profile.studentclass_set.first()
+                if student_class:
+                    class_form = StudentClassForm(request.POST, instance=student_class)
+                else:
+                    class_form = StudentClassForm(request.POST)
+                
+                if all([user_form.is_valid(), profile_form.is_valid(), class_form.is_valid()]):
+                    try:
+                        with transaction.atomic():
+                            user_form.save()
+                            profile_form.save()
+                            
+                            student_class_instance = class_form.save(commit=False)
+                            student_class_instance.student = profile
+                            student_class_instance.save()
+                        
+                        messages.success(request, f'Student {user.get_full_name()} updated successfully!')
+                        return redirect('manage_students')
+                        
+                    except Exception as e:
+                        messages.error(request, f'Error updating student: {str(e)}')
+                else:
+                    for form in [user_form, profile_form, class_form]:
+                        for error in form.errors.values():
+                            messages.error(request, error)
+                    return redirect('manage_students')
+                        
+            except StudentProfile.DoesNotExist:
+                messages.error(request, 'Student not found!')
+                return redirect('manage_students')
+
+        # DELETE STUDENT
+        elif action == 'delete':
+            student_id = request.POST.get('delete_id')
+            try:
+                profile = StudentProfile.objects.get(id=student_id)
+                student_name = profile.user.get_full_name()
+                profile.user.delete()  # This will cascade delete profile and class
+                messages.success(request, f'Student {student_name} deleted successfully!')
+            except StudentProfile.DoesNotExist:
+                messages.error(request, 'Student not found!')
+            return redirect('manage_students')
+
+        # BULK DELETE
+        elif action == 'bulk_delete':
+            student_ids = request.POST.getlist('student_ids')
+            if student_ids:
+                deleted_count = 0
+                for student_id in student_ids:
+                    try:
+                        profile = StudentProfile.objects.get(id=student_id)
+                        profile.user.delete()
+                        deleted_count += 1
+                    except StudentProfile.DoesNotExist:
+                        continue
+                
+                messages.success(request, f'{deleted_count} student(s) deleted successfully!')
+            return redirect('manage_students')
+    
+    # GET request - initialize forms
     user_form = StudentUserForm()
     profile_form = StudentProfileForm()
     class_form = StudentClassForm()
+    
     return render(request, "school_admin/manage_students.html", {
         "user_form": user_form,
         "profile_form": profile_form,
         "class_form": class_form,
+        "students": students,
     })
 
 def manage_teachers(request):

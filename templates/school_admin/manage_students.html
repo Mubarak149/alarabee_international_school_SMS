@@ -4,310 +4,33 @@
 
 {% block extra_css %}
 <style>
-    /* Page-specific styles */
-    .main-content {
-        min-height: calc(100vh - 56px);
-        background-color: var(--bg-primary);
-        transition: margin-left 0.3s ease, background-color 0.3s;
+    /* Toast Messages */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1055;
     }
     
-    /* Page Header */
-    .page-header {
-        margin-bottom: 20px;
-    }
-    
-    .page-header h1 {
-        font-weight: 700;
-        color: var(--text-primary);
-        font-size: 1.5rem;
-    }
-    
-    .breadcrumb {
-        background-color: transparent;
-        padding: 0;
-        font-size: 0.85rem;
-    }
-    
-    .breadcrumb-item a {
-        color: var(--danger-color);
-        text-decoration: none;
-    }
-    
-    .breadcrumb-item.active {
-        color: var(--text-secondary);
-        font-weight: 500;
-    }
-    
-    /* Card Styles */
-    .card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: var(--card-shadow);
-        margin-bottom: 15px;
+    .custom-toast {
         background-color: var(--bg-secondary);
-        transition: background-color 0.3s;
-    }
-    
-    .card-header {
-        border-radius: 10px 10px 0 0 !important;
-        padding: 12px 15px;
-        font-weight: 600;
-        background-color: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.95rem;
-    }
-    
-    /* Filters Section */
-    .filters-card {
-        background-color: var(--bg-secondary);
-    }
-    
-    .filter-group {
-        margin-bottom: 15px;
-    }
-    
-    .filter-group:last-child {
-        margin-bottom: 0;
-    }
-    
-    .filter-label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 500;
-        color: var(--text-primary);
-        font-size: 0.85rem;
-    }
-    
-    /* Form Controls */
-    .form-control, .form-select {
-        background-color: var(--bg-secondary);
-        border-color: var(--border-color);
-        color: var(--text-primary);
-        transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-        border-radius: 6px;
-        padding: 0.6rem 0.75rem;
-        font-size: 0.9rem;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        background-color: var(--bg-secondary);
-        border-color: var(--danger-color);
-        color: var(--text-primary);
-        box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
-    }
-    
-    /* Button Styles */
-    .btn {
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-weight: 500;
-        transition: all 0.3s;
-        font-size: 0.9rem;
-        white-space: nowrap;
-    }
-    
-    .btn-success {
-        background-color: var(--success-color);
-        border-color: var(--success-color);
-    }
-    
-    .btn-success:hover {
-        background-color: #17a673;
-        border-color: #17a673;
-    }
-    
-    .btn-primary {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-    
-    .btn-primary:hover {
-        background-color: #2e59d9;
-        border-color: #2e59d9;
-    }
-    
-    .btn-outline-primary {
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-    
-    .btn-outline-primary:hover {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-    
-    .btn-outline-danger {
-        color: var(--danger-color);
-        border-color: var(--danger-color);
-    }
-    
-    .btn-outline-danger:hover {
-        background-color: var(--danger-color);
-        border-color: var(--danger-color);
-    }
-    
-    /* Table Styles */
-    .table-responsive {
-        border-radius: 8px;
-        overflow: hidden;
         border: 1px solid var(--border-color);
-        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 10px;
+        animation: slideInRight 0.3s ease-out;
+        max-width: 350px;
     }
     
-    .table {
-        margin-bottom: 0;
-        color: var(--text-primary);
-        font-size: 0.85rem;
-    }
-    
-    .table thead th {
-        background-color: var(--bg-secondary);
-        border-bottom: 2px solid var(--border-color);
-        font-weight: 600;
-        color: var(--text-primary);
-        padding: 12px;
-        white-space: nowrap;
-    }
-    
-    .table tbody td {
-        padding: 10px 12px;
-        vertical-align: middle;
-        border-color: var(--border-color);
-    }
-    
-    .table tbody tr:hover {
-        background-color: rgba(28, 200, 138, 0.05);
-    }
-    
-    /* Student Avatar */
-    .student-avatar {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-right: 8px;
-    }
-    
-    .student-info {
-        display: flex;
-        align-items: center;
-    }
-    
-    .student-name {
-        font-weight: 500;
-        margin-bottom: 2px;
-        font-size: 0.9rem;
-    }
-    
-    .student-id {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-    }
-    
-    /* Status Badges */
-    .badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 4px 8px;
-        border-radius: 20px;
-    }
-    
-    .status-active {
-        background-color: rgba(28, 200, 138, 0.1);
-        color: var(--success-color);
-    }
-    
-    .status-inactive {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--text-secondary);
-    }
-    
-    .status-graduated {
-        background-color: rgba(54, 185, 204, 0.1);
-        color: var(--info-color);
-    }
-    
-    /* Grade Badges */
-    .grade-a {
-        background-color: rgba(28, 200, 138, 0.1);
-        color: var(--success-color);
-    }
-    
-    .grade-b {
-        background-color: rgba(78, 115, 223, 0.1);
-        color: var(--primary-color);
-    }
-    
-    .grade-c {
-        background-color: rgba(246, 194, 62, 0.1);
-        color: var(--warning-color);
-    }
-    
-    .grade-d {
-        background-color: rgba(231, 74, 59, 0.1);
-        color: var(--danger-color);
-    }
-    
-    .grade-f {
-        background-color: rgba(108, 117, 125, 0.1);
-        color: var(--text-secondary);
-    }
-    
-    /* Pagination */
-    .pagination {
-        flex-wrap: wrap;
-    }
-    
-    .pagination .page-link {
-        color: var(--text-primary);
-        background-color: var(--bg-secondary);
-        border-color: var(--border-color);
-        margin: 2px;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        padding: 6px 12px;
-        min-width: 36px;
-        text-align: center;
-    }
-    
-    .pagination .page-link:hover {
-        background-color: rgba(28, 200, 138, 0.1);
-        border-color: var(--success-color);
-        color: var(--success-color);
-    }
-    
-    .pagination .page-item.active .page-link {
-        background-color: var(--success-color);
-        border-color: var(--success-color);
-        color: white;
-    }
-    
-    /* Modal Styles */
-    .modal-content {
-        background-color: var(--bg-secondary);
-        border: none;
-        border-radius: 10px;
-    }
-    
-    .modal-header {
-        border-bottom: 1px solid var(--border-color);
-        border-radius: 10px 10px 0 0;
-        padding: 15px;
-    }
-    
-    .modal-title {
-        color: var(--text-primary);
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    .modal-body {
-        color: var(--text-primary);
-        padding: 15px;
-    }
-    
-    .modal-footer {
-        padding: 15px;
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
     
     /* Bulk Actions */
@@ -320,309 +43,131 @@
         font-size: 0.85rem;
     }
     
-    /* Export Buttons */
-    .export-buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    
-    /* Statistics Cards */
-    .stats-card {
-        border: none;
+    /* Student Card */
+    .student-card {
+        border: 1px solid var(--border-color);
         border-radius: 10px;
-        box-shadow: var(--card-shadow);
+        padding: 15px;
         margin-bottom: 15px;
-        transition: transform 0.3s, background-color 0.3s;
         background-color: var(--bg-secondary);
-        height: 100%;
+        transition: all 0.3s;
     }
     
-    .stats-card:hover {
+    .student-card:hover {
         transform: translateY(-3px);
+        box-shadow: var(--card-shadow);
     }
     
-    .stats-card .card-body {
-        padding: 1rem;
+    .student-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
     }
     
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
+    .student-info {
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        margin-bottom: 0.75rem;
-        color: white;
+        gap: 12px;
     }
     
-    .stat-icon-primary {
-        background-color: var(--primary-color);
+    .student-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
     }
     
-    .stat-icon-success {
-        background-color: var(--success-color);
+    .student-details h6 {
+        margin-bottom: 5px;
+        font-weight: 600;
     }
     
-    .stat-icon-warning {
-        background-color: var(--warning-color);
-    }
-    
-    .stat-icon-info {
-        background-color: var(--info-color);
-    }
-    
-    .stat-number {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-    }
-    
-    .stat-label {
+    .student-id {
         font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    
+    .student-status {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .badge-active {
+        background-color: rgba(28, 200, 138, 0.1);
+        color: var(--success-color);
+    }
+    
+    .student-content {
+        margin-bottom: 15px;
+    }
+    
+    .student-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+    }
+    
+    .student-label {
         color: var(--text-secondary);
         font-weight: 500;
     }
     
-    /* Action buttons in table */
-    .action-buttons {
+    .student-value {
+        color: var(--text-primary);
+        font-weight: 400;
+    }
+    
+    .student-actions {
         display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
     }
     
-    .action-buttons .btn {
-        padding: 4px 8px;
-        font-size: 0.8rem;
+    /* Grid View */
+    .student-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
     }
     
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 30px 15px;
-        color: var(--text-secondary);
-    }
-    
-    .empty-state i {
-        font-size: 2.5rem;
-        color: var(--border-color);
-        margin-bottom: 15px;
-    }
-    
-    /* Mobile-specific styles */
-    @media (max-width: 991.98px) {
-        .stats-card .stat-number {
-            font-size: 1.1rem;
-        }
-        
-        .page-header h1 {
-            font-size: 1.3rem;
-        }
-        
-        .btn {
-            padding: 6px 10px;
-            font-size: 0.85rem;
-        }
-        
-        .modal-dialog {
-            margin: 10px;
-        }
-    }
-    
-    @media (max-width: 767.98px) {
-        .main-content {
-            padding: 10px;
-        }
-        
-        .page-header h1 {
-            font-size: 1.2rem;
-        }
-        
-        .table-responsive {
-            font-size: 0.8rem;
-            margin: 0 -10px;
-            width: calc(100% + 20px);
-        }
-        
-        .table thead th,
-        .table tbody td {
-            padding: 8px;
-        }
-        
-        .student-info {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .student-avatar {
-            margin-right: 0;
-            margin-bottom: 5px;
-            width: 30px;
-            height: 30px;
-        }
-        
-        .stats-card {
-            margin-bottom: 10px;
-        }
-        
-        .card-header h5 {
-            font-size: 0.9rem;
-        }
-        
-        .filter-group {
-            margin-bottom: 10px;
-        }
-        
-        .bulk-actions {
-            padding: 10px;
-            font-size: 0.8rem;
-        }
-        
-        .bulk-actions .btn-sm {
-            padding: 3px 6px;
-            font-size: 0.75rem;
-        }
-        
-        .export-buttons .btn-sm {
-            padding: 4px 8px;
-            font-size: 0.75rem;
-        }
-        
-        .pagination .page-link {
-            padding: 4px 8px;
-            min-width: 32px;
-            font-size: 0.8rem;
-        }
-        
-        .action-buttons {
-            flex-direction: column;
-            gap: 3px;
-        }
-        
-        .action-buttons .btn {
-            width: 100%;
-            justify-content: center;
-        }
-    }
-    
-    @media (max-width: 575.98px) {
-        .btn-group {
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        
-        .btn-group .btn {
-            flex: 1;
-            min-width: 100px;
-            font-size: 0.8rem;
-        }
-        
-        .modal-dialog {
-            margin: 5px;
-        }
-        
-        .modal-body .row {
-            margin: 0 -5px;
-        }
-        
-        .modal-body .col-md-6,
-        .modal-body .col-md-12 {
-            padding: 0 5px;
-        }
-        
-        .filters-card .row {
-            margin: 0 -5px;
-        }
-        
-        .filters-card .col-md-3,
-        .filters-card .col-md-2 {
-            padding: 0 5px;
-        }
-        
-        .table {
-            font-size: 0.75rem;
-        }
-        
-        .table th,
-        .table td {
-            padding: 6px 4px;
-        }
-        
-        .student-name {
-            font-size: 0.8rem;
-        }
-        
-        .student-id {
-            font-size: 0.7rem;
-        }
-        
-        .badge {
-            font-size: 0.7rem;
-            padding: 3px 6px;
-        }
-        
-        .stats-card .card-body {
-            padding: 0.75rem;
-        }
-        
-        .stat-icon {
-            width: 35px;
-            height: 35px;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .stat-number {
-            font-size: 1rem;
-        }
-        
-        .stat-label {
-            font-size: 0.75rem;
-        }
-    }
-    
-    @media (max-width: 375px) {
-        .page-header h1 {
-            font-size: 1.1rem;
-        }
-        
-        .btn {
-            padding: 5px 8px;
-            font-size: 0.75rem;
-        }
-        
-        .export-buttons {
-            gap: 5px;
-        }
-        
-        .export-buttons .btn-sm {
-            padding: 3px 6px;
-            font-size: 0.7rem;
-        }
-        
-        .table-responsive {
-            margin: 0 -5px;
-            width: calc(100% + 10px);
+    @media (max-width: 768px) {
+        .student-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="custom-toast alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
 <!-- Page Header -->
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Manage Students</h1>
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-            <i class="fas fa-user-plus me-2"></i>Add New
+            <i class="fas fa-user-plus me-2"></i>Add Student
         </button>
     </div>
     <div class="breadcrumb">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="admin_dashboard.html">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Dashboard</a></li>
                 <li class="breadcrumb-item active">Students</li>
             </ol>
         </nav>
@@ -637,7 +182,7 @@
                 <div class="stat-icon stat-icon-primary">
                     <i class="fas fa-user-graduate"></i>
                 </div>
-                <div class="stat-number">1,245</div>
+                <div class="stat-number">{{ students|length }}</div>
                 <div class="stat-label">Total Students</div>
             </div>
         </div>
@@ -649,7 +194,7 @@
                 <div class="stat-icon stat-icon-success">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-number">1,187</div>
+                <div class="stat-number">{{ students|length }}</div>
                 <div class="stat-label">Active Students</div>
             </div>
         </div>
@@ -661,7 +206,7 @@
                 <div class="stat-icon stat-icon-warning">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <div class="stat-number">58</div>
+                <div class="stat-number">0</div>
                 <div class="stat-label">Graduated</div>
             </div>
         </div>
@@ -673,12 +218,38 @@
                 <div class="stat-icon stat-icon-info">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="stat-number">85.2%</div>
+                <div class="stat-number">0</div>
                 <div class="stat-label">Avg. Performance</div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Bulk Actions -->
+<div class="bulk-actions mb-4" id="bulkActions" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <span id="selectedCount">0</span> student(s) selected
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
+                <i class="fas fa-download me-1"></i>Export
+            </button>
+            <button class="btn btn-sm btn-outline-danger" type="button" onclick="submitBulkDelete()">
+                <i class="fas fa-trash me-1"></i>Delete
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                <i class="fas fa-times me-1"></i>Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Form (Hidden) -->
+<form method="POST" action="{% url 'manage_students' %}" id="bulkDeleteForm" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_delete">
+</form>
 
 <!-- Filters and Search -->
 <div class="card mb-4">
@@ -698,10 +269,11 @@
                     <label class="filter-label">Class</label>
                     <select class="form-select" id="classFilter">
                         <option value="">All Classes</option>
-                        <option value="10A">10A</option>
-                        <option value="10B">10B</option>
-                        <option value="9A">9A</option>
-                        <option value="9B">9B</option>
+                        {% for student in students %}
+                            {% for class in student.studentclass_set.all %}
+                                <option value="{{ class.school_class }}">{{ class.school_class }}</option>
+                            {% endfor %}
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -713,17 +285,6 @@
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="graduated">Graduated</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="filter-group">
-                    <label class="filter-label">Academic Year</label>
-                    <select class="form-select" id="yearFilter">
-                        <option value="">All Years</option>
-                        <option value="2023-2024">2023-2024</option>
-                        <option value="2022-2023">2022-2023</option>
-                        <option value="2021-2022">2021-2022</option>
                     </select>
                 </div>
             </div>
@@ -744,85 +305,82 @@
     </div>
 </div>
 
-<!-- Bulk Actions -->
-<div class="bulk-actions mb-4" id="bulkActions" style="display: none;">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <span id="selectedCount">0</span> student(s) selected
-        </div>
-        <div class="d-flex gap-2 flex-wrap">
-            <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
-                <i class="fas fa-download me-1"></i>Export
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="sendBulkEmail()">
-                <i class="fas fa-envelope me-1"></i>Email
-            </button>
-            <button class="btn btn-sm btn-outline-warning" onclick="updateStatusBulk()">
-                <i class="fas fa-exchange-alt me-1"></i>Status
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteSelected()">
-                <i class="fas fa-trash me-1"></i>Delete
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
-                <i class="fas fa-times me-1"></i>Clear
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Students Table -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Students List</h5>
-        <div class="export-buttons">
-            <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">
-                <i class="fas fa-file-csv"></i>
-                <span class="d-none d-md-inline ms-1">CSV</span>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i>
-                <span class="d-none d-md-inline ms-1">Excel</span>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="printTable()">
-                <i class="fas fa-print"></i>
-                <span class="d-none d-md-inline ms-1">Print</span>
-            </button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="studentsTable">
-                <thead>
-                    <tr>
-                        <th width="40">
-                            <input type="checkbox" class="form-check-input" id="selectAll">
-                        </th>
-                        <th>Student</th>
-                        <th>Class</th>
-                        <th class="d-none d-md-table-cell">Contact</th>
-                        <th>Performance</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="studentsTableBody">
-                    <!-- Students will be loaded here -->
-                </tbody>
-            </table>
+<!-- Students Grid View -->
+<div class="student-grid" id="studentsGridView">
+    {% for student in students %}
+    <div class="student-card" data-student-id="{{ student.id }}">
+        <div class="student-header">
+            <div class="student-info">
+                <img src="https://ui-avatars.com/api/?name={{ student.user.first_name|urlencode }}+{{ student.user.last_name|urlencode }}&background=4e73df&color=fff&size=50" 
+                     alt="{{ student.user.first_name }}" class="student-avatar">
+                <div class="student-details">
+                    <h6>{{ student.user.get_full_name }}</h6>
+                    <div class="student-id">{{ student.student_id }}</div>
+                </div>
+            </div>
+            <span class="student-status badge-active">Active</span>
         </div>
         
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div class="text-muted mb-2 mb-sm-0" id="tableInfo">
-                Showing 0 of 0 students
+        <div class="student-content">
+            <div class="student-row">
+                <span class="student-label">Class:</span>
+                <span class="student-value">
+                    {% with student_class=student.studentclass_set.first %}
+                        {{ student_class.school_class|default:"Not Assigned" }}
+                    {% endwith %}
+                </span>
             </div>
-            <nav>
-                <ul class="pagination mb-0" id="pagination">
-                    <!-- Pagination will be generated here -->
-                </ul>
-            </nav>
+            <div class="student-row">
+                <span class="student-label">Academic Year:</span>
+                <span class="student-value">
+                    {% with student_class=student.studentclass_set.first %}
+                        {{ student_class.academic_year|default:"-" }}
+                    {% endwith %}
+                </span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Email:</span>
+                <span class="student-value">{{ student.user.email }}</span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Phone:</span>
+                <span class="student-value">{{ student.user.phone|default:"-" }}</span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Parent:</span>
+                <span class="student-value">{{ student.parent_name|default:"-" }}</span>
+            </div>
+        </div>
+        
+        <div class="student-actions">
+            <button class="btn btn-outline-info btn-sm flex-grow-1" onclick="viewStudent({{ student.id }})">
+                <i class="fas fa-eye me-1"></i>View
+            </button>
+            <button class="btn btn-outline-success btn-sm" onclick="editStudent({{ student.id }})">
+                <i class="fas fa-edit"></i>
+            </button>
+            <form method="POST" action="{% url 'manage_students' %}" class="d-inline" onsubmit="return confirmDelete()">
+                {% csrf_token %}
+                <input type="hidden" name="delete_id" value="{{ student.id }}">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
         </div>
     </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="fas fa-user-graduate"></i>
+            <h5>No Students Found</h5>
+            <p>Add your first student to get started</p>
+            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <i class="fas fa-user-plus me-2"></i>Add Student
+            </button>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- Add Student Modal -->
@@ -833,10 +391,10 @@
                 <h5 class="modal-title">Add New Student</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form method="post" id="addStudentForm">
-                    {% csrf_token %}
+            <form method="POST" action="{% url 'manage_students' %}">
+                {% csrf_token %}
 
+                <div class="modal-body">
                     <div class="row">
 
                         <!-- USER INFO -->
@@ -853,11 +411,6 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Email Address</label>
                             {{ user_form.email }}
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Phone Number</label>
-                            {{ user_form.phone }}
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -903,15 +456,15 @@
                         </div>
 
                     </div>
+                </div>
 
-                    
-                </form>
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="add">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Student</button>
+                </div>
+            </form>
 
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="addStudentForm" class="btn btn-success">Add Student</button>
-            </div>
         </div>
     </div>
 </div>
@@ -924,9 +477,17 @@
                 <h5 class="modal-title">Edit Student</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="editStudentModalBody">
-                <!-- Content will be loaded dynamically -->
-            </div>
+            <form method="POST" action="{% url 'manage_students' %}" id="editStudentForm">
+                {% csrf_token %}
+                <div class="modal-body" id="editStudentModalBody">
+                    <!-- Content loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="edit">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -935,390 +496,88 @@
 {% block extra_js %}
 <script>
     // Global Variables
-    let currentTheme = localStorage.getItem('theme') || 'light';
-    let studentsData = [];
-    let filteredStudents = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
     let selectedStudents = new Set();
-    
-    // Sample student data
-    const sampleStudents = [
-        {
-            id: 1,
-            studentId: "STU-001",
-            firstName: "John",
-            lastName: "Doe",
-            email: "john.doe@school.edu",
-            phone: "+1234567890",
-            class: "10A",
-            academicYear: "2023-2024",
-            dob: "2007-05-15",
-            address: "123 Main St, City",
-            parentName: "Jane Doe",
-            parentContact: "+1234567891",
-            performance: 92.5,
-            status: "active",
-            joinDate: "2022-09-01"
-        },
-        {
-            id: 2,
-            studentId: "STU-002",
-            firstName: "Jane",
-            lastName: "Smith",
-            email: "jane.smith@school.edu",
-            phone: "+1234567892",
-            class: "10B",
-            academicYear: "2023-2024",
-            dob: "2007-08-20",
-            address: "456 Oak St, City",
-            parentName: "Robert Smith",
-            parentContact: "+1234567893",
-            performance: 88.2,
-            status: "active",
-            joinDate: "2022-09-01"
-        },
-        {
-            id: 3,
-            studentId: "STU-003",
-            firstName: "Michael",
-            lastName: "Brown",
-            email: "michael.brown@school.edu",
-            phone: "+1234567894",
-            class: "9A",
-            academicYear: "2023-2024",
-            dob: "2008-03-10",
-            address: "789 Pine St, City",
-            parentName: "Susan Brown",
-            parentContact: "+1234567895",
-            performance: 75.8,
-            status: "active",
-            joinDate: "2023-09-01"
-        },
-        {
-            id: 4,
-            studentId: "STU-004",
-            firstName: "Emma",
-            lastName: "Wilson",
-            email: "emma.wilson@school.edu",
-            phone: "+1234567896",
-            class: "9B",
-            academicYear: "2023-2024",
-            dob: "2008-11-25",
-            address: "321 Elm St, City",
-            parentName: "David Wilson",
-            parentContact: "+1234567897",
-            performance: 95.1,
-            status: "active",
-            joinDate: "2023-09-01"
-        },
-        {
-            id: 5,
-            studentId: "STU-005",
-            firstName: "David",
-            lastName: "Johnson",
-            email: "david.johnson@school.edu",
-            phone: "+1234567898",
-            class: "10A",
-            academicYear: "2023-2024",
-            dob: "2007-12-05",
-            address: "654 Maple St, City",
-            parentName: "Lisa Johnson",
-            parentContact: "+1234567899",
-            performance: 82.3,
-            status: "inactive",
-            joinDate: "2022-09-01"
-        },
-        {
-            id: 6,
-            studentId: "STU-006",
-            firstName: "Sarah",
-            lastName: "Davis",
-            email: "sarah.davis@school.edu",
-            phone: "+1234567800",
-            class: "10B",
-            academicYear: "2023-2024",
-            dob: "2007-07-18",
-            address: "987 Birch St, City",
-            parentName: "James Davis",
-            parentContact: "+1234567801",
-            performance: 89.7,
-            status: "active",
-            joinDate: "2022-09-01"
-        },
-        {
-            id: 7,
-            studentId: "STU-007",
-            firstName: "Robert",
-            lastName: "Miller",
-            email: "robert.miller@school.edu",
-            phone: "+1234567802",
-            class: "9A",
-            academicYear: "2023-2024",
-            dob: "2008-02-14",
-            address: "147 Cedar St, City",
-            parentName: "Mary Miller",
-            parentContact: "+1234567803",
-            performance: 71.4,
-            status: "active",
-            joinDate: "2023-09-01"
-        },
-        {
-            id: 8,
-            studentId: "STU-008",
-            firstName: "Lisa",
-            lastName: "Taylor",
-            email: "lisa.taylor@school.edu",
-            phone: "+1234567804",
-            class: "9B",
-            academicYear: "2023-2024",
-            dob: "2008-09-30",
-            address: "258 Spruce St, City",
-            parentName: "William Taylor",
-            parentContact: "+1234567805",
-            performance: 93.8,
-            status: "graduated",
-            joinDate: "2021-09-01"
-        },
-        {
-            id: 9,
-            studentId: "STU-009",
-            firstName: "James",
-            lastName: "Anderson",
-            email: "james.anderson@school.edu",
-            phone: "+1234567806",
-            class: "10A",
-            academicYear: "2023-2024",
-            dob: "2007-04-22",
-            address: "369 Walnut St, City",
-            parentName: "Patricia Anderson",
-            parentContact: "+1234567807",
-            performance: 85.6,
-            status: "active",
-            joinDate: "2022-09-01"
-        },
-        {
-            id: 10,
-            studentId: "STU-010",
-            firstName: "Mary",
-            lastName: "Thomas",
-            email: "mary.thomas@school.edu",
-            phone: "+1234567808",
-            class: "10B",
-            academicYear: "2023-2024",
-            dob: "2007-01-08",
-            address: "741 Ash St, City",
-            parentName: "Richard Thomas",
-            parentContact: "+1234567809",
-            performance: 90.2,
-            status: "active",
-            joinDate: "2022-09-01"
-        }
-    ];
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-        // Set initial theme
-        setTheme(currentTheme);
-        
-        // Initialize data
-        initializeData();
-        
-        // Setup event listeners
         setupEventListeners();
         
-        // Load initial data
-        loadStudents();
+        // Auto-hide toast messages after 5 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
         
-        // Handle window resize
-        window.addEventListener('resize', updatePagination);
+        // Setup search functionality
+        setupSearch();
     });
-    
-    // Set theme function
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }
-    
-    // Initialize data
-    function initializeData() {
-        // Load from localStorage or use sample data
-        const savedData = localStorage.getItem('studentsData');
-        if (savedData) {
-            studentsData = JSON.parse(savedData);
-        } else {
-            studentsData = [...sampleStudents];
-            localStorage.setItem('studentsData', JSON.stringify(studentsData));
-        }
-        
-        filteredStudents = [...studentsData];
-    }
     
     // Setup event listeners
     function setupEventListeners() {
         // Search input
-        document.getElementById('searchInput')?.addEventListener('input', function() {
-            filterStudents();
-        });
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterStudents);
+        }
         
         // Filter select changes
         document.getElementById('classFilter')?.addEventListener('change', filterStudents);
         document.getElementById('statusFilter')?.addEventListener('change', filterStudents);
-        document.getElementById('yearFilter')?.addEventListener('change', filterStudents);
-        
-        // Select all checkbox
-        document.getElementById('selectAll')?.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.student-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = this.checked;
-                if (this.checked) {
-                    selectedStudents.add(parseInt(cb.value));
-                } else {
-                    selectedStudents.delete(parseInt(cb.value));
-                }
-            });
-            updateBulkActions();
-        });
-        
-        // Add student form
-        document.getElementById('addStudentForm')?.addEventListener('submit', function(e) {
-            e.preventDefault();
-            addStudent();
-        });
-        
-        // Auto-generate student ID if not provided
-        document.getElementById('studentId')?.addEventListener('blur', function() {
-            if (!this.value.trim()) {
-                const lastId = studentsData.reduce((max, student) => {
-                    const num = parseInt(student.studentId.split('-')[1]) || 0;
-                    return Math.max(max, num);
-                }, 0);
-                this.value = `STU-${String(lastId + 1).padStart(3, '0')}`;
-            }
-        });
     }
     
-    // Load students into table
-    function loadStudents() {
-        const tbody = document.getElementById('studentsTableBody');
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const currentStudents = filteredStudents.slice(startIndex, endIndex);
+    // Setup search functionality
+    function setupSearch() {
+        const searchInput = document.getElementById('searchInput');
+        const classFilter = document.getElementById('classFilter');
+        const statusFilter = document.getElementById('statusFilter');
         
-        tbody.innerHTML = '';
-        
-        if (currentStudents.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center py-4">
-                        <div class="empty-state">
-                            <i class="fas fa-user-graduate"></i>
-                            <h5>No students found</h5>
-                            <p>Try adjusting your filters or add a new student</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-        } else {
-            currentStudents.forEach(student => {
-                const row = document.createElement('tr');
-                const isSelected = selectedStudents.has(student.id);
-                const avatarUrl = `https://ui-avatars.com/api/?name=${student.firstName}+${student.lastName}&background=4e73df&color=fff&size=40`;
-                const performanceGrade = getPerformanceGrade(student.performance);
-                const isMobile = window.innerWidth < 768;
-                
-                row.innerHTML = `
-                    <td>
-                        <input type="checkbox" class="form-check-input student-checkbox" 
-                               value="${student.id}" ${isSelected ? 'checked' : ''}
-                               onchange="toggleStudentSelection(${student.id}, this.checked)">
-                    </td>
-                    <td>
-                        <div class="student-info">
-                            <img src="${avatarUrl}" alt="${student.firstName}" class="student-avatar">
-                            <div>
-                                <div class="student-name">${student.firstName} ${student.lastName}</div>
-                                <div class="student-id">${student.studentId}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div>${student.class}</div>
-                        <small class="text-muted">${student.academicYear}</small>
-                    </td>
-                    <td class="${isMobile ? 'd-none d-md-table-cell' : ''}">
-                        <div>${student.email}</div>
-                        <small class="text-muted">${student.phone || 'No phone'}</small>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
-                                <div class="progress-bar bg-success" style="width: ${student.performance}%"></div>
-                            </div>
-                            <span class="badge ${performanceGrade}">${student.performance.toFixed(1)}%</span>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge status-${student.status}">${student.status.charAt(0).toUpperCase() + student.status.slice(1)}</span>
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-outline-primary btn-sm" onclick="viewStudent(${student.id})" title="View">
-                                <i class="fas fa-eye"></i>
-                                ${isMobile ? '' : '<span class="ms-1">View</span>'}
-                            </button>
-                            <button class="btn btn-outline-success btn-sm" onclick="editStudent(${student.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                                ${isMobile ? '' : '<span class="ms-1">Edit</span>'}
-                            </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deleteStudent(${student.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                                ${isMobile ? '' : '<span class="ms-1">Delete</span>'}
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+        if (searchInput) {
+            searchInput.addEventListener('input', filterStudents);
         }
-        
-        updateTableInfo();
-        updatePagination();
-        updateStats();
-    }
-    
-    // Get performance grade
-    function getPerformanceGrade(score) {
-        if (score >= 90) return 'grade-a';
-        if (score >= 80) return 'grade-b';
-        if (score >= 70) return 'grade-c';
-        if (score >= 60) return 'grade-d';
-        return 'grade-f';
+        if (classFilter) {
+            classFilter.addEventListener('change', filterStudents);
+        }
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterStudents);
+        }
     }
     
     // Filter students
     function filterStudents() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const classFilter = document.getElementById('classFilter').value;
-        const statusFilter = document.getElementById('statusFilter').value;
-        const yearFilter = document.getElementById('yearFilter').value;
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        const classFilter = document.getElementById('classFilter')?.value || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
         
-        filteredStudents = studentsData.filter(student => {
+        const cards = document.querySelectorAll('.student-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const studentName = card.querySelector('h6')?.textContent.toLowerCase() || '';
+            const studentId = card.querySelector('.student-id')?.textContent.toLowerCase() || '';
+            const studentEmail = card.querySelector('.student-value:nth-child(4)')?.textContent.toLowerCase() || '';
+            const studentClass = card.querySelector('.student-value:nth-child(1)')?.textContent || '';
+            const studentStatus = card.querySelector('.student-status')?.textContent.toLowerCase() || '';
+            
             const matchesSearch = !searchTerm || 
-                student.firstName.toLowerCase().includes(searchTerm) ||
-                student.lastName.toLowerCase().includes(searchTerm) ||
-                student.studentId.toLowerCase().includes(searchTerm) ||
-                student.email.toLowerCase().includes(searchTerm);
+                studentName.includes(searchTerm) ||
+                studentId.includes(searchTerm) ||
+                studentEmail.includes(searchTerm);
             
-            const matchesClass = !classFilter || student.class === classFilter;
-            const matchesStatus = !statusFilter || student.status === statusFilter;
-            const matchesYear = !yearFilter || student.academicYear === yearFilter;
+            const matchesClass = !classFilter || studentClass.includes(classFilter);
+            const matchesStatus = !statusFilter || studentStatus.includes(statusFilter);
             
-            return matchesSearch && matchesClass && matchesStatus && matchesYear;
+            if (matchesSearch && matchesClass && matchesStatus) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
         });
         
-        currentPage = 1;
-        loadStudents();
+        updateTableInfo(visibleCount);
     }
     
     // Reset filters
@@ -1326,713 +585,199 @@
         document.getElementById('searchInput').value = '';
         document.getElementById('classFilter').value = '';
         document.getElementById('statusFilter').value = '';
-        document.getElementById('yearFilter').value = '';
         
-        filteredStudents = [...studentsData];
-        currentPage = 1;
-        loadStudents();
-        
+        filterStudents();
         showToast('Filters reset', 'info');
     }
     
     // Update table info
-    function updateTableInfo() {
-        const startIndex = (currentPage - 1) * itemsPerPage + 1;
-        const endIndex = Math.min(currentPage * itemsPerPage, filteredStudents.length);
-        const total = filteredStudents.length;
-        
-        document.getElementById('tableInfo').textContent = 
-            `Showing ${startIndex} to ${endIndex} of ${total} students`;
-    }
-    
-    // Update pagination
-    function updatePagination() {
-        const pagination = document.getElementById('pagination');
-        const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-        
-        pagination.innerHTML = '';
-        
-        if (totalPages <= 1) return;
-        
-        // Previous button
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `
-            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-            </a>
-        `;
-        pagination.appendChild(prevLi);
-        
-        // Page numbers - show fewer on mobile
-        const showPages = window.innerWidth < 768 ? 3 : 5;
-        let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-        let endPage = Math.min(totalPages, startPage + showPages - 1);
-        
-        if (endPage - startPage + 1 < showPages) {
-            startPage = Math.max(1, endPage - showPages + 1);
+    function updateTableInfo(visibleCount) {
+        const totalCards = document.querySelectorAll('.student-card').length;
+        const tableInfo = document.querySelector('#tableInfo');
+        if (tableInfo) {
+            tableInfo.textContent = `Showing ${visibleCount} of ${totalCards} students`;
         }
-        
-        // First page
-        if (startPage > 1) {
-            const pageLi = document.createElement('li');
-            pageLi.className = 'page-item';
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(1)">1</a>
-            `;
-            pagination.appendChild(pageLi);
-            
-            if (startPage > 2) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
-                pagination.appendChild(ellipsisLi);
-            }
-        }
-        
-        // Page numbers
-        for (let i = startPage; i <= endPage; i++) {
-            const pageLi = document.createElement('li');
-            pageLi.className = `page-item ${currentPage === i ? 'active' : ''}`;
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-            `;
-            pagination.appendChild(pageLi);
-        }
-        
-        // Last page
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                const ellipsisLi = document.createElement('li');
-                ellipsisLi.className = 'page-item disabled';
-                ellipsisLi.innerHTML = '<span class="page-link">...</span>';
-                pagination.appendChild(ellipsisLi);
-            }
-            
-            const pageLi = document.createElement('li');
-            pageLi.className = 'page-item';
-            pageLi.innerHTML = `
-                <a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>
-            `;
-            pagination.appendChild(pageLi);
-        }
-        
-        // Next button
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `
-            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-            </a>
-        `;
-        pagination.appendChild(nextLi);
-    }
-    
-    // Change page
-    function changePage(page) {
-        currentPage = page;
-        loadStudents();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    
-    // Update statistics
-    function updateStats() {
-        const totalStudents = studentsData.length;
-        const activeStudents = studentsData.filter(s => s.status === 'active').length;
-        const graduatedStudents = studentsData.filter(s => s.status === 'graduated').length;
-        const averagePerformance = studentsData.reduce((sum, s) => sum + s.performance, 0) / totalStudents;
-        
-        // Update stats cards
-        document.querySelector('.stats-card:nth-child(1) .stat-number').textContent = totalStudents;
-        document.querySelector('.stats-card:nth-child(2) .stat-number').textContent = activeStudents;
-        document.querySelector('.stats-card:nth-child(3) .stat-number').textContent = graduatedStudents;
-        document.querySelector('.stats-card:nth-child(4) .stat-number').textContent = averagePerformance.toFixed(1) + '%';
-    }
-    
-    // Add new student
-    function addStudent() {
-        const form = document.getElementById('addStudentForm');
-        const formData = new FormData(form);
-        
-        // Generate student ID if not provided
-        let studentId = document.getElementById('studentId').value.trim();
-        if (!studentId) {
-            const lastId = studentsData.reduce((max, student) => {
-                const num = parseInt(student.studentId.split('-')[1]) || 0;
-                return Math.max(max, num);
-            }, 0);
-            studentId = `STU-${String(lastId + 1).padStart(3, '0')}`;
-        }
-        
-        // Calculate performance (random for new students)
-        const performance = Math.floor(Math.random() * 30) + 70; // 70-100
-        
-        const newStudent = {
-            id: studentsData.length > 0 ? Math.max(...studentsData.map(s => s.id)) + 1 : 1,
-            studentId: studentId,
-            firstName: document.getElementById('firstName').value.trim(),
-            lastName: document.getElementById('lastName').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            class: document.getElementById('class').value,
-            academicYear: document.getElementById('academicYear').value,
-            dob: document.getElementById('dob').value,
-            address: document.getElementById('address').value.trim(),
-            parentName: document.getElementById('parentName').value.trim(),
-            parentContact: document.getElementById('parentContact').value.trim(),
-            performance: performance,
-            status: 'active',
-            joinDate: new Date().toISOString().split('T')[0]
-        };
-        
-        studentsData.push(newStudent);
-        localStorage.setItem('studentsData', JSON.stringify(studentsData));
-        
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
-        modal.hide();
-        
-        // Reset form
-        form.reset();
-        
-        // Reload data
-        filterStudents();
-        
-        showToast(`Student ${newStudent.firstName} ${newStudent.lastName} added successfully!`, 'success');
     }
     
     // View student details
     function viewStudent(id) {
-        const student = studentsData.find(s => s.id === id);
-        if (!student) return;
+        const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
+        if (!card) return;
         
-        const avatarUrl = `https://ui-avatars.com/api/?name=${student.firstName}+${student.lastName}&background=4e73df&color=fff&size=80`;
-        const performanceGrade = getPerformanceGrade(student.performance);
-        const gradeText = performanceGrade.replace('grade-', '').toUpperCase();
+        const studentName = card.querySelector('h6').textContent;
+        const studentId = card.querySelector('.student-id').textContent;
+        const studentClass = card.querySelector('.student-value:nth-child(1)').textContent;
+        const studentYear = card.querySelector('.student-value:nth-child(2)').textContent;
+        const studentEmail = card.querySelector('.student-value:nth-child(3)').textContent;
+        const studentPhone = card.querySelector('.student-value:nth-child(4)').textContent;
+        const studentParent = card.querySelector('.student-value:nth-child(5)').textContent;
         
-        const modalBody = `
-            <div class="row">
-                <div class="col-md-4 text-center mb-4">
-                    <img src="${avatarUrl}" alt="${student.firstName}" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px;">
-                    <h4 class="h5">${student.firstName} ${student.lastName}</h4>
-                    <span class="badge bg-success">${student.studentId}</span>
-                </div>
-                <div class="col-md-8">
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Class</label>
-                            <div class="fw-bold">${student.class}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Academic Year</label>
-                            <div class="fw-bold">${student.academicYear}</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Email</label>
-                            <div class="fw-bold">${student.email}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Phone</label>
-                            <div class="fw-bold">${student.phone || 'N/A'}</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="text-muted">Address</label>
-                            <div class="fw-bold">${student.address || 'N/A'}</div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Date of Birth</label>
-                            <div class="fw-bold">${new Date(student.dob).toLocaleDateString()}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Status</label>
-                            <div><span class="badge status-${student.status}">${student.status.charAt(0).toUpperCase() + student.status.slice(1)}</span></div>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="text-muted">Performance</label>
-                            <div class="d-flex align-items-center">
-                                <div class="progress flex-grow-1 me-2" style="height: 8px;">
-                                    <div class="progress-bar bg-success" style="width: ${student.performance}%"></div>
-                                </div>
-                                <span class="badge ${performanceGrade}">${student.performance.toFixed(1)}% (${gradeText})</span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Join Date</label>
-                            <div class="fw-bold">${new Date(student.joinDate).toLocaleDateString()}</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6">
-                            <label class="text-muted">Parent/Guardian</label>
-                            <div class="fw-bold">${student.parentName || 'N/A'}</div>
-                        </div>
-                        <div class="col-6">
-                            <label class="text-muted">Parent Contact</label>
-                            <div class="fw-bold">${student.parentContact || 'N/A'}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-4 text-end">
-                <button class="btn btn-primary" onclick="editStudent(${student.id})">
-                    <i class="fas fa-edit me-2"></i>Edit Student
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('editStudentModalBody').innerHTML = modalBody;
-        document.querySelector('#editStudentModal .modal-title').textContent = 'Student Details';
-        document.querySelector('#editStudentModal .modal-header').className = 'modal-header bg-primary text-white';
-        
-        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+        // You would need to fetch complete student data from backend
+        // For now, we'll show basic info
+        const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
         modal.show();
     }
     
     // Edit student
     function editStudent(id) {
-        const student = studentsData.find(s => s.id === id);
-        if (!student) return;
+        const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
+        if (!card) return;
         
+        const studentName = card.querySelector('h6').textContent;
+        const studentId = card.querySelector('.student-id').textContent;
+        const studentClass = card.querySelector('.student-value:nth-child(1)').textContent;
+        const studentYear = card.querySelector('.student-value:nth-child(2)').textContent;
+        const studentEmail = card.querySelector('.student-value:nth-child(3)').textContent;
+        const studentPhone = card.querySelector('.student-value:nth-child(4)').textContent;
+        const studentParent = card.querySelector('.student-value:nth-child(5)').textContent;
+        
+        // Parse first and last name
+        const nameParts = studentName.split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+        
+        // In a real application, you would fetch this data from the backend
+        // For now, create a simple form
         const modalBody = `
-            <form id="editStudentForm" onsubmit="updateStudent(${id}); return false;">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">First Name</label>
-                        <input type="text" class="form-control" value="${student.firstName}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" class="form-control" value="${student.lastName}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Student ID</label>
-                        <input type="text" class="form-control" value="${student.studentId}" readonly>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" value="${student.dob}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" value="${student.email}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" value="${student.phone}">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Class</label>
-                        <select class="form-select" required>
-                            <option value="10A" ${student.class === '10A' ? 'selected' : ''}>10A</option>
-                            <option value="10B" ${student.class === '10B' ? 'selected' : ''}>10B</option>
-                            <option value="9A" ${student.class === '9A' ? 'selected' : ''}>9A</option>
-                            <option value="9B" ${student.class === '9B' ? 'selected' : ''}>9B</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Status</label>
-                        <select class="form-select" required>
-                            <option value="active" ${student.status === 'active' ? 'selected' : ''}>Active</option>
-                            <option value="inactive" ${student.status === 'inactive' ? 'selected' : ''}>Inactive</option>
-                            <option value="graduated" ${student.status === 'graduated' ? 'selected' : ''}>Graduated</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Academic Year</label>
-                        <select class="form-select" required>
-                            <option value="2023-2024" ${student.academicYear === '2023-2024' ? 'selected' : ''}>2023-2024</option>
-                            <option value="2022-2023" ${student.academicYear === '2022-2023' ? 'selected' : ''}>2022-2023</option>
-                            <option value="2021-2022" ${student.academicYear === '2021-2022' ? 'selected' : ''}>2021-2022</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Performance Score</label>
-                        <input type="number" class="form-control" value="${student.performance}" min="0" max="100" step="0.1" required>
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea class="form-control" rows="2">${student.address || ''}</textarea>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Parent/Guardian Name</label>
-                            <input type="text" class="form-control" value="${student.parentName || ''}">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Parent Contact</label>
-                            <input type="tel" class="form-control" value="${student.parentContact || ''}">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Student</button>
-                    </div>
-                </form>
-            `;
-            
-            document.getElementById('editStudentModalBody').innerHTML = modalBody;
-            document.querySelector('#editStudentModal .modal-title').textContent = 'Edit Student';
-            document.querySelector('#editStudentModal .modal-header').className = 'modal-header bg-primary text-white';
-            
-            const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
-            modal.show();
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="first_name" value="${firstName}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" value="${lastName}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Student ID</label>
+                    <input type="text" class="form-control" name="student_id" value="${studentId}" readonly>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" name="email" value="${studentEmail}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" name="phone" value="${studentPhone}">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Class</label>
+                    <input type="text" class="form-control" name="school_class" value="${studentClass}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Academic Year</label>
+                    <input type="text" class="form-control" name="academic_year" value="${studentYear}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Parent / Guardian Name</label>
+                    <input type="text" class="form-control" name="parent_name" value="${studentParent}">
+                </div>
+            </div>
+            <input type="hidden" name="edit_id" value="${id}">
+        `;
+        
+        document.getElementById('editStudentModalBody').innerHTML = modalBody;
+        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+        modal.show();
+    }
+    
+    // Confirm delete
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this student? This action cannot be undone.');
+    }
+    
+    // Update bulk actions visibility
+    function updateBulkActions() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        if (selectedCount) selectedCount.textContent = selectedStudents.size;
+        
+        if (selectedStudents.size > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    // Clear selection
+    function clearSelection() {
+        selectedStudents.clear();
+        document.querySelectorAll('.student-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        updateBulkActions();
+    }
+    
+    // Submit bulk delete
+    function submitBulkDelete() {
+        if (selectedStudents.size === 0) {
+            showToast('No students selected', 'warning');
+            return;
         }
         
-        // Update student
-        function updateStudent(id) {
-            const student = studentsData.find(s => s.id === id);
-            if (!student) return;
-            
-            const form = document.getElementById('editStudentForm');
-            const inputs = form.querySelectorAll('input, select, textarea');
-            
-            // Update student data
-            student.firstName = inputs[0].value;
-            student.lastName = inputs[1].value;
-            // student.studentId is read-only
-            student.dob = inputs[3].value;
-            student.email = inputs[4].value;
-            student.phone = inputs[5].value;
-            student.class = inputs[6].value;
-            student.status = inputs[7].value;
-            student.academicYear = inputs[8].value;
-            student.performance = parseFloat(inputs[9].value);
-            student.address = inputs[10].value;
-            student.parentName = inputs[11].value;
-            student.parentContact = inputs[12].value;
-            
-            // Save to localStorage
-            localStorage.setItem('studentsData', JSON.stringify(studentsData));
-            
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editStudentModal'));
-            modal.hide();
-            
-            // Reload data
-            filterStudents();
-            
-            showToast(`Student ${student.firstName} ${student.lastName} updated successfully!`, 'success');
+        if (!confirm(`Are you sure you want to delete ${selectedStudents.size} student(s)? This action cannot be undone.`)) {
+            return;
         }
         
-        // Delete student
-        function deleteStudent(id) {
-            if (!confirm('Are you sure you want to delete this student?')) return;
-            
-            const student = studentsData.find(s => s.id === id);
-            if (!student) return;
-            
-            studentsData = studentsData.filter(s => s.id !== id);
-            localStorage.setItem('studentsData', JSON.stringify(studentsData));
-            
-            // Remove from selection if selected
-            selectedStudents.delete(id);
-            
-            // Reload data
-            filterStudents();
-            
-            showToast(`Student ${student.firstName} ${student.lastName} deleted successfully!`, 'warning');
-        }
+        // Get the bulk delete form
+        const form = document.getElementById('bulkDeleteForm');
         
-        // Toggle student selection
-        function toggleStudentSelection(id, isChecked) {
-            if (isChecked) {
-                selectedStudents.add(id);
-            } else {
-                selectedStudents.delete(id);
-                document.getElementById('selectAll').checked = false;
-            }
-            updateBulkActions();
-        }
+        // Clear any existing student_ids inputs
+        const existingInputs = form.querySelectorAll('input[name="student_ids"]');
+        existingInputs.forEach(input => input.remove());
         
-        // Update bulk actions visibility
-        function updateBulkActions() {
-            const bulkActions = document.getElementById('bulkActions');
-            const selectedCount = document.getElementById('selectedCount');
-            
-            selectedCount.textContent = selectedStudents.size;
-            
-            if (selectedStudents.size > 0) {
-                bulkActions.style.display = 'block';
-            } else {
-                bulkActions.style.display = 'none';
-            }
-        }
+        // Add selected student IDs to the form
+        selectedStudents.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'student_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
         
-        // Clear selection
-        function clearSelection() {
-            selectedStudents.clear();
-            document.getElementById('selectAll').checked = false;
-            document.querySelectorAll('.student-checkbox').forEach(cb => {
-                cb.checked = false;
-            });
-            updateBulkActions();
-        }
+        // Submit the form
+        form.submit();
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Remove existing alerts
+        const existingToasts = document.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        });
         
-        // Export selected students
-        function exportSelected() {
-            if (selectedStudents.size === 0) {
-                showToast('No students selected for export', 'warning');
-                return;
-            }
-            
-            const selectedData = studentsData.filter(s => selectedStudents.has(s.id));
-            exportData(selectedData, 'selected_students');
-            showToast(`Exported ${selectedStudents.size} student(s)`, 'success');
-        }
+        // Create new toast
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `
+            <i class="fas fa-${getToastIcon(type)} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
         
-        // Export to CSV
-        function exportToCSV() {
-            exportData(filteredStudents, 'all_students', 'csv');
-        }
+        document.getElementById('toastContainer').appendChild(toast);
+        toast.style.display = 'block';
         
-        // Export to Excel
-        function exportToExcel() {
-            exportData(filteredStudents, 'all_students', 'excel');
-        }
-        
-        // Export data function
-        function exportData(data, filename, format = 'csv') {
-            if (data.length === 0) {
-                showToast('No data to export', 'warning');
-                return;
-            }
-            
-            // Create CSV content
-            const headers = ['Student ID', 'First Name', 'Last Name', 'Email', 'Phone', 'Class', 'Academic Year', 'Status', 'Performance'];
-            const rows = data.map(student => [
-                student.studentId,
-                student.firstName,
-                student.lastName,
-                student.email,
-                student.phone,
-                student.class,
-                student.academicYear,
-                student.status,
-                student.performance.toFixed(1) + '%'
-            ]);
-            
-            const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
-            ].join('\n');
-            
-            // Create and download file
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
-            link.style.visibility = 'hidden';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showToast(`Exported ${data.length} student(s)`, 'success');
-        }
-        
-        // Print table
-        function printTable() {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Students List - ${new Date().toLocaleDateString()}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; font-size: 12px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-                        th { background-color: #f5f5f5; font-weight: bold; }
-                        .header { text-align: center; margin-bottom: 20px; }
-                        .footer { margin-top: 20px; text-align: center; font-size: 10px; color: #666; }
-                        @media print {
-                            body { font-size: 11px; }
-                            th, td { padding: 4px; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        <h1 style="font-size: 18px; margin-bottom: 5px;">Students List</h1>
-                        <p style="margin: 5px 0;">Generated on ${new Date().toLocaleString()}</p>
-                        <p style="margin: 5px 0;">Total Students: ${filteredStudents.length}</p>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Student ID</th>
-                                <th>Name</th>
-                                <th>Class</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Performance</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${filteredStudents.map(student => `
-                                <tr>
-                                    <td>${student.studentId}</td>
-                                    <td>${student.firstName} ${student.lastName}</td>
-                                    <td>${student.class}</td>
-                                    <td>${student.email}</td>
-                                    <td>${student.phone || 'N/A'}</td>
-                                    <td>${student.performance.toFixed(1)}%</td>
-                                    <td>${student.status.charAt(0).toUpperCase() + student.status.slice(1)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    <div class="footer">
-                        <p>School SMS - Student Management System</p>
-                    </div>
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            setTimeout(function() {
-                                window.close();
-                            }, 500);
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
-        
-        // Send bulk email
-        function sendBulkEmail() {
-            if (selectedStudents.size === 0) {
-                showToast('No students selected', 'warning');
-                return;
-            }
-            
-            const selectedData = studentsData.filter(s => selectedStudents.has(s.id));
-            const emailList = selectedData.map(s => s.email).join(', ');
-            
-            showToast(`Preparing email for ${selectedStudents.size} student(s)`, 'info');
-        }
-        
-        // Update status in bulk
-        function updateStatusBulk() {
-            if (selectedStudents.size === 0) {
-                showToast('No students selected', 'warning');
-                return;
-            }
-            
-            const newStatus = prompt('Enter new status (active/inactive/graduated):');
-            if (!newStatus || !['active', 'inactive', 'graduated'].includes(newStatus.toLowerCase())) {
-                showToast('Invalid status', 'warning');
-                return;
-            }
-            
-            studentsData.forEach(student => {
-                if (selectedStudents.has(student.id)) {
-                    student.status = newStatus.toLowerCase();
-                }
-            });
-            
-            localStorage.setItem('studentsData', JSON.stringify(studentsData));
-            filterStudents();
-            clearSelection();
-            
-            showToast(`Updated status for ${selectedStudents.size} student(s) to ${newStatus}`, 'success');
-        }
-        
-        // Delete selected students
-        function deleteSelected() {
-            if (selectedStudents.size === 0) {
-                showToast('No students selected', 'warning');
-                return;
-            }
-            
-            if (!confirm(`Are you sure you want to delete ${selectedStudents.size} student(s)? This action cannot be undone.`)) {
-                return;
-            }
-            
-            studentsData = studentsData.filter(s => !selectedStudents.has(s.id));
-            localStorage.setItem('studentsData', JSON.stringify(studentsData));
-            
-            filterStudents();
-            clearSelection();
-            
-            showToast(`Deleted ${selectedStudents.size} student(s)`, 'warning');
-        }
-        
-        // Show toast notification
-        function showToast(message, type = 'info') {
-            // Remove existing alerts
-            const existingToasts = document.querySelectorAll('.custom-toast');
-            existingToasts.forEach(toast => {
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
                 toast.style.animation = 'slideOutRight 0.3s ease-out';
                 setTimeout(() => toast.remove(), 300);
-            });
-            
-            // Create new toast
-            const toast = document.createElement('div');
-            toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
-            toast.innerHTML = `
-                <i class="fas fa-${getToastIcon(type)} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            document.getElementById('toastContainer').appendChild(toast);
-            toast.style.display = 'block';
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.style.animation = 'slideOutRight 0.3s ease-out';
-                    setTimeout(() => toast.remove(), 300);
-                }
-            }, 5000);
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'check-circle';
+            case 'danger': 
+            case 'error': return 'exclamation-circle';
+            case 'warning': return 'exclamation-triangle';
+            default: return 'info-circle';
         }
-        
-        function getToastIcon(type) {
-            switch(type) {
-                case 'success': return 'check-circle';
-                case 'danger': return 'exclamation-circle';
-                case 'warning': return 'exclamation-triangle';
-                default: return 'info-circle';
-            }
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ctrl + F to focus search
-            if (e.ctrlKey && e.key === 'f') {
-                e.preventDefault();
-                document.getElementById('searchInput').focus();
-            }
-            
-            // Ctrl + A to select all
-            if (e.ctrlKey && e.key === 'a') {
-                e.preventDefault();
-                const selectAll = document.getElementById('selectAll');
-                selectAll.checked = !selectAll.checked;
-                selectAll.dispatchEvent(new Event('change'));
-            }
-            
-            // Ctrl + N to add new student
-            if (e.ctrlKey && e.key === 'n') {
-                e.preventDefault();
-                const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
-                modal.show();
-            }
-            
-            // Escape to clear selection
-            if (e.key === 'Escape') {
-                clearSelection();
-            }
-        });
-    </script>
+    }
+</script>
 {% endblock %}
