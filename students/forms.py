@@ -4,6 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import StudentProfile, StudentClass
 
 class StudentProfileForm(forms.ModelForm):
+    student_id = forms.CharField(required=False)
     class Meta:
         model = StudentProfile
         fields = [
@@ -14,7 +15,7 @@ class StudentProfileForm(forms.ModelForm):
         widgets = {
             'student_id': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Student ID'
+                'placeholder': 'Student ID',
             }),
             'parent_name': forms.TextInput(attrs={
                 'class': 'form-control',

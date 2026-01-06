@@ -270,7 +270,7 @@
                     <select class="form-select" id="classFilter">
                         <option value="">All Classes</option>
                         {% for student in students %}
-                            {% for class in student.studentclass_set.all %}
+                            {% for class in student.class_records.all %}
                                 <option value="{{ class.school_class }}">{{ class.school_class }}</option>
                             {% endfor %}
                         {% endfor %}
@@ -325,7 +325,7 @@
             <div class="student-row">
                 <span class="student-label">Class:</span>
                 <span class="student-value">
-                    {% with student_class=student.studentclass_set.first %}
+                    {% with student_class=student.class_records.first %}
                         {{ student_class.school_class|default:"Not Assigned" }}
                     {% endwith %}
                 </span>
@@ -333,7 +333,7 @@
             <div class="student-row">
                 <span class="student-label">Academic Year:</span>
                 <span class="student-value">
-                    {% with student_class=student.studentclass_set.first %}
+                    {% with student_class=student.class_records.first %}
                         {{ student_class.academic_year|default:"-" }}
                     {% endwith %}
                 </span>
@@ -343,12 +343,12 @@
                 <span class="student-value">{{ student.user.email }}</span>
             </div>
             <div class="student-row">
-                <span class="student-label">Phone:</span>
-                <span class="student-value">{{ student.user.phone|default:"-" }}</span>
-            </div>
-            <div class="student-row">
                 <span class="student-label">Parent:</span>
                 <span class="student-value">{{ student.parent_name|default:"-" }}</span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Parent Contact:</span>
+                <span class="student-value">{{ student.parent_contact|default:"-" }}</span>
             </div>
         </div>
         
@@ -426,11 +426,7 @@
                         <hr>
 
                         <!-- STUDENT PROFILE -->
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Student ID</label>
-                            {{ profile_form.student_id }}
-                            <div class="form-text">Auto-generated if left blank</div>
-                        </div>
+                       
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Parent / Guardian Name</label>
@@ -491,12 +487,77 @@
         </div>
     </div>
 </div>
+
+<!-- View Student Modal -->
+<div class="modal fade" id="viewStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Student Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="text-center mb-3" id="viewStudentAvatar"></div>
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Name</th>
+                        <td id="viewStudentName"></td>
+                    </tr>
+                    <tr>
+                        <th>Student ID</th>
+                        <td id="viewStudentId"></td>
+                    </tr>
+                    <tr>
+                        <th>Class</th>
+                        <td id="viewStudentClass"></td>
+                    </tr>
+                    <tr>
+                        <th>Academic Year</th>
+                        <td id="viewStudentYear"></td>
+                    </tr>
+                    <tr>
+                        <th>Email</th>
+                        <td id="viewStudentEmail"></td>
+                    </tr>
+                    <tr>
+                        <th>Parent</th>
+                        <td id="viewStudentParent"></td>
+                    </tr>
+                    <tr>
+                        <th>Parent Contact</th>
+                        <td id="viewStudentParentContact"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
     // Global Variables
     let selectedStudents = new Set();
+    
+    // Store class and year options from Django template
+    const classOptions = [
+        {% for class_option in class_form.school_class.field.choices %}
+            { value: "{{ class_option.0 }}", label: "{{ class_option.1 }}" },
+        {% endfor %}
+    ];
+    
+    const yearOptions = [
+        {% for year_option in class_form.academic_year.field.choices %}
+            { value: "{{ year_option.0 }}", label: "{{ year_option.1 }}" },
+        {% endfor %}
+    ];
     
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
@@ -557,8 +618,8 @@
         cards.forEach(card => {
             const studentName = card.querySelector('h6')?.textContent.toLowerCase() || '';
             const studentId = card.querySelector('.student-id')?.textContent.toLowerCase() || '';
-            const studentEmail = card.querySelector('.student-value:nth-child(4)')?.textContent.toLowerCase() || '';
-            const studentClass = card.querySelector('.student-value:nth-child(1)')?.textContent || '';
+            const studentEmail = card.querySelectorAll('.student-value')[2]?.textContent.toLowerCase() || '';
+            const studentClass = card.querySelectorAll('.student-value')[0]?.textContent || '';
             const studentStatus = card.querySelector('.student-status')?.textContent.toLowerCase() || '';
             
             const matchesSearch = !searchTerm || 
@@ -603,17 +664,34 @@
     function viewStudent(id) {
         const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
         if (!card) return;
+
+        const rows = card.querySelectorAll('.student-row');
+
+        const studentName = card.querySelector('h6')?.textContent || '';
+        const studentId = card.querySelector('.student-id')?.textContent || '';
+        const studentClass = rows[0]?.querySelector('.student-value')?.textContent || 'Not Assigned';
+        const studentYear = rows[1]?.querySelector('.student-value')?.textContent || '-';
+        const studentEmail = rows[2]?.querySelector('.student-value')?.textContent || '-';
+        const studentParent = rows[3]?.querySelector('.student-value')?.textContent || '-';
+        const studentParentContact = rows[4]?.querySelector('.student-value')?.textContent || '-';
+
+        // Generate avatar URL
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=4e73df&color=fff&size=80`;
         
-        const studentName = card.querySelector('h6').textContent;
-        const studentId = card.querySelector('.student-id').textContent;
-        const studentClass = card.querySelector('.student-value:nth-child(1)').textContent;
-        const studentYear = card.querySelector('.student-value:nth-child(2)').textContent;
-        const studentEmail = card.querySelector('.student-value:nth-child(3)').textContent;
-        const studentPhone = card.querySelector('.student-value:nth-child(4)').textContent;
-        const studentParent = card.querySelector('.student-value:nth-child(5)').textContent;
+        // Fill the modal content
+        document.getElementById('viewStudentName').textContent = studentName;
+        document.getElementById('viewStudentId').textContent = studentId;
+        document.getElementById('viewStudentClass').textContent = studentClass;
+        document.getElementById('viewStudentYear').textContent = studentYear;
+        document.getElementById('viewStudentEmail').textContent = studentEmail;
+        document.getElementById('viewStudentParent').textContent = studentParent;
+        document.getElementById('viewStudentParentContact').textContent = studentParentContact;
         
-        // You would need to fetch complete student data from backend
-        // For now, we'll show basic info
+        // Set avatar
+        const avatarContainer = document.getElementById('viewStudentAvatar');
+        avatarContainer.innerHTML = `<img src="${avatarUrl}" alt="${studentName}" 
+            class="img-fluid rounded-circle" style="width: 100px; height: 100px;">`;
+
         const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
         modal.show();
     }
@@ -622,22 +700,38 @@
     function editStudent(id) {
         const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
         if (!card) return;
+
+        const rows = card.querySelectorAll('.student-row');
+        
+        const studentClass = rows[0]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentYear = rows[1]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentEmail = rows[2]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentParent = rows[3]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentParentContact = rows[4]?.querySelector('.student-value')?.textContent.trim() || '';
         
         const studentName = card.querySelector('h6').textContent;
         const studentId = card.querySelector('.student-id').textContent;
-        const studentClass = card.querySelector('.student-value:nth-child(1)').textContent;
-        const studentYear = card.querySelector('.student-value:nth-child(2)').textContent;
-        const studentEmail = card.querySelector('.student-value:nth-child(3)').textContent;
-        const studentPhone = card.querySelector('.student-value:nth-child(4)').textContent;
-        const studentParent = card.querySelector('.student-value:nth-child(5)').textContent;
-        
-        // Parse first and last name
+
         const nameParts = studentName.split(' ');
         const firstName = nameParts[0];
         const lastName = nameParts.slice(1).join(' ');
+
+        // Generate class options HTML
+        let classOptionsHtml = '<option value="">Select Class</option>';
+        classOptions.forEach(option => {
+            // Check if the label matches the student's class
+            const isSelected = studentClass === option.label.trim();
+            classOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
+        });
         
-        // In a real application, you would fetch this data from the backend
-        // For now, create a simple form
+        // Generate year options HTML
+        let yearOptionsHtml = '<option value="">Select Year</option>';
+        yearOptions.forEach(option => {
+            // Check if the label matches the student's year
+            const isSelected = studentYear === option.label.trim();
+            yearOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
+        });
+
         const modalBody = `
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -657,29 +751,34 @@
                     <input type="email" class="form-control" name="email" value="${studentEmail}" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label">Phone Number</label>
-                    <input type="tel" class="form-control" name="phone" value="${studentPhone}">
+                    <label class="form-label">Parent / Guardian Name</label>
+                    <input type="text" class="form-control" name="parent_name" value="${studentParent}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Parent Contact</label>
+                    <input type="text" class="form-control" name="parent_contact" value="${studentParentContact}" placeholder="Phone number" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Class</label>
-                    <input type="text" class="form-control" name="school_class" value="${studentClass}" required>
+                    <select class="form-select" name="school_class" required>
+                        ${classOptionsHtml}
+                    </select>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Academic Year</label>
-                    <input type="text" class="form-control" name="academic_year" value="${studentYear}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Parent / Guardian Name</label>
-                    <input type="text" class="form-control" name="parent_name" value="${studentParent}">
+                    <select class="form-select" name="academic_year" required>
+                        ${yearOptionsHtml}
+                    </select>
                 </div>
             </div>
             <input type="hidden" name="edit_id" value="${id}">
         `;
-        
+
         document.getElementById('editStudentModalBody').innerHTML = modalBody;
         const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
         modal.show();
     }
+
     
     // Confirm delete
     function confirmDelete() {

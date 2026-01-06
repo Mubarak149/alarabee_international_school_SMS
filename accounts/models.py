@@ -22,10 +22,4 @@ class User(AbstractUser):
         return self.username
     
 
-# class BankDetails(models.Model):
-#     staff = models.OneToOneField(User, on_delete=models.CASCADE)
-#     bank_name = models.CharField(max_length=100)
-#     account_number = models.CharField(max_length=30)
 
-#     def __str__(self):
-#         return f"Bank Details for {self.staff.username}"
