@@ -440,7 +440,22 @@
     </div>
     {% endfor %}
 </div>
-
+    <!-- Add this near the pagination controls -->
+    <div class="row align-items-center mb-3">
+        <div class="col-md-6">
+            <div class="d-flex align-items-center">
+                <span class="me-2">Show:</span>
+                <select class="form-select form-select-sm w-auto" onchange="changeItemsPerPage(this)">
+                    <option value="12" selected>12</option>
+                    <option value="24">24</option>
+                    <option value="36">36</option>
+                    <option value="48">48</option>
+                    <option value="100">100</option>
+                </select>
+                <span class="ms-2">students per page</span>
+            </div>
+        </div>
+    </div>
 <!-- Pagination -->
 {% if students.paginator.num_pages >= 1 %}
 <nav aria-label="Page navigation" class="mt-4">
@@ -751,8 +766,8 @@
             statusFilter.addEventListener('change', filterStudents);
         }
     }
-    
-    // Filter students
+
+    // Filter students - Updated for pagination
     function filterStudents() {
         const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
         const classFilter = document.getElementById('classFilter')?.value || '';
@@ -785,8 +800,18 @@
         });
         
         updateTableInfo(visibleCount);
+        
+        // Show/hide pagination based on filtered results
+        const pagination = document.querySelector('nav[aria-label="Page navigation"]');
+        if (pagination) {
+            if (visibleCount === 0 && cards.length > 0) {
+                pagination.style.display = 'none';
+            } else {
+                pagination.style.display = 'block';
+            }
+        }
     }
-    
+
     // Reset filters
     function resetFilters() {
         document.getElementById('searchInput').value = '';
@@ -796,16 +821,15 @@
         filterStudents();
         showToast('Filters reset', 'info');
     }
-    
+
     // Update table info
     function updateTableInfo(visibleCount) {
         const totalCards = document.querySelectorAll('.student-card').length;
         const tableInfo = document.querySelector('#tableInfo');
         if (tableInfo) {
-            tableInfo.textContent = `Showing ${visibleCount} of ${totalCards} students`;
+            tableInfo.textContent = `Showing ${visibleCount} of ${totalCards} students on this page`;
         }
     }
-    
 
     // View student details - Updated version
     function viewStudent(id) {
@@ -1066,6 +1090,15 @@
             case 'warning': return 'exclamation-triangle';
             default: return 'info-circle';
         }
+    }
+
+    // Change items per page (requires backend support)
+    function changeItemsPerPage(select) {
+        const itemsPerPage = select.value;
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('per_page', itemsPerPage);
+        currentUrl.searchParams.set('page', 1); // Go back to first page
+        window.location.href = currentUrl.toString();
     }
 </script>
 {% endblock %}
