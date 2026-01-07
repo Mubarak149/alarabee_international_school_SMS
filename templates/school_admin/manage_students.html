@@ -139,6 +139,45 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Pagination Styles */
+    .pagination {
+        margin-bottom: 0;
+    }
+    
+    .page-link {
+        color: var(--text-primary);
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        margin: 0 2px;
+        border-radius: 6px;
+        min-width: 40px;
+        text-align: center;
+    }
+    
+    .page-link:hover {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    
+    .page-item.disabled .page-link {
+        color: var(--text-secondary);
+        background-color: var(--bg-tertiary);
+        border-color: var(--border-color);
+    }
+    
+    .pagination-info {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-top: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -401,6 +440,78 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Pagination -->
+{% if students.paginator.num_pages >= 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if students.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ students.previous_page_number }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in students.paginator.page_range %}
+            {% if students.number == num %}
+                <li class="page-item active">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if students.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ students.next_page_number }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ students.paginator.num_pages }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+    
+    <div class="text-center text-muted mt-2">
+        Showing {{ students.start_index }} to {{ students.end_index }} of {{ students.paginator.count }} students
+        (Page {{ students.number }} of {{ students.paginator.num_pages }})
+    </div>
+</nav>
+{% endif %}
 
 <!-- Add Student Modal -->
 <div class="modal fade" id="addStudentModal" tabindex="-1">

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from accounts.forms import StudentUserForm
 from students.forms import StudentProfileForm, StudentClassForm
 from students.models import StudentProfile, StudentClass
@@ -8,6 +9,7 @@ from academics.forms import SchoolClassForm, AcademicYearForm
 from academics.models import AcademicYear, SchoolClass, Subject
 from django.db import transaction
 from datetime import datetime
+
 # Create your views here.
 def admin_panel(request):
     return render(request, "school_admin/admin_dashboard.html")
@@ -18,8 +20,28 @@ def admin_profile(request):
 
 # views.py
 def manage_students(request):
-    # Get all students with related data
-    students = StudentProfile.objects.select_related('user').prefetch_related('class_records').all()
+    # Get all students with related data, ordered from newest to oldest
+    students_list = StudentProfile.objects.select_related('user').prefetch_related('class_records').all().order_by('-id')  # '-' means descending
+    
+    # Get items per page from request or use default
+    per_page = request.GET.get('per_page', 12)
+    try:
+        per_page = int(per_page)
+        if per_page not in [12, 24, 36, 48, 100]:
+            per_page = 12
+    except ValueError:
+        per_page = 12
+
+    # Pagination setup
+    page = request.GET.get('page', 1)
+    paginator = Paginator(students_list, 12)  # Show 12 students per page
+    
+    try:
+        students = paginator.page(page)
+    except PageNotAnInteger:
+        students = paginator.page(1)
+    except EmptyPage:
+        students = paginator.page(paginator.num_pages)
     
     if request.method == "POST":
         print("POST request received", request.POST)
@@ -132,7 +154,7 @@ def manage_students(request):
                     print("Form errors found", user_form.errors, profile_form.errors, class_form.errors)
                     # Pass form errors to template context
                     context = {
-                        'students': StudentProfile.objects.all(),
+                        'students': students,
                         'user_form': user_form,
                         'profile_form': profile_form,
                         'class_form': class_form,
