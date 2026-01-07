@@ -2,20 +2,19 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User
-
 from django import forms
-from accounts.models import User
 
 class StudentUserForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'dob', 'address']
+        fields = ['first_name', 'last_name', 'email', 'dob', 'address', 'gender']
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
             'dob': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
         }
 
 class StaffUserCreationForm(UserCreationForm):

@@ -321,6 +321,7 @@
             <span class="student-status badge-active">Active</span>
         </div>
         
+        <!-- Update the student-content section in the student card -->
         <div class="student-content">
             <div class="student-row">
                 <span class="student-label">Class:</span>
@@ -341,6 +342,24 @@
             <div class="student-row">
                 <span class="student-label">Email:</span>
                 <span class="student-value">{{ student.user.email }}</span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Gender:</span>
+                <span class="student-value">
+                    {% if student.user.gender == 'M' %}Male
+                    {% elif student.user.gender == 'F' %}Female
+                    {% elif student.user.gender == 'O' %}Other
+                    {% elif student.user.gender == 'N' %}Prefer not to say
+                    {% else %}-{% endif %}
+                </span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">DOB:</span>
+                <span class="student-value">{{ student.user.dob|date:"Y-m-d"|default:"-" }}</span>
+            </div>
+            <div class="student-row">
+                <span class="student-label">Address:</span>
+                <span class="student-value">{{ student.user.address|default:"-"|truncatechars:30 }}</span>
             </div>
             <div class="student-row">
                 <span class="student-label">Parent:</span>
@@ -423,6 +442,11 @@
                             {{ user_form.address }}
                         </div>
 
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Gender</label>
+                            {{ user_form.gender }}
+                        </div>
+
                         <hr>
 
                         <!-- STUDENT PROFILE -->
@@ -488,57 +512,68 @@
     </div>
 </div>
 
-<!-- View Student Modal -->
-<div class="modal fade" id="viewStudentModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Student Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
+    <!-- View Student Modal - Updated with all fields -->
+    <div class="modal fade" id="viewStudentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Student Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
 
-            <div class="modal-body">
-                <div class="text-center mb-3" id="viewStudentAvatar"></div>
+                <div class="modal-body">
+                    <div class="text-center mb-3" id="viewStudentAvatar"></div>
 
-                <table class="table table-bordered">
-                    <tr>
-                        <th>Name</th>
-                        <td id="viewStudentName"></td>
-                    </tr>
-                    <tr>
-                        <th>Student ID</th>
-                        <td id="viewStudentId"></td>
-                    </tr>
-                    <tr>
-                        <th>Class</th>
-                        <td id="viewStudentClass"></td>
-                    </tr>
-                    <tr>
-                        <th>Academic Year</th>
-                        <td id="viewStudentYear"></td>
-                    </tr>
-                    <tr>
-                        <th>Email</th>
-                        <td id="viewStudentEmail"></td>
-                    </tr>
-                    <tr>
-                        <th>Parent</th>
-                        <td id="viewStudentParent"></td>
-                    </tr>
-                    <tr>
-                        <th>Parent Contact</th>
-                        <td id="viewStudentParentContact"></td>
-                    </tr>
-                </table>
-            </div>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Name</th>
+                            <td id="viewStudentName"></td>
+                        </tr>
+                        <tr>
+                            <th>Student ID</th>
+                            <td id="viewStudentId"></td>
+                        </tr>
+                        <tr>
+                            <th>Class</th>
+                            <td id="viewStudentClass"></td>
+                        </tr>
+                        <tr>
+                            <th>Academic Year</th>
+                            <td id="viewStudentYear"></td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td id="viewStudentEmail"></td>
+                        </tr>
+                        <tr>
+                            <th>Gender</th>
+                            <td id="viewStudentGender"></td>
+                        </tr>
+                        <tr>
+                            <th>Date of Birth</th>
+                            <td id="viewStudentDOB"></td>
+                        </tr>
+                        <tr>
+                            <th>Address</th>
+                            <td id="viewStudentAddress"></td>
+                        </tr>
+                        <tr>
+                            <th>Parent</th>
+                            <td id="viewStudentParent"></td>
+                        </tr>
+                        <tr>
+                            <th>Parent Contact</th>
+                            <td id="viewStudentParentContact"></td>
+                        </tr>
+                    </table>
+                </div>
 
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
@@ -660,20 +695,25 @@
         }
     }
     
-    // View student details
+
+    // View student details - Updated version
     function viewStudent(id) {
         const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
         if (!card) return;
 
         const rows = card.querySelectorAll('.student-row');
 
+        // Extract all data from the card
         const studentName = card.querySelector('h6')?.textContent || '';
         const studentId = card.querySelector('.student-id')?.textContent || '';
         const studentClass = rows[0]?.querySelector('.student-value')?.textContent || 'Not Assigned';
         const studentYear = rows[1]?.querySelector('.student-value')?.textContent || '-';
         const studentEmail = rows[2]?.querySelector('.student-value')?.textContent || '-';
-        const studentParent = rows[3]?.querySelector('.student-value')?.textContent || '-';
-        const studentParentContact = rows[4]?.querySelector('.student-value')?.textContent || '-';
+        const studentGender = rows[3]?.querySelector('.student-value')?.textContent || '-';
+        const studentDOB = rows[4]?.querySelector('.student-value')?.textContent || '-';
+        const studentAddress = rows[5]?.querySelector('.student-value')?.textContent || '-';
+        const studentParent = rows[6]?.querySelector('.student-value')?.textContent || '-';
+        const studentParentContact = rows[7]?.querySelector('.student-value')?.textContent || '-';
 
         // Generate avatar URL
         const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(studentName)}&background=4e73df&color=fff&size=80`;
@@ -684,6 +724,9 @@
         document.getElementById('viewStudentClass').textContent = studentClass;
         document.getElementById('viewStudentYear').textContent = studentYear;
         document.getElementById('viewStudentEmail').textContent = studentEmail;
+        document.getElementById('viewStudentGender').textContent = studentGender;
+        document.getElementById('viewStudentDOB').textContent = studentDOB;
+        document.getElementById('viewStudentAddress').textContent = studentAddress;
         document.getElementById('viewStudentParent').textContent = studentParent;
         document.getElementById('viewStudentParentContact').textContent = studentParentContact;
         
@@ -695,19 +738,22 @@
         const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
         modal.show();
     }
-    
-    // Edit student
+    // Edit student - Updated version with all fields
     function editStudent(id) {
         const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
         if (!card) return;
 
         const rows = card.querySelectorAll('.student-row');
         
+        // Extract data from the card
         const studentClass = rows[0]?.querySelector('.student-value')?.textContent.trim() || '';
         const studentYear = rows[1]?.querySelector('.student-value')?.textContent.trim() || '';
         const studentEmail = rows[2]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentParent = rows[3]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentParentContact = rows[4]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentGender = rows[3]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentDOB = rows[4]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentAddress = rows[5]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentParent = rows[6]?.querySelector('.student-value')?.textContent.trim() || '';
+        const studentParentContact = rows[7]?.querySelector('.student-value')?.textContent.trim() || '';
         
         const studentName = card.querySelector('h6').textContent;
         const studentId = card.querySelector('.student-id').textContent;
@@ -716,10 +762,20 @@
         const firstName = nameParts[0];
         const lastName = nameParts.slice(1).join(' ');
 
+        // Convert gender text to code
+        function getGenderCode(genderText) {
+            if (genderText === 'Male') return 'M';
+            if (genderText === 'Female') return 'F';
+            if (genderText === 'Other') return 'O';
+            if (genderText === 'Prefer not to say') return 'N';
+            return '';
+        }
+
+        const genderCode = getGenderCode(studentGender);
+
         // Generate class options HTML
         let classOptionsHtml = '<option value="">Select Class</option>';
         classOptions.forEach(option => {
-            // Check if the label matches the student's class
             const isSelected = studentClass === option.label.trim();
             classOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
         });
@@ -727,10 +783,18 @@
         // Generate year options HTML
         let yearOptionsHtml = '<option value="">Select Year</option>';
         yearOptions.forEach(option => {
-            // Check if the label matches the student's year
             const isSelected = studentYear === option.label.trim();
             yearOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
         });
+
+        // Generate gender options HTML with selected value
+        let genderOptionsHtml = `
+            <option value="" ${!genderCode ? 'selected' : ''}>Select Gender</option>
+            <option value="M" ${genderCode === 'M' ? 'selected' : ''}>Male</option>
+            <option value="F" ${genderCode === 'F' ? 'selected' : ''}>Female</option>
+            <option value="O" ${genderCode === 'O' ? 'selected' : ''}>Other</option>
+            <option value="N" ${genderCode === 'N' ? 'selected' : ''}>Prefer not to say</option>
+        `;
 
         const modalBody = `
             <div class="row">
@@ -751,12 +815,26 @@
                     <input type="email" class="form-control" name="email" value="${studentEmail}" required>
                 </div>
                 <div class="col-md-6 mb-3">
+                    <label class="form-label">Gender</label>
+                    <select class="form-select" name="gender" required>
+                        ${genderOptionsHtml}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-control" name="dob" value="${studentDOB}">
+                </div>
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Address</label>
+                    <textarea class="form-control" name="address" rows="2">${studentAddress === '-' ? '' : studentAddress}</textarea>
+                </div>
+                <div class="col-md-6 mb-3">
                     <label class="form-label">Parent / Guardian Name</label>
-                    <input type="text" class="form-control" name="parent_name" value="${studentParent}" required>
+                    <input type="text" class="form-control" name="parent_name" value="${studentParent === '-' ? '' : studentParent}" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Parent Contact</label>
-                    <input type="text" class="form-control" name="parent_contact" value="${studentParentContact}" placeholder="Phone number" required>
+                    <input type="text" class="form-control" name="parent_contact" value="${studentParentContact === '-' ? '' : studentParentContact}" placeholder="Phone number" required>
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Class</label>
