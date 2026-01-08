@@ -15,8 +15,6 @@ class Subject(models.Model):
         return self.name
     
 # models.py
-from django.db import models
-
 class AcademicYear(models.Model):
     year = models.CharField(max_length=15)  # 2023-2024
     is_active = models.BooleanField(default=False)

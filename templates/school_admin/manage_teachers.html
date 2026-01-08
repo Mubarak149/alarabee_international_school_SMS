@@ -4,75 +4,157 @@
 
 {% block extra_css %}
 <style>
-    /* Page-specific styles */
-    .teacher-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-right: 10px;
+    /* Teacher Card */
+    .teacher-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+        transition: all 0.3s;
+    }
+    
+    .teacher-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .teacher-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
     }
     
     .teacher-info {
         display: flex;
         align-items: center;
+        gap: 12px;
     }
     
-    .teacher-name {
-        font-weight: 500;
-        margin-bottom: 2px;
-        font-size: 0.9rem;
+    .teacher-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .teacher-details h6 {
+        margin-bottom: 5px;
+        font-weight: 600;
     }
     
     .teacher-id {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         color: var(--text-secondary);
     }
     
-    /* Bulk Actions */
-    .bulk-actions {
-        background-color: rgba(28, 200, 138, 0.05);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        padding: 12px;
+    .teacher-status {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background-color: rgba(28, 200, 138, 0.1);
+        color: var(--success-color);
+    }
+    
+    .status-inactive {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+    }
+    
+    .status-on_leave {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--warning-color);
+    }
+    
+    .teacher-content {
         margin-bottom: 15px;
+    }
+    
+    .teacher-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
         font-size: 0.85rem;
     }
     
-    /* Export Buttons */
-    .export-buttons {
+    .teacher-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    .teacher-value {
+        color: var(--text-primary);
+        font-weight: 400;
+    }
+    
+    .teacher-actions {
         display: flex;
         gap: 8px;
-        flex-wrap: wrap;
+        margin-top: 15px;
     }
     
-    /* Action buttons in table */
-    .action-buttons {
+    /* Grid View */
+    .teacher-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .teacher-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Subjects Tags */
+    .subject-tags {
         display: flex;
-        gap: 4px;
         flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
     }
     
-    .action-buttons .btn {
-        padding: 4px 8px;
-        font-size: 0.8rem;
+    .subject-tag {
+        background-color: var(--primary-color-light);
+        color: var(--primary-color);
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="custom-toast alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
 <!-- Page Header -->
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Manage Teachers</h1>
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
-            <i class="fas fa-user-plus me-2"></i>Add New
+            <i class="fas fa-user-plus me-2"></i>Add Teacher
         </button>
     </div>
     <div class="breadcrumb">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="admin_dashboard.html">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Dashboard</a></li>
                 <li class="breadcrumb-item active">Teachers</li>
             </ol>
         </nav>
@@ -87,7 +169,7 @@
                 <div class="stat-icon stat-icon-primary">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
-                <div class="stat-number">58</div>
+                <div class="stat-number">{{ total_teachers }}</div>
                 <div class="stat-label">Total Teachers</div>
             </div>
         </div>
@@ -99,7 +181,7 @@
                 <div class="stat-icon stat-icon-success">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <div class="stat-number">52</div>
+                <div class="stat-number">{{ active_teachers }}</div>
                 <div class="stat-label">Active Teachers</div>
             </div>
         </div>
@@ -111,62 +193,20 @@
                 <div class="stat-icon stat-icon-warning">
                     <i class="fas fa-clock"></i>
                 </div>
-                <div class="stat-number">4</div>
+                <div class="stat-number">{{ on_leave_teachers }}</div>
                 <div class="stat-label">On Leave</div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Filters and Search -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Search & Filters</h5>
-    </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-md-4 col-12">
-                <div class="filter-group">
-                    <label class="filter-label">Search Teachers</label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Name, ID, or Subject...">
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stat-icon stat-icon-info">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="filter-group">
-                    <label class="filter-label">Status</label>
-                    <select class="form-select" id="statusFilter">
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="on-leave">On Leave</option>
-                        <option value="retired">Retired</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div class="filter-group">
-                    <label class="filter-label">Qualification</label>
-                    <select class="form-select" id="qualificationFilter">
-                        <option value="">All Qualifications</option>
-                        <option value="phd">PhD</option>
-                        <option value="masters">Masters</option>
-                        <option value="bachelors">Bachelors</option>
-                        <option value="diploma">Diploma</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-2 col-6">
-                <div class="filter-group d-flex align-items-end h-100">
-                    <div class="d-flex gap-2 w-100">
-                        <button class="btn btn-primary flex-grow-1" onclick="filterTeachers()">
-                            <i class="fas fa-filter me-2"></i>Filter
-                        </button>
-                        <button class="btn btn-outline-primary" onclick="resetFilters()">
-                            <i class="fas fa-redo"></i>
-                            <span class="d-none d-md-inline ms-2">Reset</span>
-                        </button>
-                    </div>
-                </div>
+                <div class="stat-number">{{ teachers|length }}</div>
+                <div class="stat-label">PhD Holders</div>
             </div>
         </div>
     </div>
@@ -182,13 +222,7 @@
             <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
                 <i class="fas fa-download me-1"></i>Export
             </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="sendBulkEmail()">
-                <i class="fas fa-envelope me-1"></i>Email
-            </button>
-            <button class="btn btn-sm btn-outline-warning" onclick="updateStatusBulk()">
-                <i class="fas fa-exchange-alt me-1"></i>Status
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteSelected()">
+            <button class="btn btn-sm btn-outline-danger" type="button" onclick="submitBulkDelete()">
                 <i class="fas fa-trash me-1"></i>Delete
             </button>
             <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
@@ -198,60 +232,243 @@
     </div>
 </div>
 
-<!-- Teachers Table -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Teachers List</h5>
-        <div class="export-buttons">
-            <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">
-                <i class="fas fa-file-csv"></i>
-                <span class="d-none d-md-inline ms-1">CSV</span>
-            </button>
-            <button class="btn btn-sm btn-outline-primary" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i>
-                <span class="d-none d-md-inline ms-1">Excel</span>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="printTable()">
-                <i class="fas fa-print"></i>
-                <span class="d-none d-md-inline ms-1">Print</span>
-            </button>
-        </div>
+<!-- Bulk Delete Form -->
+<form method="POST" action="{% url 'manage_teachers' %}" id="bulkDeleteForm" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_delete">
+</form>
+
+<!-- Filters and Search -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Search & Filters</h5>
     </div>
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="teachersTable">
-                <thead>
-                    <tr>
-                        <th width="40">
-                            <input type="checkbox" class="form-check-input" id="selectAll">
-                        </th>
-                        <th>Teacher</th>
-                        <th class="d-none d-md-table-cell">Subjects</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="teachersTableBody">
-                    <!-- Teachers will be loaded here -->
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">
-            <div class="text-muted mb-2 mb-sm-0" id="tableInfo">
-                Showing 0 of 0 teachers
+        <form method="GET" action="{% url 'manage_teachers' %}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3 col-12">
+                    <div class="filter-group">
+                        <label class="filter-label">Search Teachers</label>
+                        <input type="text" class="form-control" name="search" 
+                               value="{{ request.GET.search }}" placeholder="Name, ID, or Subject...">
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select class="form-select" name="status" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                            <option value="on_leave" {% if request.GET.status == 'on_leave' %}selected{% endif %}>On Leave</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Qualification</label>
+                        <select class="form-select" name="qualification" id="qualificationFilter">
+                            <option value="">All Qualifications</option>
+                            <option value="phd" {% if request.GET.qualification == 'phd' %}selected{% endif %}>PhD</option>
+                            <option value="masters" {% if request.GET.qualification == 'masters' %}selected{% endif %}>Masters</option>
+                            <option value="bachelors" {% if request.GET.qualification == 'bachelors' %}selected{% endif %}>Bachelors</option>
+                            <option value="diploma" {% if request.GET.qualification == 'diploma' %}selected{% endif %}>Diploma</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Show per page</label>
+                        <select class="form-select" name="per_page" onchange="this.form.submit()">
+                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="filter-group d-flex align-items-end h-100">
+                        <div class="d-flex gap-2 w-100">
+                            <button class="btn btn-primary flex-grow-1" type="submit">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                            <a href="{% url 'manage_teachers' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-redo"></i>
+                                <span class="d-none d-md-inline ms-2">Reset</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <nav>
-                <ul class="pagination mb-0" id="pagination">
-                    <!-- Pagination will be generated here -->
-                </ul>
-            </nav>
-        </div>
+        </form>
     </div>
 </div>
 
-<!-- Add Teacher Modal -->
+<!-- Teachers Grid View - CORRECTED -->
+<div class="teacher-grid" id="teachersGridView">
+    {% for profile in teachers %}
+    <div class="teacher-card" data-teacher-id="{{ profile.id }}">
+        <div class="teacher-header">
+            <div class="teacher-info">
+                <img src="https://ui-avatars.com/api/?name={{ profile.user.first_name|urlencode }}+{{ profile.user.last_name|urlencode }}&background=4e73df&color=fff&size=50" 
+                     alt="{{ profile.user.first_name }}" class="teacher-avatar">
+                <div class="teacher-details">
+                    <h6>{{ profile.user.get_full_name }}</h6>
+                    <div class="teacher-id">{{ profile.id }}</div>  <!-- Changed from profile.teacher_id -->
+                </div>
+            </div>
+            <span class="teacher-status status-{{ profile.status }}">
+                {{ profile.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="teacher-content">
+            <div class="teacher-row">
+                <span class="teacher-label">Qualification:</span>
+                <span class="teacher-value">{{ profile.get_qualification_display }}</span>
+            </div>
+            <div class="teacher-row">
+                <span class="teacher-label">Email:</span>
+                <span class="teacher-value">{{ profile.user.email }}</span>
+            </div>
+            <div class="teacher-row">
+                <span class="teacher-label">Contact:</span>
+                <span class="teacher-value">{{ profile.contact|default:"-" }}</span>
+            </div>
+            <div class="teacher-row">
+                <span class="teacher-label">NIN:</span>  <!-- ADDED: From backend -->
+                <span class="teacher-value">{{ profile.nin|default:"-" }}</span>
+            </div>
+            <div class="teacher-row">
+                <span class="teacher-label">Status:</span>  <!-- ADDED: From backend -->
+                <span class="teacher-value">{{ profile.get_status_display }}</span>
+            </div>
+            
+            <!-- Subjects -->
+            <div class="teacher-row">
+                <span class="teacher-label">Subjects:</span>
+                <span class="teacher-value">
+                    {% for assignment in profile.subject_assignments.all|slice:":2" %}
+                        {{ assignment.subject.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        Not assigned
+                    {% endfor %}
+                    {% if profile.subject_assignments.count > 2 %}
+                        +{{ profile.subject_assignments.count|add:"-2" }} more
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        <div class="teacher-actions">
+            <button class="btn btn-outline-info btn-sm flex-grow-1" onclick="viewTeacher({{ profile.id }})">
+                <i class="fas fa-eye me-1"></i>View
+            </button>
+            <button class="btn btn-outline-success btn-sm" onclick="editTeacher({{ profile.id }})">
+                <i class="fas fa-edit"></i>
+            </button>
+            <form method="POST" action="{% url 'manage_teachers' %}" class="d-inline" onsubmit="return confirmDelete()">
+                {% csrf_token %}
+                <input type="hidden" name="delete_id" value="{{ profile.id }}">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h5>No Teachers Found</h5>
+            <p>Add your first teacher to get started</p>
+            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#addTeacherModal">
+                <i class="fas fa-user-plus me-2"></i>Add Teacher
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if teachers.paginator.num_pages >= 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if teachers.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ teachers.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in teachers.paginator.page_range %}
+            {% if teachers.number == num %}
+                <li class="page-item active">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}">{{ num }}</a>
+                </li>
+            {% elif num > teachers.number|add:'-3' and num < teachers.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if teachers.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ teachers.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ teachers.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.qualification %}&qualification={{ request.GET.qualification }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% else %}
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item disabled">
+                <a class="page-link" href="#" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+    
+    <div class="text-center text-muted mt-2">
+        Showing {{ teachers.start_index }} to {{ teachers.end_index }} of {{ teachers.paginator.count }} teachers
+        (Page {{ teachers.number }} of {{ teachers.paginator.num_pages }})
+    </div>
+</nav>
+{% endif %}
+
+<!-- Add Teacher Modal - CORRECTED VERSION -->
 <div class="modal fade" id="addTeacherModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -259,87 +476,125 @@
                 <h5 class="modal-title">Add New Teacher</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form id="addTeacherForm">
+            <form method="POST" action="{% url 'manage_teachers' %}">
+                {% csrf_token %}
+                
+                <div class="modal-body">
                     <div class="row">
+                        <!-- Personal Information -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="firstName" required>
+                            <label class="form-label">First Name *</label>
+                            {{ user_form.first_name }}
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" required>
+                            <label class="form-label">Last Name *</label>
+                            {{ user_form.last_name }}
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Teacher ID</label>
-                            <input type="text" class="form-control" id="teacherId" required>
-                            <div class="form-text">Auto-generated if left blank</div>
+                            <label class="form-label">Email Address *</label>
+                            {{ user_form.email }}
                         </div>
+                        
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="dob" required>
+                            {{ user_form.dob }}
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" required>
+                            <label class="form-label">Gender</label>
+                            {{ user_form.gender }}
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Phone Number</label>
-                            <input type="tel" class="form-control" id="phone" required>
+                            <label class="form-label">Contact Number</label>
+                            {{ profile_form.contact }}
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Qualification</label>
-                            <select class="form-select" id="qualification" required>
-                                <option value="">Select Qualification</option>
-                                <option value="phd">PhD</option>
-                                <option value="masters">Masters</option>
-                                <option value="bachelors">Bachelors</option>
-                                <option value="diploma">Diploma</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Years of Experience</label>
-                            <input type="number" class="form-control" id="experience" min="0" max="50" value="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Joining Date</label>
-                            <input type="date" class="form-control" id="joiningDate" required>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Subjects Taught</label>
-                            <select class="form-select" id="subjects" multiple>
-                                <option value="math">Mathematics</option>
-                                <option value="physics">Physics</option>
-                                <option value="chemistry">Chemistry</option>
-                                <option value="biology">Biology</option>
-                                <option value="english">English</option>
-                                <option value="history">History</option>
-                                <option value="geography">Geography</option>
-                                <option value="computer">Computer Science</option>
-                                <option value="art">Art</option>
-                                <option value="music">Music</option>
-                            </select>
-                            <div class="form-text">Hold Ctrl (Cmd on Mac) to select multiple subjects</div>
-                        </div>
+                        
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Address</label>
-                            <textarea class="form-control" id="address" rows="2"></textarea>
+                            {{ user_form.address }}
                         </div>
+                        
+                        <hr>
+                        
+                        <!-- Professional Information -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Emergency Contact</label>
-                            <input type="tel" class="form-control" id="emergencyContact">
+                            <label class="form-label">Qualification *</label>
+                            {{ profile_form.qualification }}
                         </div>
+                        
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Emergency Contact Name</label>
-                            <input type="text" class="form-control" id="emergencyContactName">
+                            <label class="form-label">National ID (NIN)</label>
+                            {{ profile_form.nin }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            {{ profile_form.status }}
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Subject Assignment - ALL IN ONE ROW -->
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Subjects</label>
+                            {{ subject_form.subject }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Academic Year</label>
+                            {{ subject_form.academic_year }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Class Assigned</label>
+                            {{ subject_form.class_assigned }}
+                        </div>
+                        
+                        <div class="col-12 mb-2">
+                            <div class="form-text">Hold Ctrl (Cmd on Mac) to select multiple subjects</div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Bank Details (Optional) -->
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Bank Name</label>
+                            {{ bank_form.bank_name }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Account Number</label>
+                            {{ bank_form.account_number }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Account Name</label>
+                            {{ bank_form.account_name }}
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Login Credentials -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password *</label>
+                            {{ user_form.password }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Confirm Password *</label>
+                            {{ user_form.confirm_password }}
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" form="addTeacherForm" class="btn btn-success">Add Teacher</button>
-            </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="add">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Teacher</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -352,8 +607,35 @@
                 <h5 class="modal-title">Edit Teacher</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="editTeacherModalBody">
-                <!-- Content will be loaded dynamically -->
+            <form method="POST" action="{% url 'manage_teachers' %}" id="editTeacherForm">
+                {% csrf_token %}
+                <div class="modal-body" id="editTeacherModalBody">
+                    <!-- Content loaded dynamically via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="edit">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Teacher Modal -->
+<div class="modal fade" id="viewTeacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Teacher Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="viewTeacherModalBody">
+                <!-- Content loaded dynamically via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary" id="editButton">Edit</a>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -362,14 +644,218 @@
 
 {% block extra_js %}
 <script>
-    // Page-specific JavaScript for teachers management
-    let teachersData = [];
-    let filteredTeachers = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
+    // Global Variables
     let selectedTeachers = new Set();
     
-    // ... Rest of the teachers-specific JavaScript functions ...
-    // (All the functions from the original manage_teachers.html)
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+        
+        // Auto-hide toast messages after 5 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
+    });
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Search input
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterTeachers);
+        }
+    }
+    
+    // Filter teachers
+    function filterTeachers() {
+        const searchTerm = document.querySelector('input[name="search"]')?.value.toLowerCase() || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+        const qualificationFilter = document.getElementById('qualificationFilter')?.value || '';
+        
+        const cards = document.querySelectorAll('.teacher-card');
+        let visibleCount = 0;
+        
+        cards.forEach(card => {
+            const teacherName = card.querySelector('h6')?.textContent.toLowerCase() || '';
+            const teacherId = card.querySelector('.teacher-id')?.textContent.toLowerCase() || '';
+            const teacherEmail = card.querySelectorAll('.teacher-value')[1]?.textContent.toLowerCase() || '';
+            const teacherQualification = card.querySelectorAll('.teacher-value')[0]?.textContent.toLowerCase() || '';
+            const teacherStatus = card.querySelector('.teacher-status')?.textContent.toLowerCase() || '';
+            
+            const matchesSearch = !searchTerm || 
+                teacherName.includes(searchTerm) ||
+                teacherId.includes(searchTerm) ||
+                teacherEmail.includes(searchTerm);
+            
+            const matchesStatus = !statusFilter || teacherStatus.includes(statusFilter);
+            const matchesQualification = !qualificationFilter || teacherQualification.includes(qualificationFilter);
+            
+            if (matchesSearch && matchesStatus && matchesQualification) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Update pagination info
+        updatePaginationInfo(visibleCount);
+    }
+    
+    // Update pagination info
+    function updatePaginationInfo(visibleCount) {
+        const totalCards = document.querySelectorAll('.teacher-card').length;
+        const infoElement = document.querySelector('.text-center.text-muted');
+        if (infoElement) {
+            infoElement.textContent = `Showing ${visibleCount} of ${totalCards} teachers`;
+        }
+    }
+    
+    // View teacher details
+    function viewTeacher(id) {
+        // Fetch teacher data via AJAX or use template data
+        const card = document.querySelector(`.teacher-card[data-teacher-id="${id}"]`);
+        if (!card) return;
+        
+        // Extract data from card
+        const teacherName = card.querySelector('h6')?.textContent || '';
+        const teacherId = card.querySelector('.teacher-id')?.textContent || '';
+        const rows = card.querySelectorAll('.teacher-row');
+        
+        // Create modal content
+        const modalBody = `
+            <div class="row">
+                <div class="col-md-4 text-center mb-3">
+                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(teacherName)}&background=4e73df&color=fff&size=150" 
+                         class="img-fluid rounded-circle mb-3" alt="${teacherName}">
+                    <h5>${teacherName}</h5>
+                    <p class="text-muted">${teacherId}</p>
+                </div>
+                <div class="col-md-8">
+                    <table class="table table-bordered">
+                        ${Array.from(rows).map(row => `
+                            <tr>
+                                <th width="30%">${row.querySelector('.teacher-label').textContent.replace(':', '')}</th>
+                                <td>${row.querySelector('.teacher-value').textContent}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('viewTeacherModalBody').innerHTML = modalBody;
+        document.getElementById('editButton').href = `javascript:editTeacher(${id})`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('viewTeacherModal'));
+        modal.show();
+    }
+    
+    // Edit teacher
+    function editTeacher(id) {
+        // Close view modal if open
+        const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewTeacherModal'));
+        if (viewModal) viewModal.hide();
+        
+        // Fetch teacher data and populate edit form
+        fetch(`/api/teacher/${id}/`)  // You'll need to create this API endpoint
+            .then(response => response.json())
+            .then(data => {
+                populateEditForm(data);
+                const modal = new bootstrap.Modal(document.getElementById('editTeacherModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching teacher data:', error);
+                alert('Error loading teacher data');
+            });
+    }
+    
+    // Populate edit form (simplified version)
+    function populateEditForm(data) {
+        // You'll need to implement this based on your form structure
+        const formHtml = `
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">First Name</label>
+                    <input type="text" class="form-control" name="first_name" value="${data.first_name}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" class="form-control" name="last_name" value="${data.last_name}" required>
+                </div>
+                <!-- Add more fields as needed -->
+                <input type="hidden" name="edit_id" value="${data.id}">
+            </div>
+        `;
+        
+        document.getElementById('editTeacherModalBody').innerHTML = formHtml;
+    }
+    
+    // Confirm delete
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this teacher? This action cannot be undone.');
+    }
+    
+    // Bulk delete
+    function submitBulkDelete() {
+        if (selectedTeachers.size === 0) {
+            showToast('No teachers selected', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${selectedTeachers.size} teacher(s)? This action cannot be undone.`)) {
+            return;
+        }
+        
+        const form = document.getElementById('bulkDeleteForm');
+        const existingInputs = form.querySelectorAll('input[name="teacher_ids"]');
+        existingInputs.forEach(input => input.remove());
+        
+        selectedTeachers.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'teacher_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        form.submit();
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `
+            <i class="fas fa-${getToastIcon(type)} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'check-circle';
+            case 'danger': 
+            case 'error': return 'exclamation-circle';
+            case 'warning': return 'exclamation-triangle';
+            default: return 'info-circle';
+        }
+    }
 </script>
 {% endblock %}

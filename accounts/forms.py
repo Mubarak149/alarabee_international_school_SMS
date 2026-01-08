@@ -17,29 +17,68 @@ class StudentUserForm(forms.ModelForm):
             'gender': forms.Select(attrs={'class': 'form-control'}),
         }
 
-class StaffUserCreationForm(UserCreationForm):
+
+class TeacherUserForm(forms.ModelForm):
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm Password'
+        }),
+        required=True
+    )
+    
     class Meta:
         model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'dob', 'address', 'gender', 'password1', 'password2']
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'dob', 'address', 'gender']
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
-            'dob': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'Address'}),
-            'gender': forms.Select(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Username/Teacher ID'
+            }),
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'First name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Last name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Email'
+            }),
+            'password': forms.PasswordInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Password'
+            }),
+            'dob': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 2,
+                'placeholder': 'Address'
+            }),
+            'gender': forms.Select(attrs={
+                'class': 'form-control'
+            }),
         }
     
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add Bootstrap classes to password fields
-        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control'})
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm_password = cleaned_data.get('confirm_password')
+        
+        if password and confirm_password and password != confirm_password:
+            self.add_error('confirm_password', 'Passwords do not match')
+        
+        return cleaned_data
     
     def save(self, commit=True):
         user = super().save(commit=False)
         user.role = 'staff'
+        user.set_password(self.cleaned_data['password'])
         if commit:
             user.save()
         return user
