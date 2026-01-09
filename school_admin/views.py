@@ -20,9 +20,28 @@ from academics.models import AcademicYear, SchoolClass, Subject
 
 
 
-# Create your views here.
-def admin_panel(request):
-    return render(request, "school_admin/admin_dashboard.html")
+def admin_dashboard(request):
+    # Get real data from database
+    total_students = StudentProfile.objects.filter(is_active=True).count()
+    total_teachers = TeacherProfile.objects.filter(status='active').count()
+    active_classes = SchoolClass.objects.filter(is_active=True).count()
+    
+    # Get teachers by status
+    active_teachers_count = TeacherProfile.objects.filter(status='active').count()
+    inactive_teachers_count = TeacherProfile.objects.filter(status='inactive').count()
+    
+    # Get recent activities (you might need to create an ActivityLog model)
+    recent_activities = []  # You can create an ActivityLog model to track this
+    
+    context = {
+        'total_students': total_students,
+        'total_teachers': total_teachers,
+        'active_classes': active_classes,
+        'active_teachers_count': active_teachers_count,
+        'inactive_teachers_count': inactive_teachers_count,
+    }
+    
+    return render(request, "school_admin/admin_dashboard.html", context)
 
 def admin_profile(request):
     return render(request, "school_admin/admin_profile.html")

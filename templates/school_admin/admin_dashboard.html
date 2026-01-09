@@ -45,9 +45,13 @@
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                                 Total Students
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">1,245</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_students }}</div>
                             <div class="mt-2">
-                                <small class="text-success"><i class="fas fa-arrow-up"></i> 15 new this week</small>
+                                {% if new_students_this_week > 0 %}
+                                    <small class="text-success"><i class="fas fa-arrow-up"></i> {{ new_students_this_week }} new this week</small>
+                                {% else %}
+                                    <small class="text-muted">No new students this week</small>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -66,9 +70,9 @@
                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                 Total Teachers
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">58</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_teachers }}</div>
                             <div class="mt-2">
-                                <small class="text-primary">42 Active, 16 Inactive</small>
+                                <small class="text-primary">{{ active_teachers_count }} Active, {{ inactive_teachers_count }} Inactive</small>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -87,9 +91,9 @@
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                 Active Classes
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">42</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_classes }}</div>
                             <div class="mt-2">
-                                <small class="text-success">96% Attendance Rate</small>
+                                <small class="text-success">{{ attendance_rate }}% Attendance Rate</small>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -108,9 +112,9 @@
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 Results Submitted
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">85%</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ results_submitted_rate }}%</div>
                             <div class="mt-2">
-                                <small class="text-warning">12 pending submissions</small>
+                                <small class="text-warning">{{ pending_results_count }} pending submissions</small>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -156,7 +160,7 @@
                 <div class="card-body">
                     <div class="row quick-actions-grid">
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="#" class="quick-action-card" data-action="add-student">
+                            <a href="{% url 'add_student' %}" class="quick-action-card" data-action="add-student">
                                 <div class="action-icon bg-danger">
                                     <i class="fas fa-user-plus"></i>
                                 </div>
@@ -164,7 +168,7 @@
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="#" class="quick-action-card" data-action="add-teacher">
+                            <a href="{% url 'manage_teachers' %}" class="quick-action-card" data-action="add-teacher">
                                 <div class="action-icon bg-primary">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
@@ -172,15 +176,15 @@
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="#" class="quick-action-card" data-action="create-class">
+                            <a href="{% url 'manage_classes' %}" class="quick-action-card" data-action="create-class">
                                 <div class="action-icon bg-success">
                                     <i class="fas fa-plus-circle"></i>
                                 </div>
-                                <span>Create Class</span>
+                                <span>Manage Classes</span>
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="#" class="quick-action-card" data-action="generate-report">
+                            <a href="{% url 'reports' %}" class="quick-action-card" data-action="generate-report">
                                 <div class="action-icon bg-warning">
                                     <i class="fas fa-file-export"></i>
                                 </div>
@@ -201,50 +205,35 @@
                 </div>
                 <div class="card-body">
                     <div class="list-group">
-                        <div class="list-group-item d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-user-plus"></i>
+                        <!-- This should be populated with actual recent activities from your database -->
+                        {% if recent_activities %}
+                            {% for activity in recent_activities %}
+                                <div class="list-group-item d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-sm {{ activity.get_icon_color }} text-white rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="fas {{ activity.get_icon }}"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-1">{{ activity.title }}</h6>
+                                        <small class="text-muted">{{ activity.description }} • {{ activity.timestamp|timesince }} ago</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Fallback to static examples if no activities in database -->
+                            <div class="list-group-item d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">No recent activities found</h6>
+                                    <small class="text-muted">Activities will appear here as they happen</small>
                                 </div>
                             </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-1">New Student Registered</h6>
-                                <small class="text-muted">John Doe joined Grade 10A • 2 minutes ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-file-upload"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-1">Results Uploaded</h6>
-                                <small class="text-muted">Mathematics results for Grade 11 • 15 minutes ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avatar-sm bg-warning text-white rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-chalkboard-teacher"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-1">New Teacher Added</h6>
-                                <small class="text-muted">Mr. Smith joined as Physics teacher • 1 hour ago</small>
-                            </div>
-                        </div>
-                        <div class="list-group-item d-flex align-items-center">
-                            <div class="flex-shrink-0">
-                                <div class="avatar-sm bg-info text-white rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="fas fa-school"></i>
-                                </div>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                                <h6 class="mb-1">New Class Created</h6>
-                                <small class="text-muted">Grade 12 Science Stream added • 3 hours ago</small>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
