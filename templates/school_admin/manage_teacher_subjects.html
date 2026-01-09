@@ -1,0 +1,480 @@
+<!-- school_admin/manage_teacher_subjects.html -->
+{% extends "school_admin/base_admin.html" %}
+
+{% block title %}Manage Teacher Subjects - School SMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+    }
+    
+    .assignment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 15px;
+    }
+    
+    .teacher-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .teacher-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .subject-badge {
+        background-color: var(--primary-color-light);
+        color: var(--primary-color);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .assignment-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 2px;
+    }
+    
+    .detail-value {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    
+    .actions-container {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="custom-toast alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Manage Teacher Subject Assignments</h1>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+            <i class="fas fa-plus me-2"></i>Assign Subject
+        </button>
+    </div>
+    <div class="breadcrumb">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'manage_teachers' %}">Teachers</a></li>
+                <li class="breadcrumb-item active">Subject Assignments</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stat-icon stat-icon-primary">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="stat-number">{{ total_assignments }}</div>
+                <div class="stat-label">Total Assignments</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stat-icon stat-icon-success">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="stat-number">{{ teachers.count }}</div>
+                <div class="stat-label">Teachers</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stat-icon stat-icon-warning">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-number">{{ subjects.count }}</div>
+                <div class="stat-label">Subjects</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card">
+            <div class="card-body">
+                <div class="stat-icon stat-icon-info">
+                    <i class="fas fa-school"></i>
+                </div>
+                <div class="stat-number">{{ classes.count }}</div>
+                <div class="stat-label">Classes</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Search & Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{% url 'manage_teacher_subjects' %}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-3 col-12">
+                    <div class="filter-group">
+                        <label class="filter-label">Search</label>
+                        <input type="text" class="form-control" name="search" 
+                               value="{{ search_query }}" placeholder="Teacher, Subject...">
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Teacher</label>
+                        <select class="form-select" name="teacher">
+                            <option value="">All Teachers</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ teacher.user.get_full_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Subject</label>
+                        <select class="form-select" name="subject">
+                            <option value="">All Subjects</option>
+                            {% for subject in subjects %}
+                                <option value="{{ subject.id }}" {% if subject_filter == subject.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ subject.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Academic Year</label>
+                        <select class="form-select" name="academic_year">
+                            <option value="">All Years</option>
+                            {% for year in academic_years %}
+                                <option value="{{ year.id }}" {% if year_filter == year.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ year.year }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Class</label>
+                        <select class="form-select" name="class_assigned">
+                            <option value="">All Classes</option>
+                            {% for class in classes %}
+                                <option value="{{ class.id }}" {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ class.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-1 col-12">
+                    <div class="filter-group d-flex align-items-end h-100">
+                        <div class="d-flex gap-2 w-100">
+                            <button class="btn btn-primary flex-grow-1" type="submit">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <a href="{% url 'manage_teacher_subjects' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Assignments List -->
+<div class="row" id="assignmentsList">
+    {% for assignment in assignments %}
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="assignment-card" data-id="{{ assignment.id }}">
+            <div class="assignment-header">
+                <div class="teacher-info">
+                    <img src="https://ui-avatars.com/api/?name={{ assignment.teacher.user.first_name|urlencode }}+{{ assignment.teacher.user.last_name|urlencode }}&background=4e73df&color=fff&size=40" 
+                         class="teacher-avatar" alt="{{ assignment.teacher.user.get_full_name }}">
+                    <div>
+                        <h6 class="mb-0">{{ assignment.teacher.user.get_full_name }}</h6>
+                        <small class="text-muted">ID: {{ assignment.teacher.id }}</small>
+                    </div>
+                </div>
+                <span class="subject-badge">{{ assignment.subject.code|default:assignment.subject.name }}</span>
+            </div>
+            
+            <div class="assignment-details">
+                <div class="detail-item">
+                    <span class="detail-label">Subject</span>
+                    <span class="detail-value">{{ assignment.subject.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Academic Year</span>
+                    <span class="detail-value">{{ assignment.academic_year.year }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Class</span>
+                    <span class="detail-value">{{ assignment.class_assigned.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Assigned On</span>
+                    <span class="detail-value">{{ assignment.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+            
+            <div class="actions-container">
+                <button class="btn btn-outline-primary btn-sm" onclick="editAssignment({{ assignment.id }})">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </button>
+                <form method="POST" action="{% url 'manage_teacher_subjects' %}" class="d-inline" onsubmit="return confirmDelete()">
+                    {% csrf_token %}
+                    <input type="hidden" name="delete_id" value="{{ assignment.id }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-1"></i>Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+            <h5>No Subject Assignments Found</h5>
+            <p>Assign subjects to teachers to get started</p>
+            <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#addAssignmentModal">
+                <i class="fas fa-plus me-2"></i>Assign Subject
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if assignments.paginator.num_pages >= 1 %}
+<nav aria-label="Page navigation" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if assignments.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ assignments.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in assignments.paginator.page_range %}
+            {% if assignments.number == num %}
+                <li class="page-item active">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}">{{ num }}</a>
+                </li>
+            {% elif num > assignments.number|add:'-3' and num < assignments.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if assignments.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ assignments.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ assignments.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if teacher_filter %}&teacher={{ teacher_filter }}{% endif %}{% if subject_filter %}&subject={{ subject_filter }}{% endif %}{% if year_filter %}&academic_year={{ year_filter }}{% endif %}{% if class_filter %}&class_assigned={{ class_filter }}{% endif %}&per_page={{ per_page }}" 
+                   aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+    
+    <div class="text-center text-muted mt-2">
+        Showing {{ assignments.start_index }} to {{ assignments.end_index }} of {{ assignments.paginator.count }} assignments
+        (Page {{ assignments.number }} of {{ assignments.paginator.num_pages }})
+    </div>
+</nav>
+{% endif %}
+
+<!-- Add Assignment Modal -->
+<div class="modal fade" id="addAssignmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Assign Subject to Teacher</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_teacher_subjects' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Teacher *</label>
+                        {{ form.teacher }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject *</label>
+                        {{ form.subject }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Academic Year *</label>
+                        {{ form.academic_year }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Class Assigned *</label>
+                        {{ form.class_assigned }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="add">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Assign Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Assignment Modal -->
+<div class="modal fade" id="editAssignmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Subject Assignment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_teacher_subjects' %}" id="editAssignmentForm">
+                {% csrf_token %}
+                <div class="modal-body" id="editAssignmentModalBody">
+                    <!-- Content loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="action" value="edit">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function editAssignment(id) {
+        // Fetch assignment data via AJAX or use template data
+        // This is a simplified version - you might want to use AJAX
+        const assignment = document.querySelector(`.assignment-card[data-id="${id}"]`);
+        if (!assignment) return;
+        
+        const html = `
+            <input type="hidden" name="edit_id" value="${id}">
+            <div class="mb-3">
+                <label class="form-label">Teacher *</label>
+                <select name="teacher" class="form-control" required>
+                    {% for teacher in teachers %}
+                        <option value="{{ teacher.id }}">{{ teacher.user.get_full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Subject *</label>
+                <select name="subject" class="form-control" required>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Academic Year *</label>
+                <select name="academic_year" class="form-control" required>
+                    {% for year in academic_years %}
+                        <option value="{{ year.id }}">{{ year.year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Class Assigned *</label>
+                <select name="class_assigned" class="form-control" required>
+                    {% for class in classes %}
+                        <option value="{{ class.id }}">{{ class.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        `;
+        
+        document.getElementById('editAssignmentModalBody').innerHTML = html;
+        const modal = new bootstrap.Modal(document.getElementById('editAssignmentModal'));
+        modal.show();
+    }
+    
+    function confirmDelete() {
+        return confirm('Are you sure you want to remove this subject assignment?');
+    }
+</script>
+{% endblock %}

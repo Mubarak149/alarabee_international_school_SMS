@@ -5,7 +5,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 
-from accounts.forms import StudentUserForm, TeacherUserForm
+from accounts.forms import StudentUserForm, TeacherUserForm, UserEditForm
 from students.forms import StudentProfileForm, StudentClassForm
 
 from students.models import StudentProfile, StudentClass
@@ -205,12 +205,20 @@ def manage_students(request):
         "students": students,
     })
 
-
 def manage_teachers(request):
     # Get all teachers with related data
     teachers_list = TeacherProfile.objects.select_related('user').prefetch_related(
-        'subjects', 'subject_assignments'
+        'subject_assignments'
     ).all().order_by('-id')
+    phd_count = teachers_list.filter(qualification='phd').count()
+    # Get filter data
+    status_filter = request.GET.get('status', '')
+    qualification_filter = request.GET.get('qualification', '')
+    
+    if status_filter:
+        teachers_list = teachers_list.filter(status=status_filter)
+    if qualification_filter:
+        teachers_list = teachers_list.filter(qualification=qualification_filter)
     
     # Pagination
     per_page = request.GET.get('per_page', 10)
@@ -234,102 +242,66 @@ def manage_teachers(request):
     if request.method == "POST":
         action = request.POST.get('action')
         
-        # ADD TEACHER
+        # ADD TEACHER (removed subject assignment logic)
         if action == 'add':
             user_form = TeacherUserForm(request.POST)
             profile_form = TeacherProfileForm(request.POST)
-            subjects_form = TeacherSubjectForm(request.POST)
-            
-            if all([user_form.is_valid(), profile_form.is_valid(), subjects_form.is_valid()]):
+            print("ADD TEACHER POST data", request.POST.dict())
+            if all([user_form.is_valid(), profile_form.is_valid()]):
                 try:
                     with transaction.atomic():
-                        # 1. Save User
+                        # Save User
                         user = user_form.save(commit=False)
                         user.first_name = normalize_name(user.first_name)
                         user.last_name = normalize_name(user.last_name)
                         user.role = 'staff'
+                        user.username = user.email
                         user.save()
                         
-                        # 2. Save Profile
+                        # Save Profile
                         profile = profile_form.save(commit=False)
                         profile.user = user
                         profile.save()
                         
-                        # 4. Set username to email
-                        user.username = user.email  
-                        user.save()
-                        
-                        # 5. Save subjects
-                        subjects = subjects_form.cleaned_data.get('subjects')
-                        if subjects:
-                            for subject in subjects:
-                                TeacherSubject.objects.create(
-                                    teacher=profile,
-                                    subject=subject,
-                                    academic_year=subjects_form.cleaned_data.get('academic_year'),
-                                    class_assigned=subjects_form.cleaned_data.get('class_assigned')
-                                )
-                        
-                        messages.success(request, f'Teacher {user.get_full_name()} added successfully! Login ID: {teacher_id}')
+                        messages.success(request, f'Teacher {user.get_full_name()} added successfully! Login ID: {user.username}')
                         return redirect('manage_teachers')
                         
                 except Exception as e:
                     messages.error(request, f'Error adding teacher: {str(e)}')
             
             else:
-                for form in [user_form, profile_form, subjects_form]:
-                    for error in form.errors.values():
-                        print("Form error:", error)
-                        messages.error(request, error)
+                for form in [user_form, profile_form]:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{form.fields[field].label if field in form.fields else field}: {error}")
         
-        # EDIT TEACHER
+        # EDIT TEACHER (removed subject assignment logic)
         elif action == 'edit':
             teacher_id = request.POST.get('edit_id')
             try:
                 profile = TeacherProfile.objects.get(id=teacher_id)
                 user = profile.user
-                
-                user_form = TeacherUserForm(request.POST, instance=user)
+
+                user_form = UserEditForm(request.POST, instance=user)
                 profile_form = TeacherProfileForm(request.POST, instance=profile)
-                subjects_form = TeacherSubjectForm(request.POST)
-                
-                if all([user_form.is_valid(), profile_form.is_valid(), subjects_form.is_valid()]):
-                    try:
-                        with transaction.atomic():
-                            # Update user
-                            user = user_form.save(commit=False)
-                            user.first_name = normalize_name(user.first_name)
-                            user.last_name = normalize_name(user.last_name)
-                            user.save()
-                            
-                            # Update profile
-                            profile = profile_form.save()
-                            
-                            # Update subjects
-                            profile.subject_assignments.all().delete()  # Remove old assignments
-                            subjects = subjects_form.cleaned_data.get('subjects')
-                            if subjects:
-                                for subject in subjects:
-                                    TeacherSubject.objects.create(
-                                        teacher=profile,
-                                        subject=subject,
-                                        academic_year=subjects_form.cleaned_data.get('academic_year'),
-                                        class_assigned=subjects_form.cleaned_data.get('class_assigned')
-                                    )
-                            
-                            messages.success(request, f'Teacher {user.get_full_name()} updated successfully!')
-                            return redirect('manage_teachers')
-                            
-                    except Exception as e:
-                        messages.error(request, f'Error updating teacher: {str(e)}')
-                
-                else:
-                    for form in [user_form, profile_form, subjects_form]:
-                        for error in form.errors.values():
-                            messages.error(request, error)
-                            
+
+                if user_form.is_valid() and profile_form.is_valid():
+                    with transaction.atomic():
+                        user = user_form.save()   # ✅ password safe
+                        profile_form.save()
+
+                    messages.success(
+                        request,
+                        f'Teacher {user.get_full_name()} updated successfully!'
+                    )
+                    return redirect('manage_teachers')
+
             except TeacherProfile.DoesNotExist:
                 messages.error(request, 'Teacher not found!')
+            except Exception as e:
+                messages.error(request, f'Error updating teacher: {str(e)}') 
+
+
         
         # DELETE TEACHER
         elif action == 'delete':
@@ -337,71 +309,177 @@ def manage_teachers(request):
             try:
                 profile = TeacherProfile.objects.get(id=teacher_id)
                 teacher_name = profile.user.get_full_name()
-                profile.user.delete()  # Cascade delete
+                user = profile.user
+    
+                user.delete()  # Cascade delete will delete profile too
                 messages.success(request, f'Teacher {teacher_name} deleted successfully!')
+                
+                    
             except TeacherProfile.DoesNotExist:
                 messages.error(request, 'Teacher not found!')
             return redirect('manage_teachers')
         
-        # BULK DELETE
-        elif action == 'bulk_delete':
-            teacher_ids = request.POST.getlist('teacher_ids')
-            if teacher_ids:
-                try:
-                    with transaction.atomic():
-                        profiles = TeacherProfile.objects.filter(id__in=teacher_ids)
-                        count = profiles.count()
-                        for profile in profiles:
-                            profile.user.delete()
-                        messages.success(request, f'{count} teacher(s) deleted successfully!')
-                except Exception as e:
-                    messages.error(request, f'Error deleting teachers: {str(e)}')
-            return redirect('manage_teachers')
     
     # GET request - initialize forms
     user_form = TeacherUserForm()
     profile_form = TeacherProfileForm()
-    subjects_form = TeacherSubjectForm()
     bank_form = TeacherBankDetailsForm()
-    
-    # Get filter data
-    status_filter = request.GET.get('status', '')
-    qualification_filter = request.GET.get('qualification', '')
-    
-    if status_filter:
-        teachers_list = teachers_list.filter(status=status_filter)
-    if qualification_filter:
-        teachers_list = teachers_list.filter(qualification=qualification_filter)
     
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
-         'subject_form': subjects_form,
         'bank_form': bank_form,
         'teachers': teachers,
-        'subjects': Subject.objects.all(),
-        'academic_years': AcademicYear.objects.all(),
-        'classes': SchoolClass.objects.all(),
         'total_teachers': teachers_list.count(),
         'active_teachers': teachers_list.filter(status='active').count(),
         'on_leave_teachers': teachers_list.filter(status='on_leave').count(),
         'inactive_teachers': teachers_list.filter(status='inactive').count(),
+        'status_filter': status_filter,
+        'qualification_filter': qualification_filter,
+        'per_page': per_page,
+        'phd_count': phd_count,
     }
     
     return render(request, "school_admin/manage_teachers.html", context)
 
-@login_required
-def view_teacher(request, teacher_id):
-    teacher = get_object_or_404(TeacherProfile, id=teacher_id)
-    subject_assignments = teacher.subject_assignments.select_related('subject', 'academic_year', 'class_assigned')
-    bank_details = TeacherBankDetails.objects.filter(teacher=teacher).first()
+def manage_teacher_subjects(request):
+    # Get all subject assignments with related data
+    assignments_list = TeacherSubject.objects.select_related(
+        'teacher__user', 'subject', 'academic_year', 'class_assigned'
+    ).all().order_by('-id')
+    
+    # Get filter data
+    teacher_filter = request.GET.get('teacher', '')
+    subject_filter = request.GET.get('subject', '')
+    year_filter = request.GET.get('academic_year', '')
+    class_filter = request.GET.get('class_assigned', '')
+    
+    if teacher_filter:
+        assignments_list = assignments_list.filter(teacher_id=teacher_filter)
+    if subject_filter:
+        assignments_list = assignments_list.filter(subject_id=subject_filter)
+    if year_filter:
+        assignments_list = assignments_list.filter(academic_year_id=year_filter)
+    if class_filter:
+        assignments_list = assignments_list.filter(class_assigned_id=class_filter)
+    
+    # Pagination
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except ValueError:
+        per_page = 10
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(assignments_list, per_page)
+    
+    try:
+        assignments = paginator.page(page)
+    except PageNotAnInteger:
+        assignments = paginator.page(1)
+    except EmptyPage:
+        assignments = paginator.page(paginator.num_pages)
+    
+    if request.method == "POST":
+        action = request.POST.get('action')
+        
+        # ADD SUBJECT ASSIGNMENT
+        if action == 'add':
+            form = TeacherSubjectForm(request.POST)
+            if form.is_valid():
+                try:
+                    with transaction.atomic():
+                        assignment = form.save()
+                        teacher = assignment.teacher
+                        teacher_name = teacher.user.get_full_name()
+                        subject_name = assignment.subject.name
+                        
+                        messages.success(
+                            request, 
+                            f'Subject "{subject_name}" assigned to Teacher "{teacher_name}" successfully!'
+                        )
+                        return redirect('manage_teacher_subjects')
+                        
+                except Exception as e:
+                    messages.error(request, f'Error adding subject assignment: {str(e)}')
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{form.fields[field].label if field in form.fields else field}: {error}")
+        
+        # EDIT SUBJECT ASSIGNMENT
+        elif action == 'edit':
+            assignment_id = request.POST.get('edit_id')
+            try:
+                assignment = TeacherSubject.objects.get(id=assignment_id)
+                form = TeacherSubjectForm(request.POST, instance=assignment)
+                
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, 'Subject assignment updated successfully!')
+                    return redirect('manage_teacher_subjects')
+                else:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{form.fields[field].label if field in form.fields else field}: {error}")
+                            
+            except TeacherSubject.DoesNotExist:
+                messages.error(request, 'Subject assignment not found!')
+        
+        # DELETE SUBJECT ASSIGNMENT
+        elif action == 'delete':
+            assignment_id = request.POST.get('delete_id')
+            try:
+                assignment = TeacherSubject.objects.get(id=assignment_id)
+                teacher_name = assignment.teacher.user.get_full_name()
+                subject_name = assignment.subject.name
+                assignment.delete()
+                messages.success(
+                    request, 
+                    f'Subject "{subject_name}" removed from Teacher "{teacher_name}"!'
+                )
+            except TeacherSubject.DoesNotExist:
+                messages.error(request, 'Subject assignment not found!')
+            return redirect('manage_teacher_subjects')
+        
+        # BULK DELETE
+        elif action == 'bulk_delete':
+            assignment_ids = request.POST.getlist('assignment_ids')
+            if assignment_ids:
+                try:
+                    with transaction.atomic():
+                        assignments = TeacherSubject.objects.filter(id__in=assignment_ids)
+                        count = assignments.count()
+                        assignments.delete()
+                        messages.success(request, f'{count} subject assignment(s) deleted successfully!')
+                except Exception as e:
+                    messages.error(request, f'Error deleting assignments: {str(e)}')
+            else:
+                messages.warning(request, 'No assignments selected for deletion')
+            return redirect('manage_teacher_subjects')
+    
+    # GET request - initialize form
+    form = TeacherSubjectForm()
     
     context = {
-        'teacher': teacher,
-        'subject_assignments': subject_assignments,
-        'bank_details': bank_details,
+        'form': form,
+        'assignments': assignments,
+        'teachers': TeacherProfile.objects.all(),
+        'subjects': Subject.objects.all(),
+        'academic_years': AcademicYear.objects.all(),
+        'classes': SchoolClass.objects.all(),
+        'total_assignments': assignments_list.count(),
+        'teacher_filter': teacher_filter,
+        'subject_filter': subject_filter,
+        'year_filter': year_filter,
+        'class_filter': class_filter,
+        'per_page': per_page,
     }
-    return render(request, 'school_admin/view_teacher.html', context)
+    
+    return render(request, "school_admin/manage_teacher_subjects.html", context)
+
 
 @login_required
 def manage_bank_details(request, teacher_id):

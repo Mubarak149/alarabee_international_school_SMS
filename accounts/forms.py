@@ -1,6 +1,6 @@
 # accounts/forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User
 from django import forms
 
@@ -82,3 +82,50 @@ class TeacherUserForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class UserEditForm(forms.ModelForm):
+    password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(
+            attrs={'placeholder': 'Leave empty to keep old password'}
+        )
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            'first_name',
+            'last_name',
+            'email',
+            'gender',
+            'dob',
+            'address',
+
+        ]
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'dob': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+
+        # 🔁 Keep username in sync with email
+        if user.email:
+            user.username = user.email
+
+        # 🔐 Handle password change
+        password = self.cleaned_data.get('password')
+        if password:
+            print("password changed to:", password)
+            user.set_password(password)
+
+        if commit:
+            user.save()
+        return user
+
+        
