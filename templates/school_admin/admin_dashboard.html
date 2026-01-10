@@ -28,7 +28,7 @@
         <div class="breadcrumb">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_panel' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Home</a></li>
                     <li class="breadcrumb-item active">Dashboard</li>
                 </ol>
             </nav>
@@ -160,7 +160,7 @@
                 <div class="card-body">
                     <div class="row quick-actions-grid">
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{% url 'add_student' %}" class="quick-action-card" data-action="add-student">
+                            <a href="{% url 'manage_students' %}" class="quick-action-card" data-action="add-student">
                                 <div class="action-icon bg-danger">
                                     <i class="fas fa-user-plus"></i>
                                 </div>
@@ -184,7 +184,7 @@
                             </a>
                         </div>
                         <div class="col-md-3 col-6 mb-3">
-                            <a href="{% url 'reports' %}" class="quick-action-card" data-action="generate-report">
+                            <a href="{% url 'manage_academic_years' %}" class="quick-action-card" data-action="generate-report">
                                 <div class="action-icon bg-warning">
                                     <i class="fas fa-file-export"></i>
                                 </div>

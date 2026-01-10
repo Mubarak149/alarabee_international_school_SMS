@@ -56,6 +56,7 @@ class TeacherSubjectForm(forms.ModelForm):
         self.fields['teacher'].queryset = TeacherProfile.objects.select_related('user').filter(
             status='active'
         ).order_by('user__first_name', 'user__last_name')
+        
 class TeacherBankDetailsForm(forms.ModelForm):
 
     class Meta:
