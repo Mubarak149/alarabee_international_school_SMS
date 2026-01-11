@@ -125,6 +125,14 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_admins' %}active{% endif %}"
+                   href="{% url 'manage_admins' %}">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Manage Administrators</span>
+                    <span class="badge bg-warning">{{ total_admins }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'manage_classes' %}active{% endif %}"
                    href="{% url 'manage_classes' %}">
                     <i class="fas fa-school"></i>

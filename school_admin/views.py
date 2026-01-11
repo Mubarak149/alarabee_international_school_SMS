@@ -5,7 +5,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 
-from accounts.forms import StudentUserForm, TeacherUserForm, UserEditForm
+from accounts.forms import StudentUserForm, TeacherUserForm, UserEditForm, AdminUserForm
 from students.forms import StudentProfileForm, StudentClassForm
 
 from students.models import StudentProfile, StudentClass
@@ -17,8 +17,8 @@ from staff.models import User, TeacherProfile, TeacherSubject, TeacherBankDetail
 from academics.forms import SchoolClassForm, AcademicYearForm
 from academics.models import AcademicYear, SchoolClass, Subject
 
-
-
+from .models import AdminProfile
+from .forms import AdminProfileForm
 
 def admin_dashboard(request):
     # Get real data from database
@@ -31,6 +31,133 @@ def admin_dashboard(request):
     }
     
     return render(request, "school_admin/admin_dashboard.html", context)
+
+
+def manage_admins(request):
+    # Get all admins with related data
+    admins_list = AdminProfile.objects.select_related('user').all().order_by('-id')
+    med_count = admins_list.filter(qualification='MEd').count()
+    phd_count = admins_list.filter(qualification='PhD').count()
+    bed_count = admins_list.filter(qualification='BEd').count()
+    # Get filter data
+    qualification_filter = request.GET.get('qualification', '')
+    
+    # Pagination
+    per_page = request.GET.get('per_page', 10)
+    try:
+        per_page = int(per_page)
+        if per_page not in [10, 25, 50, 100]:
+            per_page = 10
+    except ValueError:
+        per_page = 10
+    
+    page = request.GET.get('page', 1)
+    paginator = Paginator(admins_list, per_page)
+    
+    try:
+        admins = paginator.page(page)
+    except PageNotAnInteger:
+        admins = paginator.page(1)
+    except EmptyPage:
+        admins = paginator.page(paginator.num_pages)
+
+    if request.method == "POST":
+        action = request.POST.get('action')
+
+        # ADD ADMIN
+        if action == 'add':
+            user_form = AdminUserForm(request.POST)
+            profile_form = AdminProfileForm(request.POST)
+            print("ADD ADMIN POST data", request.POST.dict())
+            if all([user_form.is_valid(), profile_form.is_valid()]):
+                try:
+                    with transaction.atomic():
+                        # Save User
+                        user = user_form.save(commit=False)
+                        user.first_name = normalize_name(user.first_name)
+                        user.last_name = normalize_name(user.last_name)
+                        user.role = 'admin'
+                        user.username = user.email
+                        user.save()
+                        
+                        # Save Profile
+                        profile = profile_form.save(commit=False)
+                        profile.user = user
+                        profile.save()
+
+                        messages.success(request, f'Admin {user.get_full_name()} added successfully! Login ID: {user.username}')
+                        return redirect('manage_admins')
+
+                except Exception as e:
+                    messages.error(request, f'Error adding admin: {str(e)}')
+
+            else:
+                for form in [user_form, profile_form]:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{form.fields[field].label if field in form.fields else field}: {error}")
+        
+        # EDIT ADMIN
+        elif action == 'edit':
+            admin_id = request.POST.get('edit_id')
+            try:
+                profile = AdminProfile.objects.get(id=admin_id)
+                user = profile.user
+
+                user_form = UserEditForm(request.POST, instance=user)
+                profile_form = AdminProfileForm(request.POST, instance=profile)
+
+                if user_form.is_valid() and profile_form.is_valid():
+                    with transaction.atomic():
+                        user = user_form.save()   # ✅ password safe
+                        profile_form.save()
+
+                    messages.success(
+                        request,
+                        f'Admin {user.get_full_name()} updated successfully!'
+                    )
+                    return redirect('manage_admins')
+
+            except AdminProfile.DoesNotExist:
+                messages.error(request, 'Admin not found!')
+            except Exception as e:
+                messages.error(request, f'Error updating admin: {str(e)}')
+
+
+        # DELETE ADMIN
+        elif action == 'delete':
+            admin_id = request.POST.get('delete_id')
+            try:
+                profile = AdminProfile.objects.get(id=admin_id)
+                admin_name = profile.user.get_full_name()
+                user = profile.user
+    
+                user.delete()  # Cascade delete will delete profile too
+                messages.success(request, f'Admin {admin_name} deleted successfully!')
+
+            except AdminProfile.DoesNotExist:
+                messages.error(request, 'Admin not found!')
+            return redirect('manage_admins')
+
+    
+    # GET request - initialize forms
+    user_form = AdminUserForm()
+    profile_form = AdminProfileForm()
+    
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+
+        'admins': admins,              # ✅ Page object for template
+        'total_admins': admins_list.count(),
+        'phd_count': phd_count,
+        'med_count': med_count,
+        'bed_count': bed_count,
+    }
+
+    return render(request, "school_admin/manage_admins.html", context)
+
 
 def admin_profile(request):
     return render(request, "school_admin/admin_profile.html")

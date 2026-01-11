@@ -83,6 +83,27 @@ class TeacherUserForm(forms.ModelForm):
             user.save()
         return user
 
+class AdminUserForm(forms.ModelForm):
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm Password'
+        }),
+        required=True
+    )
+    
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email', 'password', 'dob', 'address', 'gender']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+            'dob': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'gender': forms.Select(attrs={'class': 'form-control'}),
+        }
+
 class UserEditForm(forms.ModelForm):
     password = forms.CharField(
         required=False,
