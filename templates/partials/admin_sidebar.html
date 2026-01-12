@@ -63,6 +63,15 @@
                         <span>Manage Subjects</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_score_types' %}active{% endif %}"
+                       href="{% url 'manage_score_types' %}">
+                        <i class="fas fa-star"></i>
+                        <span>Manage Score Types</span>
+                    </a>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
                        href="#">
@@ -145,6 +154,13 @@
                    href="{% url 'manage_subjects' %}">
                     <i class="fas fa-book"></i>
                     <span>Manage Subjects</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_score_types' %}active{% endif %}"
+                   href="{% url 'manage_score_types' %}">
+                    <i class="fas fa-star"></i>
+                    <span>Manage Score Types</span>
                 </a>
             </li>
             <li class="nav-item">

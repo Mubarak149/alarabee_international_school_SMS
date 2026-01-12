@@ -15,7 +15,7 @@ from staff.forms import TeacherProfileForm, TeacherSubjectForm, TeacherBankDetai
 from staff.models import User, TeacherProfile, TeacherSubject, TeacherBankDetails
 
 from academics.forms import SchoolClassForm, AcademicYearForm
-from academics.models import AcademicYear, SchoolClass, Subject
+from academics.models import AcademicYear, SchoolClass, Subject, ScoreType
 
 from .models import AdminProfile
 from .forms import AdminProfileForm
@@ -738,6 +738,72 @@ def manage_subjects(request):
     }
     
     return render(request, "school_admin/manage_subjects.html", context)
+
+
+def manage_score_types(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            name = request.POST.get('name')
+            if name:
+                ScoreType.objects.create(name=name)
+                messages.success(request, f'Score Type "{name}" added successfully!')
+        
+        elif action == 'edit':
+            score_type_id = request.POST.get('edit_id')
+            name = request.POST.get('name')
+            if score_type_id and name:
+                score_type = get_object_or_404(ScoreType, id=score_type_id)
+                score_type.name = name
+                score_type.save()
+                messages.success(request, f'Score Type updated successfully!')
+        
+        elif action == 'delete':
+            score_type_id = request.POST.get('delete_id')
+            if score_type_id:
+                score_type = get_object_or_404(ScoreType, id=score_type_id)
+                score_type_name = score_type.name
+                score_type.delete()
+                messages.success(request, f'Score Type "{score_type_name}" deleted successfully!')
+        
+        elif action == 'bulk_delete':
+            score_type_ids = request.POST.getlist('score_type_ids')
+            if score_type_ids:
+                score_types = ScoreType.objects.filter(id__in=score_type_ids)
+                count = score_types.count()
+                score_types.delete()
+                messages.success(request, f'{count} score type(s) deleted successfully!')
+        
+        return redirect('manage_score_types')
+    
+    # GET request - show score types
+    search_query = request.GET.get('search', '')
+    per_page = int(request.GET.get('per_page', 10))
+    
+    score_types_list = ScoreType.objects.all().order_by('name')
+    
+    if search_query:
+        score_types_list = score_types_list.filter(name__icontains=search_query)
+    
+    paginator = Paginator(score_types_list, per_page)
+    page_number = request.GET.get('page')
+    
+    try:
+        score_types = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        score_types = paginator.get_page(1)
+    except EmptyPage:
+        score_types = paginator.get_page(paginator.num_pages)
+    
+    context = {
+        'score_types': score_types,
+        'total_score_types': ScoreType.objects.count(),
+        'per_page': per_page,
+        'search_query': search_query,
+    }
+    
+    return render(request, "school_admin/manage_score_types.html", context)
 
 # You'll need to create this form
 def manage_academic_years(request):
