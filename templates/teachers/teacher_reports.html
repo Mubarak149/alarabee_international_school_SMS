@@ -1,0 +1,292 @@
+{% extends "teachers/base_teacher.html" %}
+
+{% block title %}Reports - Teacher Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== REPORTS PAGE STYLES ===== */
+    
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .report-card {
+        background: white;
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        padding: 25px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-color: #4A90E2;
+    }
+    
+    .report-icon {
+        width: 70px;
+        height: 70px;
+        background: #e3f2fd;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 30px;
+        color: #1976d2;
+    }
+    
+    .report-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+    
+    .report-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+    
+    .report-actions {
+        margin-top: 15px;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 1px solid #e3e6f0;
+    }
+    
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .filter-group {
+        margin-bottom: 0;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    /* Coming Soon Cards */
+    .coming-soon {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .coming-soon::after {
+        content: 'Coming Soon';
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: #ffc107;
+        color: #212529;
+        padding: 5px 30px;
+        transform: rotate(45deg);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Reports</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'teacher_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Reports</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Section -->
+<div class="filter-section">
+    <h5 class="mb-3">
+        <i class="fas fa-filter me-2"></i> Report Filters
+    </h5>
+    <div class="filter-grid">
+        <div class="filter-group">
+            <label class="filter-label">Academic Year</label>
+            <select class="form-select">
+                <option selected>2025-2026</option>
+                <option>2024-2025</option>
+                <option>2023-2024</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Term</label>
+            <select class="form-select">
+                <option selected>All Terms</option>
+                <option>First Term</option>
+                <option>Second Term</option>
+                <option>Third Term</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Class</label>
+            <select class="form-select">
+                <option selected>All Classes</option>
+                {% for assignment in teacher.subject_assignments.all %}
+                    <option value="{{ assignment.class_assigned.id }}">
+                        {{ assignment.class_assigned.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label class="filter-label">Subject</label>
+            <select class="form-select">
+                <option selected>All Subjects</option>
+                {% for subject in teacher.subjects.all %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Reports Grid -->
+<div class="reports-grid">
+    <!-- Student Performance Report -->
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h5 class="report-title">Student Performance</h5>
+        <p class="report-description">
+            Detailed analysis of student performance with graphs and statistics.
+        </p>
+        <div class="report-actions">
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-eye me-1"></i> View Report
+            </a>
+        </div>
+    </div>
+    
+    <!-- Class Summary Report -->
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <h5 class="report-title">Class Summary</h5>
+        <p class="report-description">
+            Overall class performance summary with average scores and rankings.
+        </p>
+        <div class="report-actions">
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-download me-1"></i> Download PDF
+            </a>
+        </div>
+    </div>
+    
+    <!-- Subject Analysis Report -->
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-book"></i>
+        </div>
+        <h5 class="report-title">Subject Analysis</h5>
+        <p class="report-description">
+            In-depth analysis of subject performance across different classes.
+        </p>
+        <div class="report-actions">
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-chart-pie me-1"></i> View Analysis
+            </a>
+        </div>
+    </div>
+    
+    <!-- Attendance Report -->
+    <div class="report-card coming-soon">
+        <div class="report-icon">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <h5 class="report-title">Attendance Report</h5>
+        <p class="report-description">
+            Student attendance records and patterns analysis.
+        </p>
+        <div class="report-actions">
+            <button class="btn btn-secondary" disabled>
+                Coming Soon
+            </button>
+        </div>
+    </div>
+    
+    <!-- Report Cards -->
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-file-certificate"></i>
+        </div>
+        <h5 class="report-title">Generate Report Cards</h5>
+        <p class="report-description">
+            Create and print student report cards for selected term.
+        </p>
+        <div class="report-actions">
+            <a href="#" class="btn btn-success">
+                <i class="fas fa-print me-1"></i> Generate
+            </a>
+        </div>
+    </div>
+    
+    <!-- Export Data -->
+    <div class="report-card">
+        <div class="report-icon">
+            <i class="fas fa-file-export"></i>
+        </div>
+        <h5 class="report-title">Export Data</h5>
+        <p class="report-description">
+            Export scores and performance data in Excel or CSV format.
+        </p>
+        <div class="report-actions">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle" 
+                        data-bs-toggle="dropdown">
+                    <i class="fas fa-download me-1"></i> Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-excel me-2"></i> Excel (.xlsx)</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-csv me-2"></i> CSV</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i> PDF</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

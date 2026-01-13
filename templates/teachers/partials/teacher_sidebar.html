@@ -14,6 +14,11 @@
                     <span class="badge bg-success">
                         <i class="fas fa-user-check"></i> {{ teacher.get_status_display }}
                     </span>
+                    {% if assigned_classes_count %}
+                        <span class="badge bg-primary ms-1">
+                            <i class="fas fa-chalkboard"></i> {{ assigned_classes_count }} Classes
+                        </span>
+                    {% endif %}
                 </div>
             </div>
             <button class="mobile-sidebar-close" id="mobileSidebarClose">
@@ -28,7 +33,31 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}"
                    href="{% url 'teacher_dashboard' %}">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span>Score Management</span>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_classes' %}active{% endif %}"
+                   href="{% url 'teacher_classes' %}">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>My Classes</span>
+                    {% if assigned_classes_count %}
+                        <span class="badge bg-primary float-end">{{ assigned_classes_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}"
+                   href="{% url 'teacher_profile' %}">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_reports' %}active{% endif %}"
+                   href="{% url 'teacher_reports' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -37,8 +66,35 @@
                     <span>Academic Calendar</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-file-export"></i>
+                    <span>Export Data</span>
+                </a>
+            </li>
+            <div class="sidebar-divider"></div>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & Support</span>
+                </a>
+            </li>
         </ul>
     </nav>
+    
+    <div class="sidebar-footer">
+        <div class="d-grid">
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+        </div>
+    </div>
 </div>
 
 <!-- Desktop Sidebar -->
@@ -56,6 +112,11 @@
                     <span class="badge bg-success">
                         <i class="fas fa-user-check"></i> {{ teacher.get_status_display }}
                     </span>
+                    {% if assigned_classes_count %}
+                        <span class="badge bg-primary ms-1" title="{{ assigned_classes_count }} assigned classes">
+                            <i class="fas fa-chalkboard"></i> {{ assigned_classes_count }}
+                        </span>
+                    {% endif %}
                 </div>
             </div>
             <button class="sidebar-collapse-btn" id="sidebarCollapseBtn">
@@ -70,7 +131,31 @@
                 <a class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}"
                    href="{% url 'teacher_dashboard' %}">
                     <i class="fas fa-tachometer-alt"></i>
-                    <span class="sidebar-text">Score Management</span>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_classes' %}active{% endif %}"
+                   href="{% url 'teacher_classes' %}">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span class="sidebar-text">My Classes</span>
+                    {% if assigned_classes_count %}
+                        <span class="badge bg-primary float-end">{{ assigned_classes_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_profile' %}active{% endif %}"
+                   href="{% url 'teacher_profile' %}">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-text">My Profile</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_reports' %}active{% endif %}"
+                   href="{% url 'teacher_reports' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="sidebar-text">Reports</span>
                 </a>
             </li>
             <li class="nav-item">
@@ -79,6 +164,46 @@
                     <span class="sidebar-text">Academic Calendar</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-file-export"></i>
+                    <span class="sidebar-text">Export Data</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-divider"></div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-question-circle"></i>
+                    <span class="sidebar-text">Help & Support</span>
+                </a>
+            </li>
         </ul>
     </nav>
+    
+    <div class="sidebar-footer">
+        <div class="user-status">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="availabilityToggle" checked>
+                <label class="form-check-label" for="availabilityToggle">
+                    <span class="status-indicator available"></span>
+                    Available
+                </label>
+            </div>
+        </div>
+        <div class="d-grid gap-2">
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+        </div>
+    </div>
 </div>

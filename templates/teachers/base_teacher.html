@@ -18,10 +18,19 @@
     
     <style>
         /* ===== BASE STYLES ===== */
+        :root {
+            --primary-color: #4A90E2;
+            --primary-dark: #357ABD;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 70px;
+            --navbar-height: 70px;
+        }
+        
         body {
             font-family: 'Poppins', sans-serif;
             overflow-x: hidden;
-            padding-top: 70px;
+            padding-top: var(--navbar-height);
+            background-color: #f8f9fa;
         }
         
         /* Navbar Brand */
@@ -119,18 +128,19 @@
         /* Desktop Sidebar */
         .desktop-sidebar {
             position: fixed;
-            top: 70px;
+            top: var(--navbar-height);
             left: 0;
-            width: 250px;
-            height: calc(100vh - 70px);
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--navbar-height));
             overflow-y: auto;
             z-index: 1000;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            background: linear-gradient(180deg, #343a40 0%, #212529 100%);
         }
         
         .desktop-sidebar.collapsed {
-            width: 70px;
+            width: var(--sidebar-collapsed-width);
         }
         
         .desktop-sidebar.collapsed .sidebar-text {
@@ -138,7 +148,8 @@
         }
         
         .desktop-sidebar.collapsed .teacher-details,
-        .desktop-sidebar.collapsed .teacher-stats {
+        .desktop-sidebar.collapsed .teacher-stats,
+        .desktop-sidebar.collapsed .badge {
             display: none;
         }
         
@@ -151,10 +162,27 @@
             height: 40px;
         }
         
+        .desktop-sidebar.collapsed .sidebar-footer {
+            padding: 10px;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-footer .btn {
+            padding: 5px;
+            justify-content: center;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-footer .btn i {
+            margin: 0;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-footer .user-status {
+            display: none;
+        }
+        
         /* Sidebar Header */
         .sidebar-header {
             padding: 20px;
-            border-bottom: 1px solid #343a40;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .teacher-info {
@@ -166,19 +194,29 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            border: 3px solid #4A90E2;
+            border: 3px solid var(--primary-color);
             margin-bottom: 15px;
+            object-fit: cover;
         }
         
         .teacher-details h6 {
             color: #fff;
             margin-bottom: 5px;
             font-size: 0.9rem;
+            font-weight: 500;
         }
         
         .teacher-details p {
             font-size: 0.8rem;
             margin-bottom: 10px;
+            color: #adb5bd;
+        }
+        
+        .teacher-stats {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
         .sidebar-collapse-btn {
@@ -187,7 +225,7 @@
             right: -15px;
             width: 30px;
             height: 30px;
-            background: #4A90E2;
+            background: var(--primary-color);
             border: none;
             border-radius: 50%;
             color: white;
@@ -196,15 +234,18 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
+            z-index: 1001;
         }
         
         .sidebar-collapse-btn:hover {
-            background: #357ABD;
+            background: var(--primary-dark);
+            transform: scale(1.1);
         }
         
         /* Sidebar Navigation */
         .sidebar-nav {
             padding: 15px 0;
+            flex: 1;
         }
         
         .sidebar-nav .nav-link {
@@ -215,18 +256,19 @@
             display: flex;
             align-items: center;
             text-decoration: none;
+            position: relative;
         }
         
-        .sidebar-nav .nav-link:hover {
+        .sidebar-nav .nav-link:hover:not(.active) {
             color: #fff;
-            background-color: rgba(255,255,255,0.1);
-            border-left-color: #4A90E2;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: rgba(255, 255, 255, 0.1);
         }
         
         .sidebar-nav .nav-link.active {
             color: #fff;
-            background-color: #4A90E2;
-            border-left-color: #fff;
+            background: linear-gradient(90deg, rgba(74, 144, 226, 0.2) 0%, rgba(74, 144, 226, 0.1) 100%);
+            border-left-color: var(--primary-color);
         }
         
         .sidebar-nav .nav-link i {
@@ -234,6 +276,59 @@
             margin-right: 10px;
             text-align: center;
             font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-nav .badge {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 15px 20px;
+        }
+        
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: auto;
+        }
+        
+        .user-status {
+            margin-bottom: 15px;
+        }
+        
+        .user-status .form-check-label {
+            color: #adb5bd;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        
+        .status-indicator.available {
+            background-color: #28a745;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.3);
+        }
+        
+        .user-status .form-check-input:checked {
+            background-color: #28a745;
+            border-color: #28a745;
         }
         
         /* Mobile Sidebar */
@@ -243,10 +338,12 @@
             left: -280px;
             width: 280px;
             height: 100vh;
-            background: #343a40;
+            background: linear-gradient(180deg, #343a40 0%, #212529 100%);
             z-index: 1050;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
         .mobile-sidebar.show {
@@ -272,6 +369,7 @@
             padding: 20px;
             background: #212529;
             position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .mobile-sidebar-close {
@@ -283,28 +381,135 @@
             color: #fff;
             font-size: 1.5rem;
             cursor: pointer;
+            z-index: 1051;
+        }
+        
+        .mobile-sidebar .sidebar-footer {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         /* Main Content */
         .main-content {
-            margin-top: 70px;
+            margin-top: var(--navbar-height);
             padding: 20px;
-            min-height: calc(100vh - 70px);
-            transition: all 0.3s ease;
+            min-height: calc(100vh - var(--navbar-height));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         /* Adjust main content when sidebar is open */
         .desktop-sidebar-open .main-content {
-            margin-left: 250px;
+            margin-left: var(--sidebar-width);
         }
         
         .desktop-sidebar.collapsed + .main-content {
-            margin-left: 70px;
+            margin-left: var(--sidebar-collapsed-width);
         }
         
         /* Toast Container */
         .toast-container {
             z-index: 1090;
+        }
+        
+        /* Notification dropdown */
+        .dropdown-notifications {
+            width: 320px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-content p {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .notification-content small {
+            font-size: 0.8rem;
+        }
+        
+        .badge-notification {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* User dropdown improvements */
+        .dropdown-header h6 {
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        .dropdown-header small {
+            font-size: 0.85rem;
+        }
+        
+        /* Scrollbar Styling */
+        .desktop-sidebar::-webkit-scrollbar,
+        .mobile-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-track,
+        .mobile-sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-thumb,
+        .mobile-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-thumb:hover,
+        .mobile-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Dark Theme Support */
+        [data-theme="dark"] {
+            --body-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+        }
+        
+        [data-theme="dark"] body {
+            background-color: var(--body-bg);
+            color: var(--text-color);
         }
         
         /* Responsive */
@@ -326,6 +531,45 @@
             .mobile-sidebar,
             .mobile-sidebar-overlay {
                 display: none !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-nav .nav-item .nav-link {
+                padding: 0.5rem;
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .user-avatar img {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .navbar,
+            .desktop-sidebar,
+            .mobile-sidebar,
+            .mobile-sidebar-overlay,
+            .toast-container {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            
+            body {
+                padding-top: 0 !important;
             }
         }
     </style>
@@ -427,6 +671,7 @@
                     const isDark = this.checked;
                     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
                     localStorage.setItem('teacher-theme', isDark ? 'dark' : 'light');
+                    updateThemeInForms(isDark);
                 });
             });
             
@@ -436,24 +681,112 @@
             themeToggles.forEach(toggle => {
                 toggle.checked = savedTheme === 'dark';
             });
+            updateThemeInForms(savedTheme === 'dark');
             
             // Initialize Bootstrap tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+            
+            // Initialize availability toggle
+            const availabilityToggle = document.getElementById('availabilityToggle');
+            if (availabilityToggle) {
+                const savedAvailability = localStorage.getItem('teacher-availability');
+                if (savedAvailability !== null) {
+                    availabilityToggle.checked = savedAvailability === 'true';
+                    updateAvailabilityStatus(availabilityToggle.checked);
+                }
+                
+                availabilityToggle.addEventListener('change', function() {
+                    localStorage.setItem('teacher-availability', this.checked);
+                    updateAvailabilityStatus(this.checked);
+                });
+            }
+            
+            // Auto-hide success messages after 5 seconds
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert-success');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+            
+            // Show any pending toasts from messages
+            initializeToasts();
         });
         
         function toggleDesktopSidebar() {
             const desktopSidebar = document.getElementById('desktopSidebar');
             desktopSidebar.classList.toggle('collapsed');
             document.body.classList.toggle('desktop-sidebar-open');
+            
+            // Save sidebar state
+            const isCollapsed = desktopSidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebar-collapsed', isCollapsed);
+        }
+        
+        // Load saved sidebar state
+        const savedSidebarState = localStorage.getItem('sidebar-collapsed');
+        if (savedSidebarState === 'true') {
+            document.addEventListener('DOMContentLoaded', function() {
+                const desktopSidebar = document.getElementById('desktopSidebar');
+                if (desktopSidebar) {
+                    desktopSidebar.classList.add('collapsed');
+                    document.body.classList.add('desktop-sidebar-open');
+                }
+            });
+        }
+        
+        function updateThemeInForms(isDark) {
+            // Update form controls based on theme
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                const inputs = form.querySelectorAll('input, select, textarea');
+                inputs.forEach(input => {
+                    if (isDark) {
+                        input.classList.add('bg-dark', 'text-light');
+                        input.classList.remove('bg-light', 'text-dark');
+                    } else {
+                        input.classList.add('bg-light', 'text-dark');
+                        input.classList.remove('bg-dark', 'text-light');
+                    }
+                });
+            });
+        }
+        
+        function updateAvailabilityStatus(isAvailable) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            if (statusIndicator) {
+                statusIndicator.className = 'status-indicator';
+                statusIndicator.classList.add(isAvailable ? 'available' : 'away');
+                
+                // Show toast notification
+                showToast(
+                    `You are now ${isAvailable ? 'available' : 'away'}`,
+                    isAvailable ? 'success' : 'warning'
+                );
+            }
+        }
+        
+        function initializeToasts() {
+            const toastElList = document.querySelectorAll('.toast');
+            const toastList = [...toastElList].map(toastEl => new bootstrap.Toast(toastEl, { delay: 5000 }));
+            toastList.forEach(toast => toast.show());
         }
         
         // Toast notification function (available globally)
-        function showToast(message, type = 'info') {
+        window.showToast = function(message, type = 'info') {
             const toastContainer = document.getElementById('toastContainer');
-            if (!toastContainer) return;
+            if (!toastContainer) {
+                // Create toast container if it doesn't exist
+                const container = document.createElement('div');
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.id = 'toastContainer';
+                container.style.zIndex = '1090';
+                document.body.appendChild(container);
+            }
             
             const toastId = 'toast-' + Date.now();
             
@@ -487,6 +820,86 @@
             // Remove from DOM after hiding
             toastElement.addEventListener('hidden.bs.toast', function() {
                 this.remove();
+            });
+            
+            return toast;
+        }
+        
+        // Form submission helper
+        window.handleFormSubmit = async function(form, options = {}) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+            
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> ' + (options.loadingText || 'Processing...');
+                submitBtn.disabled = true;
+            }
+            
+            try {
+                const response = await fetch(form.action || window.location.href, {
+                    method: form.method,
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(options.successMessage || 'Operation completed successfully!', 'success');
+                        if (options.onSuccess) options.onSuccess(data);
+                    } else {
+                        showToast(data.message || 'Something went wrong!', 'error');
+                        if (options.onError) options.onError(data);
+                    }
+                }
+            } catch (error) {
+                showToast('Network error. Please try again.', 'error');
+                console.error('Form submission error:', error);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+        }
+        
+        // Confirm dialog helper
+        window.showConfirmDialog = function(message, onConfirm, onCancel) {
+            const modalHtml = `
+                <div class="modal fade" id="confirmModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Action</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>${message}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+            
+            document.getElementById('confirmBtn').addEventListener('click', function() {
+                modal.hide();
+                if (onConfirm) onConfirm();
+            });
+            
+            document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                this.remove();
+                if (onCancel) onCancel();
             });
         }
     </script>
