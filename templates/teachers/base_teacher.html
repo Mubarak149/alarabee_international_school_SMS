@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Teacher Dashboard - School SMS{% endblock %}</title>
+    
+    {% load static %}
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== BASE STYLES ===== */
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            padding-top: 70px;
+        }
+        
+        /* Navbar Brand */
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .brand-text {
+            color: white;
+        }
+        
+        .brand-highlight {
+            color: #ffd700;
+            font-weight: 700;
+        }
+        
+        .user-role {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle-container {
+            display: inline-block;
+        }
+        
+        .theme-toggle-checkbox {
+            display: none;
+        }
+        
+        .theme-toggle-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #343a40;
+            border-radius: 50px;
+            padding: 5px;
+        }
+        
+        .theme-icon-sun,
+        .theme-icon-moon {
+            position: absolute;
+            color: #ffd43b;
+            font-size: 14px;
+            z-index: 1;
+        }
+        
+        .theme-icon-sun {
+            left: 8px;
+        }
+        
+        .theme-icon-moon {
+            right: 8px;
+            color: #f8f9fa;
+        }
+        
+        .theme-toggle-ball {
+            position: absolute;
+            left: 5px;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-toggle-ball {
+            transform: translateX(30px);
+        }
+        
+        /* User Avatar */
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        }
+        
+        .user-avatar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .user-name {
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* Desktop Sidebar */
+        .desktop-sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 250px;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .desktop-sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .desktop-sidebar.collapsed .teacher-details,
+        .desktop-sidebar.collapsed .teacher-stats {
+            display: none;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        
+        .desktop-sidebar.collapsed .teacher-avatar img {
+            width: 40px;
+            height: 40px;
+        }
+        
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #343a40;
+        }
+        
+        .teacher-info {
+            position: relative;
+            text-align: center;
+        }
+        
+        .teacher-avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #4A90E2;
+            margin-bottom: 15px;
+        }
+        
+        .teacher-details h6 {
+            color: #fff;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .teacher-details p {
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .sidebar-collapse-btn {
+            position: absolute;
+            top: 0;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: #4A90E2;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sidebar-collapse-btn:hover {
+            background: #357ABD;
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            padding: 15px 0;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: #adb5bd;
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .sidebar-nav .nav-link:hover {
+            color: #fff;
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: #4A90E2;
+        }
+        
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background-color: #4A90E2;
+            border-left-color: #fff;
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        /* Mobile Sidebar */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: #343a40;
+            z-index: 1050;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .mobile-sidebar.show {
+            left: 0;
+        }
+        
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1049;
+            display: none;
+        }
+        
+        .mobile-sidebar-overlay.show {
+            display: block;
+        }
+        
+        .mobile-sidebar-header {
+            padding: 20px;
+            background: #212529;
+            position: relative;
+        }
+        
+        .mobile-sidebar-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-top: 70px;
+            padding: 20px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s ease;
+        }
+        
+        /* Adjust main content when sidebar is open */
+        .desktop-sidebar-open .main-content {
+            margin-left: 250px;
+        }
+        
+        .desktop-sidebar.collapsed + .main-content {
+            margin-left: 70px;
+        }
+        
+        /* Toast Container */
+        .toast-container {
+            z-index: 1090;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            
+            .desktop-sidebar-open .main-content {
+                margin-left: 0;
+            }
+            
+            .desktop-sidebar.collapsed + .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .mobile-sidebar,
+            .mobile-sidebar-overlay {
+                display: none !important;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Include Navbar -->
+    {% include "teachers/partials/teacher_navbar.html" %}
+    
+    <!-- Include Sidebar -->
+    {% include "teachers/partials/teacher_sidebar.html" %}
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 1090;">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast align-items-center text-bg-{{ message.tags }} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-{{ message.tags|yesno:'check-circle,exclamation-circle' }} me-2"></i>
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ===== SIDEBAR FUNCTIONALITY =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile sidebar toggle
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+            const mobileSidebarClose = document.getElementById('mobileSidebarClose');
+            
+            if (mobileSidebarToggle && mobileSidebar) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    mobileSidebar.classList.add('show');
+                    mobileSidebarOverlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                if (mobileSidebarClose) {
+                    mobileSidebarClose.addEventListener('click', function() {
+                        mobileSidebar.classList.remove('show');
+                        mobileSidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    });
+                }
+                
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.addEventListener('click', function() {
+                        mobileSidebar.classList.remove('show');
+                        mobileSidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    });
+                }
+            }
+            
+            // Desktop sidebar toggle
+            const desktopSidebarToggle = document.getElementById('desktopSidebarToggle');
+            const desktopSidebar = document.getElementById('desktopSidebar');
+            const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            
+            if (desktopSidebarToggle && desktopSidebar) {
+                desktopSidebarToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+            
+            if (sidebarCollapseBtn && desktopSidebar) {
+                sidebarCollapseBtn.addEventListener('click', toggleDesktopSidebar);
+            }
+            
+            // Close mobile sidebar when clicking on links
+            document.querySelectorAll('.mobile-sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('show');
+                    mobileSidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            });
+            
+            // Theme toggle functionality
+            const themeToggles = document.querySelectorAll('.theme-toggle-checkbox');
+            themeToggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const isDark = this.checked;
+                    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                    localStorage.setItem('teacher-theme', isDark ? 'dark' : 'light');
+                });
+            });
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('teacher-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeToggles.forEach(toggle => {
+                toggle.checked = savedTheme === 'dark';
+            });
+            
+            // Initialize Bootstrap tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+        
+        function toggleDesktopSidebar() {
+            const desktopSidebar = document.getElementById('desktopSidebar');
+            desktopSidebar.classList.toggle('collapsed');
+            document.body.classList.toggle('desktop-sidebar-open');
+        }
+        
+        // Toast notification function (available globally)
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) return;
+            
+            const toastId = 'toast-' + Date.now();
+            
+            const iconMap = {
+                'success': 'check-circle',
+                'error': 'exclamation-circle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle'
+            };
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-${iconMap[type] || 'info-circle'} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                                data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Show the toast using Bootstrap
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+            toast.show();
+            
+            // Remove from DOM after hiding
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

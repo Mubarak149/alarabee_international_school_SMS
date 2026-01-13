@@ -1,0 +1,84 @@
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+<div class="mobile-sidebar" id="mobileSidebar">
+    <div class="mobile-sidebar-header">
+        <div class="teacher-info">
+            <div class="teacher-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ teacher.user.get_full_name|urlencode }}&background=4A90E2&color=fff&size=80" 
+                     alt="{{ teacher.user.get_full_name }}">
+            </div>
+            <div class="teacher-details">
+                <h6>{{ teacher.user.get_full_name }}</h6>
+                <p class="text-muted">{{ teacher.get_qualification_display }}</p>
+                <div class="teacher-stats">
+                    <span class="badge bg-success">
+                        <i class="fas fa-user-check"></i> {{ teacher.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <button class="mobile-sidebar-close" id="mobileSidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}"
+                   href="{% url 'teacher_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Score Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Academic Calendar</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Desktop Sidebar -->
+<div class="desktop-sidebar bg-dark" id="desktopSidebar">
+    <div class="sidebar-header">
+        <div class="teacher-info">
+            <div class="teacher-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ teacher.user.get_full_name|urlencode }}&background=4A90E2&color=fff&size=80" 
+                     alt="{{ teacher.user.get_full_name }}">
+            </div>
+            <div class="teacher-details">
+                <h6>{{ teacher.user.get_full_name }}</h6>
+                <p class="text-muted">{{ teacher.get_qualification_display }}</p>
+                <div class="teacher-stats">
+                    <span class="badge bg-success">
+                        <i class="fas fa-user-check"></i> {{ teacher.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <button class="sidebar-collapse-btn" id="sidebarCollapseBtn">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}"
+                   href="{% url 'teacher_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="sidebar-text">Score Management</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span class="sidebar-text">Academic Calendar</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

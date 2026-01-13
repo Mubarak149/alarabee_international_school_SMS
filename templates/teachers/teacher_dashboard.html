@@ -1,1363 +1,686 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard - School SMS</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary-color: #4e73df;
-            --primary-dark: #2e59d9;
-            --secondary-color: #858796;
-            --success-color: #1cc88a;
-            --info-color: #36b9cc;
-            --warning-color: #f6c23e;
-            --danger-color: #e74a3b;
-            --light-color: #f8f9fc;
-            --dark-color: #5a5c69;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fc;
-            color: #333;
-            line-height: 1.6;
-            overflow-x: hidden;
-            padding-top: 70px;
-        }
-        
-        /* Navbar Styles */
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            z-index: 1030;
-        }
-        
-        .brand-text {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        
-        .brand-highlight {
-            color: #ffc107;
-        }
-        
-        .user-avatar {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-avatar img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        /* Main Content */
-        .main-content {
-            padding: 20px;
-            min-height: calc(100vh - 70px);
-            background-color: #f8f9fc;
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-weight: 700;
-            color: #2e3a59;
-        }
-        
-        /* Stat Cards */
-        .stat-card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: transform 0.3s;
-            height: 100%;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-card .card-body {
-            padding: 1.5rem;
-        }
-        
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .stat-icon-primary {
-            background-color: rgba(78, 115, 223, 0.1);
-            color: var(--primary-color);
-        }
-        
-        .stat-icon-success {
-            background-color: rgba(28, 200, 138, 0.1);
-            color: var(--success-color);
-        }
-        
-        .stat-icon-warning {
-            background-color: rgba(246, 194, 62, 0.1);
-            color: var(--warning-color);
-        }
-        
-        .stat-icon-info {
-            background-color: rgba(54, 185, 204, 0.1);
-            color: var(--info-color);
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6c757d;
-            font-weight: 500;
-        }
-        
-        .stat-change {
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-        }
-        
-        .stat-change.positive {
-            color: var(--success-color);
-        }
-        
-        .stat-change.negative {
-            color: var(--danger-color);
-        }
-        
-        /* Quick Actions */
-        .quick-action-card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            height: 100%;
-            transition: transform 0.3s;
-        }
-        
-        .quick-action-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .quick-action-card .card-body {
-            padding: 1.5rem;
-        }
-        
-        .action-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-        
-        .action-icon-primary {
-            background-color: rgba(78, 115, 223, 0.1);
-            color: var(--primary-color);
-        }
-        
-        .action-icon-success {
-            background-color: rgba(28, 200, 138, 0.1);
-            color: var(--success-color);
-        }
-        
-        .action-icon-warning {
-            background-color: rgba(246, 194, 62, 0.1);
-            color: var(--warning-color);
-        }
-        
-        .action-icon-info {
-            background-color: rgba(54, 185, 204, 0.1);
-            color: var(--info-color);
-        }
-        
-        .action-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-        
-        .action-description {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-bottom: 1rem;
-        }
-        
-        .action-btn {
+{% extends "teachers/base_teacher.html" %}
+
+{% block title %}Teacher Dashboard - Score Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== DASHBOARD SPECIFIC STYLES ===== */
+    
+    /* Page Header */
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .page-header h1 {
+        color: #343a40;
+        font-weight: 600;
+    }
+    
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+    
+    /* Card Styling */
+    .card {
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #e3e6f0;
+        padding: 0.75rem 1.25rem;
+    }
+    
+    .card-header.bg-primary {
+        background-color: #4A90E2 !important;
+    }
+    
+    .card-header.bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    /* Score Input Styling */
+    .score-input {
+        width: 80px;
+        text-align: center;
+        font-weight: 500;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .score-input:focus {
+        border-color: #4A90E2;
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+    
+    .total-score {
+        font-size: 1.1rem;
+        padding: 5px 10px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        font-weight: 600;
+        display: inline-block;
+        min-width: 50px;
+    }
+    
+    /* Table Styling */
+    .table th {
+        font-weight: 600;
+        background-color: #f8f9fa;
+        vertical-align: middle;
+    }
+    
+    .table td {
+        vertical-align: middle;
+    }
+    
+    /* List Group for Class Selection */
+    .list-group-item.bg-light {
+        background-color: #f8f9fa !important;
+        font-weight: 600;
+        border-left: 3px solid #4A90E2;
+    }
+    
+    .list-group-item-action:hover {
+        background-color: #e9ecef;
+        border-left: 3px solid #4A90E2;
+    }
+    
+    .list-group-item.active {
+        background-color: #4A90E2 !important;
+        border-color: #4A90E2 !important;
+        border-left: 3px solid #fff !important;
+    }
+    
+    /* Theme Toggle in Dashboard */
+    .theme-quick-toggle {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .theme-btn-light,
+    .theme-btn-dark {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .theme-btn-light.active {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+    
+    .theme-btn-dark.active {
+        background-color: #212529;
+        color: #f8f9fa;
+    }
+    
+    /* Empty State */
+    .empty-state-icon {
+        opacity: 0.5;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Alert Styling */
+    .alert-info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+        color: #0c5460;
+    }
+    
+    .alert-warning {
+        background-color: #fff3cd;
+        border-color: #ffeaa7;
+        color: #856404;
+    }
+    
+    /* Stats Cards */
+    .border-left-primary {
+        border-left: 0.25rem solid #4A90E2 !important;
+    }
+    
+    .border-left-success {
+        border-left: 0.25rem solid #28a745 !important;
+    }
+    
+    .border-left-warning {
+        border-left: 0.25rem solid #ffc107 !important;
+    }
+    
+    .text-xs {
+        font-size: 0.7rem;
+    }
+    
+    /* Button Styling */
+    .btn-light {
+        background-color: #fff;
+        border-color: #dee2e6;
+    }
+    
+    .btn-light:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    
+    /* Form Select */
+    .form-select-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.2rem;
+    }
+    
+    /* Badge Styling */
+    .badge.bg-info {
+        background-color: #17a2b8 !important;
+        font-size: 0.75em;
+        padding: 0.2em 0.6em;
+    }
+    
+    /* Font Awesome Icons in Tables */
+    .table i {
+        margin-right: 5px;
+    }
+    
+    /* Student Name Column */
+    .student-name {
+        font-weight: 500;
+        color: #343a40;
+    }
+    
+    /* Summary Alert */
+    .alert-info .row {
+        margin: 0;
+    }
+    
+    /* Quick Stats Row */
+    .row.mt-4 .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .score-input {
             width: 100%;
-            padding: 0.5rem;
+            max-width: 70px;
+        }
+        
+        .table-responsive {
             font-size: 0.9rem;
-            font-weight: 500;
         }
         
-        /* Charts */
-        .chart-card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            height: 100%;
+        .card-body {
+            padding: 1rem;
         }
         
-        .chart-card .card-body {
-            padding: 1.5rem;
+        .page-header .d-flex {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 10px;
         }
         
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .page-header .d-flex > div {
+            width: 100%;
+        }
+        
+        .teacher-info-card .d-flex {
+            flex-direction: column;
+            text-align: center;
+            gap: 15px;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .col-lg-4, .col-lg-8 {
             margin-bottom: 1.5rem;
         }
-        
-        .chart-header h5 {
-            margin: 0;
-            font-weight: 600;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 250px;
-            width: 100%;
-        }
-        
-        /* Recent Activities */
-        .activity-card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            height: 100%;
-        }
-        
-        .activity-card .card-body {
-            padding: 1.5rem;
-        }
-        
-        .activity-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        
-        .activity-item {
-            padding: 1rem 0;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            align-items: center;
-        }
-        
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-        
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-            flex-shrink: 0;
-        }
-        
-        .activity-icon-primary {
-            background-color: rgba(78, 115, 223, 0.1);
-            color: var(--primary-color);
-        }
-        
-        .activity-icon-success {
-            background-color: rgba(28, 200, 138, 0.1);
-            color: var(--success-color);
-        }
-        
-        .activity-icon-warning {
-            background-color: rgba(246, 194, 62, 0.1);
-            color: var(--warning-color);
-        }
-        
-        .activity-icon-danger {
-            background-color: rgba(231, 74, 59, 0.1);
-            color: var(--danger-color);
-        }
-        
-        .activity-content {
-            flex: 1;
-        }
-        
-        .activity-title {
-            font-weight: 500;
-            font-size: 0.95rem;
-            margin-bottom: 0.25rem;
-        }
-        
-        .activity-time {
-            font-size: 0.8rem;
-            color: #6c757d;
-        }
-        
-        /* Class Performance */
-        .class-performance-card {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            height: 100%;
-        }
-        
-        .class-performance-card .card-body {
-            padding: 1.5rem;
-        }
-        
-        .class-item {
-            padding: 1rem 0;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .class-item:last-child {
-            border-bottom: none;
-        }
-        
-        .class-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .class-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-            background-color: rgba(246, 194, 62, 0.1);
-            color: var(--warning-color);
-        }
-        
-        .class-name {
-            font-weight: 500;
-        }
-        
-        .class-subject {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        
-        .class-stats {
-            text-align: right;
-        }
-        
-        .class-average {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        
-        .class-students {
-            font-size: 0.85rem;
-            color: #6c757d;
-        }
-        
-        /* Progress Bars */
-        .progress {
-            height: 8px;
-            border-radius: 4px;
-            background-color: #e9ecef;
-            margin-bottom: 0.5rem;
-        }
-        
-        .progress-bar-primary {
-            background-color: var(--primary-color);
-        }
-        
-        .progress-bar-success {
-            background-color: var(--success-color);
-        }
-        
-        .progress-bar-warning {
-            background-color: var(--warning-color);
-        }
-        
-        .progress-bar-info {
-            background-color: var(--info-color);
-        }
-        
-        /* Toast Notification */
-        .custom-toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            max-width: 400px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-            animation: slideInRight 0.3s ease-out;
-            display: none;
-        }
-        
-        @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        @keyframes slideOutRight {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 60px;
-            }
-            
-            .main-content {
-                padding: 15px;
-            }
-            
-            .page-header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .stat-number {
-                font-size: 1.5rem;
-            }
-            
-            .custom-toast {
-                min-width: 250px;
-                max-width: 90%;
-                left: 50%;
-                transform: translateX(-50%);
-                right: auto;
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .main-content {
-                padding: 10px;
-            }
-            
-            .card-body {
-                padding: 1rem;
-            }
-            
-            .stat-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 1.25rem;
-            }
-            
-            .action-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-        }
-        
-        /* Loading Overlay */
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            display: none;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid var(--warning-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Welcome Banner */
-        .welcome-banner {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            border-radius: 12px;
-            padding: 2rem;
-            color: white;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .welcome-banner h2 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .welcome-banner p {
-            opacity: 0.9;
-            margin-bottom: 0;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
-                <span class="user-role badge bg-light text-primary ms-2">Teacher</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item active">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-tachometer-alt me-1"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="my_classes.html">
-                            <i class="fas fa-users me-1"></i> My Classes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="upload_results.html">
-                            <i class="fas fa-upload me-1"></i> Upload Results
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <div class="user-avatar">
-                                <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=FFC107&color=000" alt="Teacher">
-                                <span class="user-name">Jane Smith</span>
-                            </div>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="teacher_profile.html">
-                                <i class="fas fa-user me-2"></i> My Profile
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-cog me-2"></i> Settings
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="index.html">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    }
 
-    <main class="main-content">
-        <!-- Welcome Banner -->
-        <div class="welcome-banner">
-            <h2>Welcome back, Jane Smith!</h2>
-            <p>Here's an overview of your teaching activities and class performance</p>
-        </div>
+    /* ===== FORCE TABLE BODY VISIBILITY ===== */
 
-        <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="stat-icon stat-icon-primary">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-number">142</div>
-                        <div class="stat-label">Total Students</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up me-1"></i> 12% from last term
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="stat-icon stat-icon-success">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stat-number">78.5%</div>
-                        <div class="stat-label">Average Performance</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up me-1"></i> 5.2% improvement
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="stat-icon stat-icon-warning">
-                            <i class="fas fa-tasks"></i>
-                        </div>
-                        <div class="stat-number">3</div>
-                        <div class="stat-label">Pending Assessments</div>
-                        <div class="stat-change negative">
-                            <i class="fas fa-clock me-1"></i> 2 due this week
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-xl-3 col-md-6 mb-4">
-                <div class="card stat-card">
-                    <div class="card-body">
-                        <div class="stat-icon stat-icon-info">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                        <div class="stat-number">14</div>
-                        <div class="stat-label">Classes This Week</div>
-                        <div class="stat-change positive">
-                            <i class="fas fa-calendar-check me-1"></i> On schedule
-                        </div>
-                    </div>
+    /* Fix table body text */
+    .table tbody td {
+        color: #212529 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Keep header dark */
+    .table thead th {
+        background-color: #212529 !important;
+        color: #ffffff !important;
+    }
+
+    /* Fix inputs */
+    .table tbody input {
+        color: #212529 !important;
+        background-color: #ffffff !important;
+    }
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Score Management</h1>
+            <div class="d-flex gap-2">
+                <!-- Theme Toggle -->
+                <div class="theme-quick-toggle">
+                    <button class="btn btn-sm btn-outline-light theme-btn-light" data-theme="light">
+                        <i class="fas fa-sun"></i> Light
+                    </button>
+                    <button class="btn btn-sm btn-outline-light theme-btn-dark" data-theme="dark">
+                        <i class="fas fa-moon"></i> Dark
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- Charts and Performance -->
-        <div class="row mb-4">
-            <!-- Performance Chart -->
-            <div class="col-lg-8 mb-4">
-                <div class="card chart-card">
-                    <div class="card-body">
-                        <div class="chart-header">
-                            <h5>Class Performance Overview</h5>
-                            <select class="form-select form-select-sm" style="width: auto;" id="chartPeriod">
-                                <option value="weekly">This Week</option>
-                                <option value="monthly" selected>This Month</option>
-                                <option value="term">This Term</option>
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Quick Actions -->
-            <div class="col-lg-4 mb-4">
-                <div class="card quick-action-card">
-                    <div class="card-body">
-                        <h5 class="mb-4">Quick Actions</h5>
-                        
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="action-icon action-icon-primary mb-2">
-                                        <i class="fas fa-upload"></i>
-                                    </div>
-                                    <div class="action-title">Upload Results</div>
-                                    <button class="btn btn-primary btn-sm action-btn" onclick="goToUploadResults()">
-                                        Go Now
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="action-icon action-icon-success mb-2">
-                                        <i class="fas fa-users"></i>
-                                    </div>
-                                    <div class="action-title">My Classes</div>
-                                    <button class="btn btn-success btn-sm action-btn" onclick="goToMyClasses()">
-                                        View Classes
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="action-icon action-icon-warning mb-2">
-                                        <i class="fas fa-file-alt"></i>
-                                    </div>
-                                    <div class="action-title">Create Report</div>
-                                    <button class="btn btn-warning btn-sm action-btn" onclick="createReport()">
-                                        Generate
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="col-6">
-                                <div class="text-center">
-                                    <div class="action-icon action-icon-info mb-2">
-                                        <i class="fas fa-envelope"></i>
-                                    </div>
-                                    <div class="action-title">Message</div>
-                                    <button class="btn btn-info btn-sm action-btn" onclick="sendMessage()">
-                                        Send Message
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="breadcrumb">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'teacher_dashboard' %}">Home</a></li>
+                    {% if selected_class %}
+                        <li class="breadcrumb-item">{{ selected_class.name }}</li>
+                        {% if selected_subject %}
+                            <li class="breadcrumb-item active">{{ selected_subject.name }}</li>
+                        {% endif %}
+                    {% else %}
+                        <li class="breadcrumb-item active">Dashboard</li>
+                    {% endif %}
+                </ol>
+            </nav>
         </div>
-
-        <!-- Recent Activities and Class Performance -->
-        <div class="row">
-            <!-- Recent Activities -->
-            <div class="col-lg-6 mb-4">
-                <div class="card activity-card">
-                    <div class="card-body">
-                        <div class="chart-header mb-4">
-                            <h5>Recent Activities</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                        
-                        <ul class="activity-list">
-                            <li class="activity-item">
-                                <div class="activity-icon activity-icon-primary">
-                                    <i class="fas fa-upload"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Uploaded 2nd CA results for 10A Mathematics</div>
-                                    <div class="activity-time">Just now</div>
-                                </div>
-                            </li>
-                            
-                            <li class="activity-item">
-                                <div class="activity-icon activity-icon-success">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Marked all assignments for 9A Physics</div>
-                                    <div class="activity-time">2 hours ago</div>
-                                </div>
-                            </li>
-                            
-                            <li class="activity-item">
-                                <div class="activity-icon activity-icon-warning">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">3 students absent in 10B Mathematics class</div>
-                                    <div class="activity-time">Yesterday, 10:30 AM</div>
-                                </div>
-                            </li>
-                            
-                            <li class="activity-item">
-                                <div class="activity-icon activity-icon-danger">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Reminder: Submit term report by Friday</div>
-                                    <div class="activity-time">2 days ago</div>
-                                </div>
-                            </li>
-                            
-                            <li class="activity-item">
-                                <div class="activity-icon activity-icon-primary">
-                                    <i class="fas fa-chart-line"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <div class="activity-title">Generated performance report for parent meeting</div>
-                                    <div class="activity-time">3 days ago</div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Class Performance -->
-            <div class="col-lg-6 mb-4">
-                <div class="card class-performance-card">
-                    <div class="card-body">
-                        <div class="chart-header mb-4">
-                            <h5>Class Performance</h5>
-                            <a href="my_classes.html" class="btn btn-sm btn-outline-primary">View All Classes</a>
-                        </div>
-                        
-                        <div class="class-item">
-                            <div class="class-info">
-                                <div class="class-icon">
-                                    <i class="fas fa-calculator"></i>
-                                </div>
-                                <div>
-                                    <div class="class-name">10A Mathematics</div>
-                                    <div class="class-subject">45 students • Mon, Wed, Fri</div>
-                                </div>
-                            </div>
-                            <div class="class-stats">
-                                <div class="class-average">82.5%</div>
-                                <div class="class-students">Avg. Score</div>
-                            </div>
-                        </div>
-                        
-                        <div class="class-item">
-                            <div class="class-info">
-                                <div class="class-icon">
-                                    <i class="fas fa-calculator"></i>
-                                </div>
-                                <div>
-                                    <div class="class-name">10B Mathematics</div>
-                                    <div class="class-subject">42 students • Tue, Thu</div>
-                                </div>
-                            </div>
-                            <div class="class-stats">
-                                <div class="class-average">78.2%</div>
-                                <div class="class-students">Avg. Score</div>
-                            </div>
-                        </div>
-                        
-                        <div class="class-item">
-                            <div class="class-info">
-                                <div class="class-icon">
-                                    <i class="fas fa-atom"></i>
-                                </div>
-                                <div>
-                                    <div class="class-name">9A Physics</div>
-                                    <div class="class-subject">38 students • Mon, Thu</div>
-                                </div>
-                            </div>
-                            <div class="class-stats">
-                                <div class="class-average">85.1%</div>
-                                <div class="class-students">Avg. Score</div>
-                            </div>
-                        </div>
-                        
-                        <div class="class-item">
-                            <div class="class-info">
-                                <div class="class-icon">
-                                    <i class="fas fa-atom"></i>
-                                </div>
-                                <div>
-                                    <div class="class-name">9B Physics</div>
-                                    <div class="class-subject">40 students • Tue, Fri</div>
-                                </div>
-                            </div>
-                            <div class="class-stats">
-                                <div class="class-average">79.8%</div>
-                                <div class="class-students">Avg. Score</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Progress Section -->
-                        <div class="mt-4">
-                            <h6 class="mb-3">Overall Class Progress</h6>
-                            
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>10A Mathematics</span>
-                                    <span>82%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-primary" style="width: 82%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>10B Mathematics</span>
-                                    <span>78%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-success" style="width: 78%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>9A Physics</span>
-                                    <span>85%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-warning" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>9B Physics</span>
-                                    <span>79%</span>
-                                </div>
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-info" style="width: 79%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Upcoming Deadlines -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card activity-card">
-                    <div class="card-body">
-                        <div class="chart-header mb-4">
-                            <h5>Upcoming Deadlines</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">View Calendar</a>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <div class="card border-warning">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="stat-icon stat-icon-warning me-3">
-                                                <i class="fas fa-flag"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Term Report Submission</h6>
-                                                <small class="text-muted">Due: This Friday</small>
-                                            </div>
-                                        </div>
-                                        <p class="mb-0 small">Submit end-of-term reports for all classes</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <div class="card border-primary">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="stat-icon stat-icon-primary me-3">
-                                                <i class="fas fa-chart-bar"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Performance Review Meeting</h6>
-                                                <small class="text-muted">Next Monday, 2:00 PM</small>
-                                            </div>
-                                        </div>
-                                        <p class="mb-0 small">Review student performance with department head</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-4 mb-3">
-                                <div class="card border-success">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="stat-icon stat-icon-success me-3">
-                                                <i class="fas fa-graduation-cap"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">Parent-Teacher Conference</h6>
-                                                <small class="text-muted">Next Wednesday</small>
-                                            </div>
-                                        </div>
-                                        <p class="mb-0 small">Prepare student progress reports for parents</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
     </div>
-    
-    <!-- Toast Notification Container -->
-    <div id="toastContainer"></div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Teacher Info Card -->
+    <div class="row mb-4 teacher-info-card">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-1">Welcome, {{ teacher.user.get_full_name }}</h5>
+                            <p class="text-muted mb-0">{{ teacher.qualification }} | {{ teacher.get_status_display }}</p>
+                            <small class="text-primary">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                Academic Year: {{ current_year.year }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            {% if selected_class and selected_subject %}
+                                <div class="alert alert-info p-2 mb-0">
+                                    <strong>Currently Viewing:</strong><br>
+                                    {{ selected_class.name }} - {{ selected_subject.name }}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning p-2 mb-0">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Select a class and subject to enter scores
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column: Class Selection -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-chalkboard-teacher me-1"></i>
+                        My Assigned Classes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if assigned_classes %}
+                        <div class="list-group">
+                            {% for assignment in assigned_classes %}
+                                <div class="mb-3">
+                                    <div class="list-group-item bg-light">
+                                        <strong class="text-primary">
+                                            <i class="fas fa-school me-1"></i>
+                                            {{ assignment.class_assigned.name }}
+                                        </strong>
+                                    </div>
+                                    {% with subjects=assignment.teacher.subject_assignments.filter %}
+                                        {% for subj_assignment in subjects %}
+                                            {% if subj_assignment.class_assigned == assignment.class_assigned and subj_assignment.academic_year == current_year %}
+                                                <a href="?class_id={{ assignment.class_assigned.id }}&subject_id={{ subj_assignment.subject.id }}"
+                                                   class="list-group-item list-group-item-action {% if selected_class == assignment.class_assigned and selected_subject == subj_assignment.subject %}active{% endif %}">
+                                                    <i class="fas fa-book me-2"></i>
+                                                    {{ subj_assignment.subject.name }}
+                                                    <span class="badge bg-info float-end">
+                                                        {{ subj_assignment.subject.students.count }}
+                                                    </span>
+                                                </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            You haven't been assigned to any classes yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Student Scores -->
+        <div class="col-lg-8">
+            {% if selected_class and selected_subject %}
+                <form method="post" action="{% url 'save_student_scores' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="class_id" value="{{ selected_class.id }}">
+                    <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+                    
+                    <!-- Score Entry Controls -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 font-weight-bold">
+                                <i class="fas fa-edit me-1"></i>
+                                Enter Scores for {{ selected_class.name }} - {{ selected_subject.name }}
+                            </h6>
+                            <div class="d-flex gap-2">
+                                <div class="form-group mb-0">
+                                    <select name="term" class="form-select form-select-sm" required>
+                                        <option value="">Select Term</option>
+                                        {% for term in terms %}
+                                            <option value="{{ term.id }}">{{ term.get_name_display }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-light btn-sm">
+                                    <i class="fas fa-save me-1"></i> Save All
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if students %}
+                                <!-- Score Type Headers -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th width="30%">Student Name</th>
+                                                
+                                                {% for score_type in score_types %}
+                                                    <th class="text-center">{{ score_type.name }}</th>
+                                                {% endfor %}
+                                                <th class="text-center">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for student_class in students %}
+                                                <tr>
+                                                    <td class="student-name">
+                                                        <strong>{{ student_class.student.user.get_full_name }}</strong>
+                                                        <input type="hidden" name="student_ids" value="{{ student_class.student.id }}">
+                                                    </td>
+                                                    {% for score_type in score_types %}
+                                                        <td>
+                                                            <input type="number" 
+                                                                   name="score_{{ student_class.student.id }}_{{ score_type.id }}"
+                                                                   class="form-control form-control-sm score-input"
+                                                                   min="0" 
+                                                                   max="100" 
+                                                                   step="0.01"
+                                                                   data-student="{{ student_class.student.id }}"
+                                                                   data-type="{{ score_type.id }}"
+                                                                   placeholder="0-100">
+                                                        </td>
+                                                    {% endfor %}
+                                                    
+                                                    <td class="text-center">
+                                                        <span class="total-score" id="total_{{ student_class.student.id }}">0</span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Summary -->
+                                <div class="alert alert-info mt-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small>
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Total Students: {{ students.count }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <small>
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Academic Year: {{ current_year.year }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-user-slash me-2"></i>
+                                    No students found in {{ selected_class.name }} for the current academic year.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <!-- Empty State -->
+                <div class="card shadow">
+                    <div class="card-body text-center py-5">
+                        <div class="empty-state-icon mb-3">
+                            <i class="fas fa-clipboard-list fa-4x text-muted"></i>
+                        </div>
+                        <h4 class="text-muted">Select a Class and Subject</h4>
+                        <p class="text-muted mb-4">
+                            Choose a class from the sidebar to view and enter scores for students.
+                        </p>
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Tip:</strong> Click on any subject under your assigned classes to get started.
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Quick Stats (when class is selected) -->
+            {% if selected_class %}
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Students
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ students.count }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users fa-2x text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Score Types
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ score_types.count }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-star fa-2x text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Subject
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            {{ selected_subject.name|truncatechars:15 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-book fa-2x text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Wait for DOM to load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeScoreCalculations();
+        initializeFormValidation();
+        initializeThemeToggle();
+        
+        // Load saved theme
+        loadSavedTheme();
+    });
     
-    <script>
-        // Initialize charts
-        let performanceChart;
+    // Theme toggle functionality
+    function initializeThemeToggle() {
+        const themeButtons = document.querySelectorAll('.theme-btn-light, .theme-btn-dark');
         
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCharts();
-            setupEventListeners();
-            updateTime();
+        themeButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const theme = this.dataset.theme;
+                
+                // Update active state
+                themeButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.add('btn-outline-light');
+                });
+                this.classList.add('active');
+                this.classList.remove('btn-outline-light');
+                
+                // Set theme
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('teacher-theme', theme);
+            });
         });
+    }
+    
+    function loadSavedTheme() {
+        const savedTheme = localStorage.getItem('teacher-theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
         
-        // Initialize charts
-        function initializeCharts() {
-            // Performance Chart
-            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-            performanceChart = new Chart(performanceCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
-                    datasets: [
-                        {
-                            label: '10A Mathematics',
-                            data: [75, 78, 82, 85, 82, 85],
-                            borderColor: '#4e73df',
-                            backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        },
-                        {
-                            label: '10B Mathematics',
-                            data: [70, 74, 76, 78, 80, 78],
-                            borderColor: '#1cc88a',
-                            backgroundColor: 'rgba(28, 200, 138, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        },
-                        {
-                            label: '9A Physics',
-                            data: [80, 82, 84, 85, 86, 85],
-                            borderColor: '#f6c23e',
-                            backgroundColor: 'rgba(246, 194, 62, 0.1)',
-                            tension: 0.3,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.dataset.label}: ${context.parsed.y}%`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: false,
-                            min: 60,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            },
-                            grid: {
-                                borderDash: [2]
-                            }
-                        }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'nearest'
-                    }
-                }
-            });
-        }
-        
-        // Setup event listeners
-        function setupEventListeners() {
-            // Chart period selector
-            document.getElementById('chartPeriod').addEventListener('change', function() {
-                updateChartData(this.value);
-            });
+        // Update button states
+        const themeButtons = document.querySelectorAll('.theme-btn-light, .theme-btn-dark');
+        themeButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.classList.add('btn-outline-light');
             
-            // Welcome message based on time of day
-            updateWelcomeMessage();
-            
-            // Auto-refresh data every 5 minutes
-            setInterval(refreshDashboardData, 5 * 60 * 1000);
-        }
-        
-        // Update chart based on selected period
-        function updateChartData(period) {
-            let labels, data10A, data10B, data9A;
-            
-            switch(period) {
-                case 'weekly':
-                    labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-                    data10A = [82, 84, 83, 85, 82];
-                    data10B = [78, 79, 77, 80, 78];
-                    data9A = [85, 86, 84, 87, 85];
-                    break;
-                    
-                case 'term':
-                    labels = ['Term 1', 'Term 2', 'Term 3'];
-                    data10A = [78, 82, 85];
-                    data10B = [75, 78, 80];
-                    data9A = [82, 84, 86];
-                    break;
-                    
-                default: // monthly
-                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'];
-                    data10A = [75, 78, 82, 85, 82, 85];
-                    data10B = [70, 74, 76, 78, 80, 78];
-                    data9A = [80, 82, 84, 85, 86, 85];
-            }
-            
-            performanceChart.data.labels = labels;
-            performanceChart.data.datasets[0].data = data10A;
-            performanceChart.data.datasets[1].data = data10B;
-            performanceChart.data.datasets[2].data = data9A;
-            performanceChart.update();
-            
-            showToast(`Showing data for ${period} period`, 'info');
-        }
-        
-        // Update welcome message based on time of day
-        function updateWelcomeMessage() {
-            const hour = new Date().getHours();
-            const welcomeBanner = document.querySelector('.welcome-banner h2');
-            
-            if (hour < 12) {
-                welcomeBanner.textContent = 'Good morning, Jane Smith!';
-            } else if (hour < 18) {
-                welcomeBanner.textContent = 'Good afternoon, Jane Smith!';
-            } else {
-                welcomeBanner.textContent = 'Good evening, Jane Smith!';
-            }
-        }
-        
-        // Update time display
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dateString = now.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            });
-            
-            // Update time in welcome banner
-            const welcomePara = document.querySelector('.welcome-banner p');
-            if (welcomePara) {
-                welcomePara.innerHTML = `Today is ${dateString}. Here's an overview of your teaching activities and class performance`;
-            }
-        }
-        
-        // Refresh dashboard data
-        function refreshDashboardData() {
-            showLoading(true);
-            
-            // Simulate API call
-            setTimeout(() => {
-                // Update statistics with random variations
-                updateStatistics();
-                showLoading(false);
-                showToast('Dashboard data refreshed', 'success');
-            }, 1000);
-        }
-        
-        // Update statistics with slight variations
-        function updateStatistics() {
-            const statNumbers = document.querySelectorAll('.stat-number');
-            
-            statNumbers.forEach(stat => {
-                const currentValue = parseFloat(stat.textContent);
-                if (!isNaN(currentValue)) {
-                    // Add small random variation
-                    const variation = (Math.random() - 0.5) * 2; // -1 to +1
-                    const newValue = currentValue + variation;
-                    
-                    // Format based on content
-                    if (stat.textContent.includes('%')) {
-                        stat.textContent = newValue.toFixed(1) + '%';
-                    } else {
-                        stat.textContent = Math.max(0, Math.round(newValue));
-                    }
-                }
-            });
-        }
-        
-        // Quick action functions
-        function goToUploadResults() {
-            showToast('Redirecting to Upload Results...', 'info');
-            setTimeout(() => {
-                // In a real app, this would redirect:
-                // window.location.href = 'upload_results.html';
-                showToast('Upload Results page would open here', 'success');
-            }, 500);
-        }
-        
-        function goToMyClasses() {
-            showToast('Redirecting to My Classes...', 'info');
-            setTimeout(() => {
-                // In a real app, this would redirect:
-                // window.location.href = 'my_classes.html';
-                showToast('My Classes page would open here', 'success');
-            }, 500);
-        }
-        
-        function createReport() {
-            showLoading(true);
-            
-            setTimeout(() => {
-                showLoading(false);
-                showToast('Performance report generated successfully!', 'success');
-                
-                // Show download option
-                setTimeout(() => {
-                    showToast('<a href="#" class="text-white">Click here to download report</a>', 'info');
-                }, 1000);
-            }, 2000);
-        }
-        
-        function sendMessage() {
-            const message = prompt('Enter your message to parents:');
-            if (message && message.trim()) {
-                showLoading(true);
-                
-                setTimeout(() => {
-                    showLoading(false);
-                    showToast(`Message sent to all parents: "${message}"`, 'success');
-                }, 1500);
-            }
-        }
-        
-        // Show/hide loading overlay
-        function showLoading(show) {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (show) {
-                loadingOverlay.style.display = 'flex';
-            } else {
-                loadingOverlay.style.display = 'none';
-            }
-        }
-        
-        // Show toast notification
-        function showToast(message, type = 'info') {
-            // Remove existing alerts
-            const existingToasts = document.querySelectorAll('.custom-toast');
-            existingToasts.forEach(toast => {
-                toast.style.animation = 'slideOutRight 0.3s ease-out';
-                setTimeout(() => toast.remove(), 300);
-            });
-            
-            // Create new toast
-            const toast = document.createElement('div');
-            toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
-            toast.innerHTML = `
-                <i class="fas fa-${getToastIcon(type)} me-2"></i>
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            document.getElementById('toastContainer').appendChild(toast);
-            toast.style.display = 'block';
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.style.animation = 'slideOutRight 0.3s ease-out';
-                    setTimeout(() => toast.remove(), 300);
-                }
-            }, 5000);
-        }
-        
-        function getToastIcon(type) {
-            switch(type) {
-                case 'success': return 'check-circle';
-                case 'danger': return 'exclamation-circle';
-                case 'warning': return 'exclamation-triangle';
-                default: return 'info-circle';
-            }
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Alt + R to refresh
-            if (e.altKey && e.key === 'r') {
-                e.preventDefault();
-                refreshDashboardData();
-            }
-            
-            // Alt + U to go to upload
-            if (e.altKey && e.key === 'u') {
-                e.preventDefault();
-                goToUploadResults();
-            }
-            
-            // Alt + C to go to classes
-            if (e.altKey && e.key === 'c') {
-                e.preventDefault();
-                goToMyClasses();
+            if (btn.dataset.theme === savedTheme) {
+                btn.classList.add('active');
+                btn.classList.remove('btn-outline-light');
             }
         });
+    }
+    
+    // Score calculations
+    function initializeScoreCalculations() {
+        document.querySelectorAll('.score-input').forEach(input => {
+            input.addEventListener('input', calculateStudentTotal);
+        });
+    }
+    
+    function calculateStudentTotal() {
+        const studentId = this.dataset.student;
+        const studentInputs = document.querySelectorAll(`.score-input[data-student="${studentId}"]`);
         
-        // Simulate real-time updates
-        setInterval(() => {
-            // Randomly add new activity (1% chance per interval)
-            if (Math.random() < 0.01) {
-                addRandomActivity();
+        let total = 0;
+        studentInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+        
+        // Update total display
+        const totalElement = document.getElementById(`total_${studentId}`);
+        if (totalElement) {
+            totalElement.textContent = total.toFixed(2);
+            
+            // Color coding based on score
+            if (total >= 70) {
+                totalElement.className = 'total-score text-success fw-bold';
+            } else if (total >= 50) {
+                totalElement.className = 'total-score text-warning fw-bold';
+            } else {
+                totalElement.className = 'total-score text-danger fw-bold';
             }
-        }, 10000); // Check every 10 seconds
-    </script>
-</body>
-</html>
+        }
+    }
+    
+    // Form validation
+    function initializeFormValidation() {
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', validateForm);
+        }
+    }
+    
+    function validateForm(e) {
+        const termSelect = this.querySelector('select[name="term"]');
+        if (!termSelect.value) {
+            e.preventDefault();
+            showToast('Please select a term before saving scores', 'warning');
+            termSelect.focus();
+            return false;
+        }
+        
+        // Validate all scores are between 0-100
+        const invalidScores = Array.from(document.querySelectorAll('.score-input'))
+            .filter(input => {
+                const value = parseFloat(input.value);
+                return value && (value < 0 || value > 100);
+            });
+            
+        if (invalidScores.length > 0) {
+            e.preventDefault();
+            showToast('Scores must be between 0 and 100', 'error');
+            invalidScores[0].focus();
+            return false;
+        }
+        
+        showToast('Saving scores...', 'info');
+        return true;
+    }
+</script>
+{% endblock %}

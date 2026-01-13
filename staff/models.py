@@ -26,7 +26,7 @@ class TeacherProfile(models.Model):
     subjects = models.ManyToManyField('academics.Subject', related_name='teachers', blank=True)
     
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.teacher_id})"
+        return f"{self.user.get_full_name()} ({self.subjects})"
     
     @property
     def is_active(self):

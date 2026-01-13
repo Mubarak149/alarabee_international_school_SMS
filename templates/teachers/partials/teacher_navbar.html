@@ -1,0 +1,89 @@
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'teacher_dashboard' %}">
+            <i class="fas fa-chalkboard-teacher me-2"></i>
+            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <span class="user-role badge bg-light text-primary ms-2">Teacher</span>
+        </a>
+        
+        <!-- Mobile Toggle Buttons -->
+        <div class="d-flex gap-2">
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container">
+                <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
+                <label for="themeToggle" class="theme-toggle-label">
+                    <i class="fas fa-sun theme-icon-sun"></i>
+                    <i class="fas fa-moon theme-icon-moon"></i>
+                    <span class="theme-toggle-ball"></span>
+                </label>
+            </div>
+            
+            <!-- Mobile Sidebar Toggle -->
+            <button class="navbar-toggler d-lg-none" type="button" 
+                    id="mobileSidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Navbar Toggle -->
+            <button class="navbar-toggler" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Theme Toggle for Desktop -->
+                <li class="nav-item d-none d-lg-block">
+                    <div class="nav-link theme-toggle-desktop">
+                        <input type="checkbox" id="themeToggleDesktop" class="theme-toggle-checkbox">
+                        <label for="themeToggleDesktop" class="theme-toggle-label">
+                            <i class="fas fa-sun theme-icon-sun"></i>
+                            <i class="fas fa-moon theme-icon-moon"></i>
+                            <span class="theme-toggle-ball"></span>
+                        </label>
+                    </div>
+                </li>
+                
+                <!-- Desktop Sidebar Toggle -->
+                <li class="nav-item d-none d-lg-block">
+                    <button class="nav-link sidebar-toggle-btn" type="button" id="desktopSidebarToggle">
+                        <i class="fas fa-bars"></i> Menu
+                    </button>
+                </li>
+                
+                <!-- Quick Stats -->
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="tooltip" title="Assigned Classes">
+                        <i class="fas fa-chalkboard"></i>
+                        <span class="badge bg-light text-primary ms-1">{{ teacher.subject_assignments.count }}</span>
+                    </a>
+                </li>
+                
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            <img src="https://ui-avatars.com/api/?name={{ teacher.user.get_full_name|urlencode }}&background=4A90E2&color=fff" 
+                                 alt="{{ teacher.user.get_full_name }}">
+                            <span class="user-name">{{ teacher.user.get_full_name|truncatechars:20 }}</span>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user-cog me-2"></i> My Profile
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-file-export me-2"></i> Export Reports
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
