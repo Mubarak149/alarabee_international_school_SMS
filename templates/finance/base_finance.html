@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+{% load finance_extras %}
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Finance Dashboard - School SMS{% endblock %}</title>
+    
+    {% load static %}
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* ===== FINANCE BASE STYLES ===== */
+        :root {
+            --primary-color: #4CAF50;
+            --primary-dark: #388E3C;
+            --secondary-color: #2196F3;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --navbar-height: 70px;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background-color: #f5f7fa;
+            padding-top: 0; /* Remove body padding-top */
+        }
+        
+        /* Finance Theme Colors */
+        .bg-finance-primary { background-color: var(--primary-color) !important; }
+        .bg-finance-secondary { background-color: var(--secondary-color) !important; }
+        .text-finance-primary { color: var(--primary-color) !important; }
+        .text-finance-secondary { color: var(--secondary-color) !important; }
+        
+        .border-finance-primary { border-color: var(--primary-color) !important; }
+        .border-finance-secondary { border-color: var(--secondary-color) !important; }
+        
+        .btn-finance-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-finance-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: white;
+        }
+        
+        /* Navbar - Make it stay on top */
+        .navbar {
+            height: var(--navbar-height);
+            z-index: 1030;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .brand-text {
+            color: white;
+        }
+        
+        .brand-highlight {
+            color: #FFEB3B;
+            font-weight: 700;
+        }
+        
+        .user-role {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle-container {
+            display: inline-block;
+        }
+        
+        .theme-toggle-checkbox {
+            display: none;
+        }
+        
+        .theme-toggle-label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #2c3e50;
+            border-radius: 50px;
+            padding: 5px;
+        }
+        
+        .theme-icon-sun,
+        .theme-icon-moon {
+            position: absolute;
+            color: #FFEB3B;
+            font-size: 14px;
+            z-index: 1;
+        }
+        
+        .theme-icon-sun {
+            left: 8px;
+        }
+        
+        .theme-icon-moon {
+            right: 8px;
+            color: #f8f9fa;
+        }
+        
+        .theme-toggle-ball {
+            position: absolute;
+            left: 5px;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .theme-toggle-checkbox:checked + .theme-toggle-label .theme-toggle-ball {
+            transform: translateX(30px);
+        }
+        
+        /* User Avatar */
+        .user-avatar {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        }
+        
+        .user-avatar img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .user-name {
+            color: white;
+            font-weight: 500;
+        }
+        
+        /* Desktop Sidebar */
+        .desktop-sidebar {
+            position: fixed;
+            top: var(--navbar-height); /* Position below navbar */
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--navbar-height)); /* Adjust height to account for navbar */
+            overflow-y: auto;
+            z-index: 1020; /* Lower than navbar */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+        }
+        
+        .desktop-sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-header h6,
+        .desktop-sidebar.collapsed .sidebar-header small,
+        .desktop-sidebar.collapsed .badge {
+            display: none;
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-collapse-btn i {
+            transform: rotate(180deg);
+        }
+        
+        .desktop-sidebar.collapsed .sidebar-header {
+            padding: 15px 10px;
+        }
+        
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h6 {
+            color: #fff;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .sidebar-header small {
+            color: #adb5bd;
+            font-size: 0.85rem;
+        }
+        
+        .sidebar-collapse-btn {
+            position: absolute;
+            top: 15px;
+            right: -15px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .sidebar-collapse-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            padding: 15px 0;
+            flex: 1;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: #adb5bd;
+            padding: 12px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            position: relative;
+        }
+        
+        .sidebar-nav .nav-link:hover:not(.active) {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background: linear-gradient(90deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
+            border-left-color: var(--primary-color);
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-nav .badge {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 15px 20px;
+        }
+        
+        /* Mobile Sidebar */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+            z-index: 1040; /* Below navbar but above content */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .mobile-sidebar.show {
+            left: 0;
+        }
+        
+        .mobile-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1039; /* Below sidebar but above content */
+            display: none;
+        }
+        
+        .mobile-sidebar-overlay.show {
+            display: block;
+        }
+        
+        .mobile-sidebar-header {
+            padding: 20px;
+            background: #1a252f;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            padding-top: calc(20px + var(--navbar-height)); /* Account for navbar height */
+        }
+        
+        .mobile-sidebar-close {
+            position: absolute;
+            top: calc(20px + var(--navbar-height)); /* Position below navbar */
+            right: 20px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1051;
+        }
+        
+        /* Main Content - FIXED */
+        .main-content {
+            padding: 20px;
+            min-height: calc(100vh - var(--navbar-height));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-left: 0; /* Start with no sidebar */
+            margin-top: var(--navbar-height); /* Push down by navbar height */
+        }
+        
+        /* Adjust main content when sidebar is open - FIXED */
+        .desktop-sidebar-open .main-content {
+            margin-left: var(--sidebar-width);
+        }
+        
+        /* Adjust for collapsed sidebar */
+        .desktop-sidebar.collapsed + .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+        
+        /* Toast Container */
+        .toast-container {
+            z-index: 1090;
+        }
+        
+        /* Notification Badge */
+        .badge-notification {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.7rem;
+            padding: 2px 5px;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Status Badges */
+        .badge-status-unpaid { background-color: var(--danger-color); }
+        .badge-status-partial { background-color: var(--warning-color); }
+        .badge-status-paid { background-color: var(--primary-color); }
+        
+        /* Card Styles */
+        .finance-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            overflow: hidden;
+        }
+        
+        .finance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .finance-card .card-header {
+            border-bottom: none;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+        
+        .finance-card .card-body {
+            padding: 20px;
+        }
+        
+        /* Table Styles */
+        .finance-table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .finance-table thead th {
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        
+        /* Amount Styling */
+        .amount {
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .amount.positive {
+            color: var(--primary-color);
+        }
+        
+        .amount.negative {
+            color: var(--danger-color);
+        }
+        
+        /* Form Controls */
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+        
+        /* Scrollbar Styling */
+        .desktop-sidebar::-webkit-scrollbar,
+        .mobile-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-track,
+        .mobile-sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-thumb,
+        .mobile-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .desktop-sidebar::-webkit-scrollbar-thumb:hover,
+        .mobile-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .desktop-sidebar {
+                display: none;
+            }
+            
+            .desktop-sidebar-open .main-content,
+            .desktop-sidebar.collapsed + .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-sidebar-header {
+                padding-top: 20px; /* Reset for mobile */
+            }
+            
+            .mobile-sidebar-close {
+                top: 20px; /* Reset for mobile */
+            }
+        }
+        
+        @media (min-width: 992px) {
+            .mobile-sidebar,
+            .mobile-sidebar-overlay {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-nav .nav-item .nav-link {
+                padding: 0.5rem;
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .user-avatar img {
+                margin-right: 0;
+            }
+            
+            .main-content {
+                padding: 15px;
+            }
+            
+            .finance-card .card-body {
+                padding: 15px;
+            }
+        }
+        
+        /* Animation for loading */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Dark Theme Support */
+        [data-theme="dark"] {
+            --body-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --table-header-bg: #2c2c2c;
+        }
+        
+        [data-theme="dark"] body {
+            background-color: var(--body-bg);
+            color: var(--text-color);
+        }
+        
+        [data-theme="dark"] .finance-card {
+            background-color: var(--card-bg);
+            border-color: #333;
+        }
+        
+        [data-theme="dark"] .finance-table thead th {
+            background-color: var(--table-header-bg);
+        }
+        
+        /* Print Styles */
+        @media print {
+            .navbar,
+            .desktop-sidebar,
+            .mobile-sidebar,
+            .mobile-sidebar-overlay,
+            .toast-container,
+            .no-print {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .finance-card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Include Navbar -->
+    {% include "finance/partials/finance_navbar.html" %}
+    
+    <!-- Include Sidebar -->
+    {% include "finance/partials/finance_sidebar.html" %}
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index: 1090;">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast align-items-center text-bg-{{ message.tags }} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-{{ message.tags|yesno:'check-circle,exclamation-circle' }} me-2"></i>
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ===== FINANCE BASE FUNCTIONALITY =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile sidebar toggle
+            const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+            const mobileSidebarClose = document.getElementById('mobileSidebarClose');
+            
+            if (mobileSidebarToggle && mobileSidebar) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    mobileSidebar.classList.add('show');
+                    mobileSidebarOverlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                if (mobileSidebarClose) {
+                    mobileSidebarClose.addEventListener('click', function() {
+                        mobileSidebar.classList.remove('show');
+                        mobileSidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    });
+                }
+                
+                if (mobileSidebarOverlay) {
+                    mobileSidebarOverlay.addEventListener('click', function() {
+                        mobileSidebar.classList.remove('show');
+                        mobileSidebarOverlay.classList.remove('show');
+                        document.body.style.overflow = '';
+                    });
+                }
+            }
+            
+            // Desktop sidebar toggle
+            const desktopSidebarToggle = document.getElementById('desktopSidebarToggle');
+            const desktopSidebar = document.getElementById('desktopSidebar');
+            const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            
+            if (desktopSidebarToggle && desktopSidebar) {
+                desktopSidebarToggle.addEventListener('click', toggleDesktopSidebar);
+            }
+            
+            if (sidebarCollapseBtn && desktopSidebar) {
+                sidebarCollapseBtn.addEventListener('click', toggleDesktopSidebar);
+            }
+            
+            // Close mobile sidebar when clicking on links
+            document.querySelectorAll('.mobile-sidebar .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('show');
+                    mobileSidebarOverlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            });
+            
+            // Theme toggle functionality
+            const themeToggles = document.querySelectorAll('.theme-toggle-checkbox');
+            themeToggles.forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const isDark = this.checked;
+                    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                    localStorage.setItem('finance-theme', isDark ? 'dark' : 'light');
+                });
+            });
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('finance-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            themeToggles.forEach(toggle => {
+                toggle.checked = savedTheme === 'dark';
+            });
+            
+            // Load saved sidebar state
+            const savedSidebarState = localStorage.getItem('finance-sidebar-collapsed');
+            if (savedSidebarState === 'true') {
+                if (desktopSidebar) {
+                    desktopSidebar.classList.add('collapsed');
+                    document.body.classList.add('desktop-sidebar-open');
+                }
+            }
+            
+            // Initialize Bootstrap tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Initialize popovers
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            const popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+            
+            // Auto-hide success messages after 5 seconds
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert-success');
+                alerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+            
+            // Format currency
+            window.formatCurrency = function(amount) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2
+                }).format(amount);
+            };
+            
+            // Format date
+            window.formatDate = function(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            };
+            
+            // Show any pending toasts
+            initializeToasts();
+            
+            // Add animation to cards on load
+            setTimeout(() => {
+                document.querySelectorAll('.finance-card').forEach((card, index) => {
+                    card.classList.add('fade-in');
+                    card.style.animationDelay = `${index * 0.1}s`;
+                });
+            }, 100);
+        });
+        
+        function toggleDesktopSidebar() {
+            const desktopSidebar = document.getElementById('desktopSidebar');
+            const isCollapsing = !desktopSidebar.classList.contains('collapsed');
+            
+            desktopSidebar.classList.toggle('collapsed');
+            
+            // Toggle the body class based on sidebar state
+            if (isCollapsing) {
+                document.body.classList.remove('desktop-sidebar-open');
+            } else {
+                document.body.classList.add('desktop-sidebar-open');
+            }
+            
+            // Save sidebar state
+            localStorage.setItem('finance-sidebar-collapsed', isCollapsing);
+        }
+        
+        function initializeToasts() {
+            const toastElList = document.querySelectorAll('.toast');
+            const toastList = [...toastElList].map(toastEl => new bootstrap.Toast(toastEl, { delay: 5000 }));
+            toastList.forEach(toast => toast.show());
+        }
+        
+        // Toast notification function
+        window.showToast = function(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                const container = document.createElement('div');
+                container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                container.id = 'toastContainer';
+                container.style.zIndex = '1090';
+                document.body.appendChild(container);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const iconMap = {
+                'success': 'check-circle',
+                'error': 'exclamation-circle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle'
+            };
+            
+            const toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-${iconMap[type] || 'info-circle'} me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+            toast.show();
+            
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+            
+            return toast;
+        };
+        
+        // Confirm dialog helper
+        window.showConfirmDialog = function(title, message, confirmText = 'Confirm', cancelText = 'Cancel') {
+            return new Promise((resolve) => {
+                const modalHtml = `
+                    <div class="modal fade" id="confirmModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-finance-primary text-white">
+                                    <h5 class="modal-title">${title}</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>${message}</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${cancelText}</button>
+                                    <button type="button" class="btn btn-finance-primary" id="confirmModalBtn">${confirmText}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+                
+                document.getElementById('confirmModalBtn').addEventListener('click', function() {
+                    modal.hide();
+                    resolve(true);
+                });
+                
+                document.getElementById('confirmModal').addEventListener('hidden.bs.modal', function() {
+                    this.remove();
+                    resolve(false);
+                });
+            });
+        };
+        
+        // Format amount with color
+        window.formatAmount = function(amount, isPositive = true) {
+            const formatted = formatCurrency(Math.abs(amount));
+            const colorClass = isPositive ? 'positive' : 'negative';
+            return `<span class="amount ${colorClass}">${formatted}</span>`;
+        };
+        
+        // Download file helper
+        window.downloadFile = function(url, filename) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!-- Top Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-finance-primary fixed-top shadow">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'finance_dashboard' %}">
+            <i class="fas fa-calculator me-2"></i>
+            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <span class="user-role badge ms-2">Finance</span>
+        </a>
+        
+        <!-- Mobile Toggle Buttons -->
+        <div class="d-flex gap-2">
+            <!-- Theme Toggle Button -->
+            <div class="theme-toggle-container">
+                <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
+                <label for="themeToggle" class="theme-toggle-label">
+                    <i class="fas fa-sun theme-icon-sun"></i>
+                    <i class="fas fa-moon theme-icon-moon"></i>
+                    <span class="theme-toggle-ball"></span>
+                </label>
+            </div>
+            
+            <!-- Mobile Sidebar Toggle -->
+            <button class="navbar-toggler d-lg-none" type="button" id="mobileSidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Navbar Toggle -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Theme Toggle for Desktop -->
+                <li class="nav-item d-none d-lg-block">
+                    <div class="nav-link theme-toggle-desktop">
+                        <input type="checkbox" id="themeToggleDesktop" class="theme-toggle-checkbox">
+                        <label for="themeToggleDesktop" class="theme-toggle-label">
+                            <i class="fas fa-sun theme-icon-sun"></i>
+                            <i class="fas fa-moon theme-icon-moon"></i>
+                            <span class="theme-toggle-ball"></span>
+                        </label>
+                    </div>
+                </li>
+                
+                <!-- Quick Actions -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'student_invoices' %}" data-bs-toggle="tooltip" title="Invoices">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'fee_management' %}" data-bs-toggle="tooltip" title="Fee Structure">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </a>
+                </li>
+                
+                <!-- Notifications -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        {% if pending_invoices %}
+                            <span class="badge bg-danger badge-notification">{{ pending_invoices }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end dropdown-notifications">
+                        <h6 class="dropdown-header">Financial Alerts</h6>
+                        {% if pending_invoices %}
+                            <a class="dropdown-item" href="{% url 'student_invoices' %}?status=unpaid">
+                                <div class="notification-item">
+                                    <div class="notification-icon bg-danger">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <p class="mb-0">{{ pending_invoices }} pending invoice(s)</p>
+                                        <small class="text-muted">Requires attention</small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% else %}
+                            <div class="dropdown-item text-center py-3">
+                                <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                                <p class="text-muted mb-0">No pending alerts</p>
+                            </div>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-center" href="#">
+                            View all notifications
+                        </a>
+                    </div>
+                </li>
+                
+                <!-- Desktop Sidebar Toggle -->
+                <li class="nav-item d-none d-lg-block">
+                    <button class="nav-link sidebar-toggle-btn" type="button" id="desktopSidebarToggle">
+                        <i class="fas fa-bars"></i> Menu
+                    </button>
+                </li>
+                
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <div class="user-avatar">
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=4CAF50&color=fff" 
+                                 alt="{{ request.user.get_full_name }}">
+                            <span class="user-name">{{ request.user.get_full_name|truncatechars:20 }}</span>
+                        </div>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end">
+                        <div class="dropdown-header">
+                            <h6>{{ request.user.get_full_name }}</h6>
+                            <small class="text-muted">Finance Department</small>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{% url 'finance_dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                        <a class="dropdown-item" href="{% url 'student_invoices' %}">
+                            <i class="fas fa-file-invoice me-2"></i> Invoices
+                        </a>
+                        <a class="dropdown-item" href="{% url 'finance_reports' %}">
+                            <i class="fas fa-chart-bar me-2"></i> Reports
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-user-cog me-2"></i> Account Settings
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-question-circle me-2"></i> Help
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,746 @@
+<!-- finance/fee_management.html -->
+{% extends "finance/base_finance.html" %}
+{% load finance_extras %}
+{% block title %}Fee Management - Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .fee-group {
+        margin-bottom: 30px;
+    }
+    
+    .fee-group-header {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .fee-item-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+    }
+    
+    .fee-item-card:hover {
+        background-color: #f8f9fa;
+        border-color: #4CAF50;
+    }
+    
+    .fee-total {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    .empty-fees {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    
+    .fee-type-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .fee-type-actions {
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .fee-item-card:hover .fee-type-actions,
+    .fee-item-card:hover .fee-structure-actions {
+        opacity: 1;
+    }
+    
+    .fee-structure-actions {
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .filter-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .fee-group-header {
+            padding: 12px 15px;
+        }
+        
+        .fee-item-card {
+            padding: 12px;
+        }
+        
+        .fee-type-actions,
+        .fee-structure-actions {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Fee Management</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Fee Management</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addFeeStructureModal">
+                <i class="fas fa-plus me-1"></i> Add Fee Structure
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- FEE TYPES SECTION (CRUD) -->
+<!-- =========================================== -->
+<div class="finance-card mb-4">
+    <div class="card-header bg-finance-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-tags me-2"></i> Fee Types
+        </h5>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addFeeTypeModal">
+            <i class="fas fa-plus"></i> Add Fee Type
+        </button>
+    </div>
+
+    <div class="card-body">
+        {% if fee_types %}
+            <div class="row">
+                {% for fee in fee_types %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="fee-item-card">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-1">{{ fee.name }}</h6>
+                                {% if fee.description %}
+                                <p class="text-muted small mb-2">{{ fee.description|truncatechars:60 }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="fee-type-actions">
+                                <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editFeeTypeModal{{ fee.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger ms-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteFeeTypeModal{{ fee.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge {% if fee.is_recurring %}bg-info{% else %}bg-secondary{% endif %} fee-type-badge">
+                                {{ fee.is_recurring|yesno:"Recurring,One-time" }}
+                            </span>
+                            <small class="text-muted">
+                                ID: {{ fee.id }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Fee Type Modal for each fee type -->
+                <div class="modal fade" id="editFeeTypeModal{{ fee.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="post" class="modal-content">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="edit_fee_type">
+                            <input type="hidden" name="fee_type_id" value="{{ fee.id }}">
+
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">Edit Fee Type</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Name *</label>
+                                    <input type="text" class="form-control" name="name" value="{{ fee.name }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea class="form-control" name="description" rows="3">{{ fee.description }}</textarea>
+                                </div>
+                                
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_recurring" 
+                                           id="is_recurring{{ fee.id }}" {% if fee.is_recurring %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_recurring{{ fee.id }}">
+                                        Recurring Fee (e.g., monthly/termly)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update Fee Type</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Delete Fee Type Modal for each fee type -->
+                <div class="modal fade" id="deleteFeeTypeModal{{ fee.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <form method="post" class="modal-content">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_fee_type">
+                            <input type="hidden" name="fee_type_id" value="{{ fee.id }}">
+
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Delete Fee Type</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body text-center">
+                                <div class="mb-4">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                    <h5>Are you sure?</h5>
+                                    <p class="text-muted">
+                                        You are about to delete the fee type: 
+                                        <strong>"{{ fee.name }}"</strong>
+                                    </p>
+                                    <div class="alert alert-warning">
+                                        <small>
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            This action cannot be undone. 
+                                            Any fee structures using this fee type will need to be updated.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                <h5>No Fee Types Found</h5>
+                <p class="text-muted">Start by creating your first fee type</p>
+                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addFeeTypeModal">
+                    <i class="fas fa-plus me-1"></i> Create Fee Type
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Fee Type Modal -->
+<div class="modal fade" id="addFeeTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_fee_type">
+
+            <div class="modal-header bg-finance-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i> Add Fee Type
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Name *</label>
+                    {{ fee_type_form.name }}
+                    {% if fee_type_form.name.errors %}
+                    <div class="text-danger small">
+                        {{ fee_type_form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    {{ fee_type_form.description }}
+                </div>
+                
+                <div class="form-check">
+                    {{ fee_type_form.is_recurring }}
+                    <label class="form-check-label">
+                        {{ fee_type_form.is_recurring.label }}
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-finance-primary">Save Fee Type</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- FILTER SECTION -->
+<!-- =========================================== -->
+<div class="finance-card mb-4">
+    <div class="card-header filter-card">
+        <h5 class="mb-0 text-white">
+            <i class="fas fa-filter me-2"></i> Filter Fee Structure
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Class</label>
+                <select name="class" class="form-select">
+                    <option value="all" {% if class_filter == 'all' %}selected{% endif %}>All Classes</option>
+                    {% for class in classes %}
+                        <option value="{{ class.name }}" {% if class_filter == class.name %}selected{% endif %}>
+                            {{ class.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Academic Year</label>
+                <select name="academic_year" class="form-select">
+                    <option value="all" {% if academic_year_filter == 'all' %}selected{% endif %}>All Years</option>
+                    {% for year in academic_years %}
+                        <option value="{{ year.year }}" {% if academic_year_filter == year.year %}selected{% endif %}>
+                            {{ year.year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Term</label>
+                <select name="term" class="form-select">
+                    <option value="all" {% if term_filter == 'all' %}selected{% endif %}>All Terms</option>
+                    {% for term in terms %}
+                        <option value="{{ term.name }}" {% if term_filter == term.name %}selected{% endif %}>
+                            {{ term.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3 d-flex align-items-end">
+                <div class="d-flex w-100">
+                    <button type="submit" class="btn btn-finance-primary me-2">
+                        <i class="fas fa-search me-1"></i> Filter
+                    </button>
+                    <a href="{% url 'fee_management' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- =========================================== -->
+<!-- FEE STRUCTURE SECTION (CRUD) -->
+<!-- =========================================== -->
+<div class="finance-card">
+    <div class="card-header bg-finance-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-money-bill-wave me-2"></i>
+            Fee Structure
+        </h5>
+    </div>
+    
+    <div class="card-body">
+        {% if grouped_fees %}
+            {% for key, fees in grouped_fees.items %}
+            <div class="fee-group">
+                <div class="fee-group-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">{{ key.0 }} - {{ key.1 }}</h5>
+                            <small class="text-muted">{{ fees|length }} fee items</small>
+                        </div>
+                        <div>
+                            <span class="fee-total">Total: ₦{{ group_totals|get_item:key|floatformat:2 }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    {% for fee_structure in fees %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="fee-item-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">{{ fee_structure.fee_type.name }}</h6>
+                                    <small class="text-muted">
+                                        {{ fee_structure.school_class.name }} • 
+                                        {{ fee_structure.term.get_name_display }}
+                                    </small>
+                                </div>
+                                <div class="fee-structure-actions">
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editFeeStructureModal{{ fee_structure.id }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteFeeStructureModal{{ fee_structure.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="amount positive">₦{{ fee_structure.amount|floatformat:2 }}</div>
+                                <small class="text-muted">
+                                    {{ fee_structure.academic_year.year }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Fee Structure Modal for each fee structure -->
+                    <div class="modal fade" id="editFeeStructureModal{{ fee_structure.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <form method="post" class="modal-content">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="edit_fee_structure">
+                                <input type="hidden" name="fee_structure_id" value="{{ fee_structure.id }}">
+
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Edit Fee Structure</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Fee Type *</label>
+                                            <select name="fee_type" class="form-select" required>
+                                                <option value="">Select Fee Type</option>
+                                                {% for fee_type in fee_types %}
+                                                <option value="{{ fee_type.id }}" 
+                                                    {% if fee_type.id == fee_structure.fee_type.id %}selected{% endif %}>
+                                                    {{ fee_type.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">Class *</label>
+                                            <select name="school_class" class="form-select" required>
+                                                <option value="">Select Class</option>
+                                                {% for class in classes %}
+                                                <option value="{{ class.id }}" 
+                                                    {% if class.id == fee_structure.school_class.id %}selected{% endif %}>
+                                                    {{ class.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">Academic Year *</label>
+                                            <select name="academic_year" class="form-select" required>
+                                                <option value="">Select Academic Year</option>
+                                                {% for year in academic_years %}
+                                                <option value="{{ year.id }}" 
+                                                    {% if year.id == fee_structure.academic_year.id %}selected{% endif %}>
+                                                    {{ year.year }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">Term *</label>
+                                            <select name="term" class="form-select" required>
+                                                <option value="">Select Term</option>
+                                                {% for term in terms %}
+                                                <option value="{{ term.id }}" 
+                                                    {% if term.id == fee_structure.term.id %}selected{% endif %}>
+                                                    {{ term.name }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">Amount *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₦</span>
+                                                <input type="number" class="form-control" name="amount" 
+                                                       value="{{ fee_structure.amount }}" 
+                                                       step="0.01" min="0" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Update Fee Structure</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Delete Fee Structure Modal for each fee structure -->
+                    <div class="modal fade" id="deleteFeeStructureModal{{ fee_structure.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form method="post" class="modal-content">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_fee_structure">
+                                <input type="hidden" name="fee_structure_id" value="{{ fee_structure.id }}">
+
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Delete Fee Structure</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body text-center">
+                                    <div class="mb-4">
+                                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                        <h5>Are you sure?</h5>
+                                        <p class="text-muted">
+                                            You are about to delete the fee structure for:
+                                        </p>
+                                        <div class="alert alert-info">
+                                            <strong>{{ fee_structure.fee_type.name }}</strong><br>
+                                            <small>
+                                                {{ fee_structure.school_class.name }} • 
+                                                {{ fee_structure.term.get_name_display }} • 
+                                                {{ fee_structure.academic_year.year }}
+                                            </small>
+                                        </div>
+                                        <div class="alert alert-warning">
+                                            <small>
+                                                <i class="fas fa-exclamation-circle me-1"></i>
+                                                This action cannot be undone.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% if not forloop.last %}
+            <hr class="my-4">
+            {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-fees">
+                <i class="fas fa-money-bill-wave fa-4x text-muted mb-3"></i>
+                <h4>No Fee Structure Found</h4>
+                <p class="text-muted">
+                    {% if class_filter != 'all' %}
+                        No fee structure defined for {{ class_filter }}
+                    {% else %}
+                        No fee structure has been defined yet
+                    {% endif %}
+                </p>
+                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addFeeStructureModal">
+                    <i class="fas fa-plus me-1"></i> Create Fee Structure
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if grouped_fees %}
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-6">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Showing fee structure for {{ current_year }}
+                </small>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-outline-success btn-sm" onclick="exportToCSV()">
+                    <i class="fas fa-file-export me-1"></i> Export as CSV
+                </button>
+                <button class="btn btn-outline-primary btn-sm ms-2" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Fee Structure Modal -->
+<div class="modal fade" id="addFeeStructureModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-finance-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>
+                    Add New Fee Structure
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_fee_structure">
+
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fee Type *</label>
+                            {{ fee_structure_form.fee_type }}
+                            {% if fee_structure_form.fee_type.errors %}
+                            <div class="text-danger small">
+                                {{ fee_structure_form.fee_type.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Class *</label>
+                            {{ fee_structure_form.school_class }}
+                            {% if fee_structure_form.school_class.errors %}
+                            <div class="text-danger small">
+                                {{ fee_structure_form.school_class.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Academic Year *</label>
+                            {{ fee_structure_form.academic_year }}
+                            {% if fee_structure_form.academic_year.errors %}
+                            <div class="text-danger small">
+                                {{ fee_structure_form.academic_year.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Term *</label>
+                            {{ fee_structure_form.term }}
+                            {% if fee_structure_form.term.errors %}
+                            <div class="text-danger small">
+                                {{ fee_structure_form.term.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Amount *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₦</span>
+                                {{ fee_structure_form.amount }}
+                            </div>
+                            {% if fee_structure_form.amount.errors %}
+                            <div class="text-danger small">
+                                {{ fee_structure_form.amount.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-finance-primary">
+                        Add Fee Structure
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format all amounts on the page
+        document.querySelectorAll('.amount').forEach(element => {
+            const text = element.textContent;
+            const amount = parseFloat(text.replace(/[^0-9.-]+/g, ''));
+            if (!isNaN(amount)) {
+                element.textContent = formatCurrency(amount);
+            }
+        });
+        
+        // Initialize tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+    });
+    
+    // Helper function to format currency
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-NG', {
+            style: 'currency',
+            currency: 'NGN',
+            minimumFractionDigits: 2
+        }).format(amount);
+    }
+    
+    // Export to CSV function
+    function exportToCSV() {
+        // Create CSV content
+        let csvContent = "Fee Type,Class,Academic Year,Term,Amount\n";
+        
+        document.querySelectorAll('.fee-item-card').forEach(card => {
+            const feeType = card.querySelector('h6').textContent.trim();
+            const classText = card.querySelector('small').textContent.split('•')[0].trim();
+            const termText = card.querySelector('small').textContent.split('•')[1].trim();
+            const amountText = card.querySelector('.amount').textContent;
+            const yearText = card.querySelectorAll('small')[1]?.textContent.trim() || '';
+            
+            // Extract year from the grouped header
+            const header = card.closest('.fee-group').querySelector('h5').textContent;
+            const yearMatch = header.match(/-\s*(.+)$/);
+            const academicYear = yearMatch ? yearMatch[1].trim() : yearText;
+            
+            const amount = parseFloat(amountText.replace(/[^0-9.-]+/g, ''));
+            
+            csvContent += `"${feeType}","${classText}","${academicYear}","${termText}","${amount.toFixed(2)}"\n`;
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `fee_structure_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+{% endblock %}

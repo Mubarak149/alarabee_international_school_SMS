@@ -1,0 +1,169 @@
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+<div class="mobile-sidebar" id="mobileSidebar">
+    <div class="mobile-sidebar-header">
+        <div class="text-center">
+            <h6 class="mb-1">Finance Department</h6>
+            <small class="text-muted">{{ request.user.get_full_name }}</small>
+        </div>
+        <button class="mobile-sidebar-close" id="mobileSidebarClose">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'finance_dashboard' %}active{% endif %}"
+                   href="{% url 'finance_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_invoices' %}active{% endif %}"
+                   href="{% url 'student_invoices' %}">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Student Invoices</span>
+                    {% if pending_invoices %}
+                        <span class="badge bg-danger">{{ pending_invoices }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'fee_management' %}active{% endif %}"
+                   href="{% url 'fee_management' %}">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Fee Management</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'sponsorship_management' %}active{% endif %}"
+                   href="{% url 'sponsorship_management' %}">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span>Sponsorships</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'finance_reports' %}active{% endif %}"
+                   href="{% url 'finance_reports' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reports</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-divider"></div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-print"></i>
+                    <span>Print Receipts</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-file-export"></i>
+                    <span>Export Data</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="d-grid">
+            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Desktop Sidebar -->
+<div class="desktop-sidebar" id="desktopSidebar">
+    <div class="sidebar-header">
+        <h6>Finance Department</h6>
+        <small class="text-muted">{{ request.user.get_full_name }}</small>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'finance_dashboard' %}active{% endif %}"
+                   href="{% url 'finance_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_invoices' %}active{% endif %}"
+                   href="{% url 'student_invoices' %}">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span class="sidebar-text">Student Invoices</span>
+                    {% if pending_invoices %}
+                        <span class="badge bg-danger">{{ pending_invoices }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'fee_management' %}active{% endif %}"
+                   href="{% url 'fee_management' %}">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span class="sidebar-text">Fee Management</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'sponsorship_management' %}active{% endif %}"
+                   href="{% url 'sponsorship_management' %}">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <span class="sidebar-text">Sponsorships</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'finance_reports' %}active{% endif %}"
+                   href="{% url 'finance_reports' %}">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="sidebar-text">Reports</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-divider"></div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-print"></i>
+                    <span class="sidebar-text">Print Receipts</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-file-export"></i>
+                    <span class="sidebar-text">Export Data</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Settings</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>

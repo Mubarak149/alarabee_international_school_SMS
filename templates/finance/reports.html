@@ -1,0 +1,492 @@
+{% extends "finance/base_finance.html" %}
+
+{% block title %}Financial Reports - Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .report-card {
+        height: 100%;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .report-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 28px;
+        color: white;
+    }
+    
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    .revenue-stats {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+    
+    .stat-box {
+        text-align: center;
+        padding: 15px;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    .method-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .report-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
+        
+        .chart-container {
+            height: 250px;
+        }
+        
+        .revenue-stats {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Financial Reports</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Reports</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <span class="badge bg-finance-primary p-2">
+                <i class="fas fa-calendar-alt me-1"></i>
+                Academic Year: {{ current_year }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Reports -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-4">
+        <div class="report-card finance-card text-center" onclick="window.location.href='{% url 'export_report' 'revenue' %}'">
+            <div class="card-body">
+                <div class="report-icon bg-finance-primary">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5>Revenue Report</h5>
+                <p class="text-muted small">Detailed revenue analysis by term and class</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="report-card finance-card text-center" onclick="window.location.href='{% url 'export_report' 'invoices' %}'">
+            <div class="card-body">
+                <div class="report-icon bg-success">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h5>Invoice Report</h5>
+                <p class="text-muted small">All invoices with payment status</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="report-card finance-card text-center" onclick="window.location.href='{% url 'export_report' 'payments' %}'">
+            <div class="card-body">
+                <div class="report-icon bg-info">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h5>Payment Report</h5>
+                <p class="text-muted small">Payment history and methods analysis</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="report-card finance-card text-center" onclick="window.location.href='{% url 'export_report' 'sponsorships' %}'">
+            <div class="card-body">
+                <div class="report-icon bg-warning">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+                <h5>Sponsorship Report</h5>
+                <p class="text-muted small">Sponsorship coverage and impact</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue by Term -->
+<div class="finance-card mb-4">
+    <div class="card-header bg-finance-primary text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-chart-bar me-2"></i>
+            Revenue by Term
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="chart-container">
+                    <canvas id="termRevenueChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Term</th>
+                                <th class="text-end">Revenue</th>
+                                <th class="text-end">Collected</th>
+                                <th class="text-end">Invoices</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for term in revenue_by_term %}
+                            <tr>
+                                <td>{{ term.term__name }}</td>
+                                <td class="text-end amount positive">${{ term.total_revenue|floatformat:2 }}</td>
+                                <td class="text-end amount positive">${{ term.total_collected|floatformat:2 }}</td>
+                                <td class="text-end">{{ term.invoice_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td><strong>Total</strong></td>
+                                <td class="text-end">
+                                    <strong class="amount positive">
+                                        ${% with total=revenue_by_term|map:"total_revenue"|sum %}{{ total|floatformat:2 }}{% endwith %}
+                                    </strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="amount positive">
+                                        ${% with total=revenue_by_term|map:"total_collected"|sum %}{{ total|floatformat:2 }}{% endwith %}
+                                    </strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong>{% with total=revenue_by_term|map:"invoice_count"|sum %}{{ total }}{% endwith %}</strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue by Class -->
+<div class="finance-card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-school me-2"></i>
+            Revenue by Class
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="chart-container mb-4">
+            <canvas id="classRevenueChart"></canvas>
+        </div>
+        
+        <div class="row">
+            {% for class_data in revenue_by_class %}
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="stat-box">
+                    <div class="stat-value amount positive">${{ class_data.total_revenue|floatformat:2 }}</div>
+                    <div class="stat-label">{{ class_data.student__current_class__name }}</div>
+                    <small class="text-muted">{{ class_data.invoice_count }} invoices</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Payment Methods Analysis -->
+<div class="finance-card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-credit-card me-2"></i>
+            Payment Methods Analysis
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <canvas id="paymentMethodsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Payment Method</th>
+                                <th class="text-end">Total Amount</th>
+                                <th class="text-end">Transactions</th>
+                                <th class="text-end">Avg. Transaction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for method in payment_methods %}
+                            <tr>
+                                <td>
+                                    <span class="method-badge 
+                                        {% if method.payment_method == 'cash' %}bg-success
+                                        {% elif method.payment_method == 'transfer' %}bg-primary
+                                        {% elif method.payment_method == 'pos' %}bg-purple
+                                        {% else %}bg-info{% endif %}">
+                                        {{ method.payment_method|title }}
+                                    </span>
+                                </td>
+                                <td class="text-end amount positive">${{ method.total_amount|floatformat:2 }}</td>
+                                <td class="text-end">{{ method.count }}</td>
+                                <td class="text-end amount positive">${{ method.total_amount|div:method.count|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td><strong>Total</strong></td>
+                                <td class="text-end">
+                                    <strong class="amount positive">
+                                        ${% with total=payment_methods|map:"total_amount"|sum %}{{ total|floatformat:2 }}{% endwith %}
+                                    </strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong>{% with total=payment_methods|map:"count"|sum %}{{ total }}{% endwith %}</strong>
+                                </td>
+                                <td class="text-end">
+                                    <strong class="amount positive">
+                                        ${% with total_amount=payment_methods|map:"total_amount"|sum total_count=payment_methods|map:"count"|sum %}{{ total_amount|div:total_count|floatformat:2 }}{% endwith %}
+                                    </strong>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Reports are generated based on {{ current_year }} data
+                </small>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary btn-sm" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> Print Report
+                </button>
+                <button class="btn btn-finance-primary btn-sm ms-2" onclick="showToast('Report exported successfully!', 'success')">
+                    <i class="fas fa-file-export me-1"></i> Export Full Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format all amounts on the page
+        document.querySelectorAll('.amount').forEach(element => {
+            const text = element.textContent;
+            const amount = parseFloat(text.replace(/[^0-9.-]+/g, ''));
+            if (!isNaN(amount)) {
+                element.textContent = formatCurrency(amount);
+            }
+        });
+        
+        // Revenue by Term Chart
+        const termCtx = document.getElementById('termRevenueChart');
+        if (termCtx) {
+            const termLabels = {{ revenue_by_term|map:"term__name"|safe }};
+            const termRevenue = {{ revenue_by_term|map:"total_revenue"|safe }};
+            const termCollected = {{ revenue_by_term|map:"total_collected"|safe }};
+            
+            new Chart(termCtx, {
+                type: 'bar',
+                data: {
+                    labels: termLabels,
+                    datasets: [
+                        {
+                            label: 'Total Revenue',
+                            data: termRevenue,
+                            backgroundColor: '#4CAF50',
+                            borderColor: '#388E3C',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Amount Collected',
+                            data: termCollected,
+                            backgroundColor: '#2196F3',
+                            borderColor: '#1976D2',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.raw);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Revenue by Class Chart
+        const classCtx = document.getElementById('classRevenueChart');
+        if (classCtx) {
+            const classLabels = {{ revenue_by_class|map:"student__current_class__name"|safe }};
+            const classRevenue = {{ revenue_by_class|map:"total_revenue"|safe }};
+            
+            new Chart(classCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: classLabels,
+                    datasets: [{
+                        data: classRevenue,
+                        backgroundColor: [
+                            '#4CAF50',
+                            '#2196F3',
+                            '#FF9800',
+                            '#9C27B0',
+                            '#F44336',
+                            '#00BCD4'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = classRevenue.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return context.label + ': ' + formatCurrency(value) + ` (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Payment Methods Chart
+        const methodCtx = document.getElementById('paymentMethodsChart');
+        if (methodCtx) {
+            const methodLabels = {{ payment_methods|map:"payment_method"|safe }};
+            const methodAmounts = {{ payment_methods|map:"total_amount"|safe }};
+            const methodColors = methodLabels.map(label => {
+                if (label === 'cash') return '#28a745';
+                if (label === 'transfer') return '#007bff';
+                if (label === 'pos') return '#6f42c1';
+                return '#17a2b8';
+            });
+            
+            new Chart(methodCtx, {
+                type: 'pie',
+                data: {
+                    labels: methodLabels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                    datasets: [{
+                        data: methodAmounts,
+                        backgroundColor: methodColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = methodAmounts.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return context.label + ': ' + formatCurrency(value) + ` (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

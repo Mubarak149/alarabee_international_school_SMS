@@ -1,0 +1,434 @@
+{% extends "finance/base_finance.html" %}
+
+{% block title %}Sponsorship Management - Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sponsorship-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s;
+    }
+    
+    .sponsorship-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .sponsorship-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-none { background-color: #6c757d; color: white; }
+    .badge-full { background-color: #28a745; color: white; }
+    .badge-partial { background-color: #ffc107; color: #212529; }
+    .badge-other { background-color: #17a2b8; color: white; }
+    
+    .percentage-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: conic-gradient(#4CAF50 var(--percentage), #f0f0f0 0%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .empty-sponsorships {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    
+    .filter-badge {
+        cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+        .sponsorship-card {
+            padding: 15px;
+        }
+        
+        .percentage-circle {
+            width: 50px;
+            height: 50px;
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Sponsorship Management</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Sponsorships</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addSponsorshipModal">
+                <i class="fas fa-plus me-1"></i> Add Sponsorship
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="finance-card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <form method="get" class="d-flex">
+                    <input type="text" 
+                           name="search" 
+                           class="form-control" 
+                           placeholder="Search by student or sponsor..."
+                           value="{{ search_query }}">
+                    <button type="submit" class="btn btn-finance-primary ms-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="btn-group w-100" role="group">
+                    <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="btn btn-outline-secondary {% if type_filter == 'all' %}active{% endif %}">
+                        All Types
+                    </a>
+                    <a href="?type=none{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="btn btn-outline-dark {% if type_filter == 'none' %}active{% endif %}">
+                        No Scholarship
+                    </a>
+                    <a href="?type=full{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="btn btn-outline-success {% if type_filter == 'full' %}active{% endif %}">
+                        Full
+                    </a>
+                    <a href="?type=partial{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="btn btn-outline-warning {% if type_filter == 'partial' %}active{% endif %}">
+                        Partial
+                    </a>
+                    <a href="?type=other{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="btn btn-outline-info {% if type_filter == 'other' %}active{% endif %}">
+                        Other
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if type_filter != 'all' or search_query %}
+        <div class="mt-3">
+            <small class="text-muted">Active filters:</small>
+            {% if type_filter != 'all' %}
+                <span class="badge bg-info ms-2 filter-badge">
+                    Type: {{ type_filter|title }}
+                    <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="text-white ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if search_query %}
+                <span class="badge bg-secondary ms-2 filter-badge">
+                    Search: "{{ search_query }}"
+                    <a href="?type={{ type_filter }}"
+                       class="text-white ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+            <a href="{% url 'sponsorship_management' %}" class="btn btn-sm btn-outline-secondary ms-2">
+                Clear All Filters
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sponsorships Grid -->
+<div class="finance-card">
+    <div class="card-header bg-finance-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-hand-holding-usd me-2"></i>
+            Student Sponsorships ({{ sponsorships|length }})
+        </h5>
+        <div>
+            {% with full_count=sponsorships|filter_sponsorship:"full"|length %}
+            {% with partial_count=sponsorships|filter_sponsorship:"partial"|length %}
+            <span class="badge bg-success me-2">{{ full_count }} Full</span>
+            <span class="badge bg-warning">{{ partial_count }} Partial</span>
+            {% endwith %}
+            {% endwith %}
+        </div>
+    </div>
+    
+    <div class="card-body">
+        {% if sponsorships %}
+            <div class="row">
+                {% for sponsorship in sponsorships %}
+                <div class="col-xl-4 col-lg-6 mb-4">
+                    <div class="sponsorship-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-1">{{ sponsorship.student.name }}</h5>
+                                <small class="text-muted">{{ sponsorship.student.class }}</small>
+                            </div>
+                            <span class="sponsorship-badge badge-{{ sponsorship.sponsorship_type }}">
+                                {{ sponsorship.sponsorship_type_label }}
+                            </span>
+                        </div>
+                        
+                        {% if sponsorship.sponsorship_type != 'none' %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-user-tie fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Sponsored by</h6>
+                                    <p class="mb-0">{{ sponsorship.sponsor_name }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if sponsorship.sponsorship_type == 'partial' and sponsorship.percentage_covered %}
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <h6 class="mb-0">Coverage</h6>
+                                    <p class="mb-0 text-muted">Percentage covered by sponsor</p>
+                                </div>
+                                <div class="percentage-circle" 
+                                     style="--percentage: {{ sponsorship.percentage_covered }}%">
+                                    {{ sponsorship.percentage_covered }}%
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if sponsorship.sponsorship_type == 'full' %}
+                        <div class="alert alert-success mb-3">
+                            <i class="fas fa-check-circle me-2"></i>
+                            All fees are covered by the sponsor
+                        </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                Updated recently
+                            </small>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-info ms-1" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-sponsorships">
+                <i class="fas fa-hand-holding-usd fa-4x text-muted mb-3"></i>
+                <h4>No Sponsorships Found</h4>
+                <p class="text-muted">
+                    {% if type_filter != 'all' or search_query %}
+                        Try adjusting your filters
+                    {% else %}
+                        No sponsorships have been recorded yet
+                    {% endif %}
+                </p>
+                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addSponsorshipModal">
+                    <i class="fas fa-plus me-1"></i> Add First Sponsorship
+                </button>
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if sponsorships %}
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-6">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Sponsorships help track financial support for students
+                </small>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-outline-success btn-sm">
+                    <i class="fas fa-file-export me-1"></i> Export List
+                </button>
+                <button class="btn btn-outline-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#bulkUpdateModal">
+                    <i class="fas fa-edit me-1"></i> Bulk Update
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Sponsorship Modal -->
+<div class="modal fade" id="addSponsorshipModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-finance-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>
+                    Add New Sponsorship
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Student *</label>
+                        <select class="form-select" required>
+                            <option value="">Choose a student...</option>
+                            <option value="1">John Smith (Grade 10A)</option>
+                            <option value="2">Sarah Johnson (Grade 11B)</option>
+                            <option value="3">Michael Brown (Grade 9C)</option>
+                            <option value="4">Emily Davis (Grade 12A)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Sponsorship Type *</label>
+                        <select class="form-select" id="sponsorshipType" required>
+                            <option value="">Select type...</option>
+                            <option value="none">No Scholarship</option>
+                            <option value="full">Full Scholarship</option>
+                            <option value="partial">Partial Scholarship</option>
+                            <option value="other">Other / Unknown</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="sponsorNameGroup" style="display: none;">
+                        <label class="form-label">Sponsor Name *</label>
+                        <input type="text" class="form-control" 
+                               placeholder="Government, NGO, Parent, Company, etc.">
+                    </div>
+                    
+                    <div class="mb-3" id="percentageGroup" style="display: none;">
+                        <label class="form-label">Percentage Covered *</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" min="1" max="100" 
+                                   placeholder="e.g., 50">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <small class="text-muted">Enter percentage (1-100) for partial scholarship</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" rows="3" 
+                                  placeholder="Any additional information about this sponsorship..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-finance-primary">Add Sponsorship</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Update Modal -->
+<div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>
+                    Bulk Update Sponsorships
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    Select multiple students and update their sponsorship status in bulk.
+                </p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This feature allows you to update multiple sponsorships at once.
+                </div>
+                <button class="btn btn-info w-100" disabled>
+                    <i class="fas fa-cogs me-1"></i> Coming Soon
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+        
+        // Show/hide form fields based on sponsorship type
+        const typeSelect = document.getElementById('sponsorshipType');
+        const sponsorNameGroup = document.getElementById('sponsorNameGroup');
+        const percentageGroup = document.getElementById('percentageGroup');
+        
+        if (typeSelect) {
+            typeSelect.addEventListener('change', function() {
+                const type = this.value;
+                
+                if (type === 'none') {
+                    sponsorNameGroup.style.display = 'none';
+                    percentageGroup.style.display = 'none';
+                } else if (type === 'partial') {
+                    sponsorNameGroup.style.display = 'block';
+                    percentageGroup.style.display = 'block';
+                } else if (type === 'full' || type === 'other') {
+                    sponsorNameGroup.style.display = 'block';
+                    percentageGroup.style.display = 'none';
+                }
+            });
+        }
+        
+        // Initialize percentage circles
+        document.querySelectorAll('.percentage-circle').forEach(circle => {
+            const text = circle.textContent.trim();
+            const percentage = parseInt(text);
+            if (!isNaN(percentage)) {
+                circle.style.setProperty('--percentage', `${percentage}%`);
+            }
+        });
+    });
+    
+    // Custom filter for template (you'll need to add this to your template filters)
+    // In a real Django app, you would create a custom template filter
+    function filterSponsorships(sponsorships, type) {
+        return sponsorships.filter(s => s.sponsorship_type === type);
+    }
+</script>
+{% endblock %}

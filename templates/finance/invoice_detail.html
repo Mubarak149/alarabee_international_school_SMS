@@ -1,0 +1,263 @@
+{% extends "finance/base_finance.html" %}
+
+{% block title %}Generate Invoice - Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+    .student-card {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .form-section {
+        margin-bottom: 30px;
+    }
+    
+    .fee-preview {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .fee-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .fee-item:last-child {
+        border-bottom: none;
+    }
+    
+    .total-fee {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    @media (max-width: 768px) {
+        .student-card {
+            padding: 15px;
+        }
+        
+        .fee-preview {
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Generate Invoice</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'student_invoices' %}">Invoices</a></li>
+                    <li class="breadcrumb-item active">Generate Invoice</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'student_invoices' %}" class="btn btn-outline-finance-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Invoices
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="finance-card">
+            <div class="card-header bg-finance-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Generate New Invoice
+                </h5>
+            </div>
+            
+            <div class="card-body">
+                <!-- Student Information -->
+                <div class="student-card mb-4 p-4">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="mb-2">{{ student.name }}</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Class</small>
+                                    <strong>{{ student.class }}</strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted d-block">Academic Year</small>
+                                    <strong>{{ current_year }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="badge bg-info p-2">
+                                <i class="fas fa-user-graduate me-1"></i>
+                                Student ID: {{ student.id }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Invoice Form -->
+                <form method="post" action="{% url 'generate_invoice' student.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-section">
+                        <h5 class="mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Select Term
+                        </h5>
+                        
+                        <div class="row">
+                            {% for term in terms %}
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check card">
+                                    <input class="form-check-input" type="radio" 
+                                           name="term" id="term{{ forloop.counter }}" 
+                                           value="{{ term }}" required 
+                                           {% if forloop.first %}checked{% endif %}>
+                                    <label class="form-check-label card-body" for="term{{ forloop.counter }}">
+                                        <h6 class="card-title">{{ term }}</h6>
+                                        <p class="card-text text-muted small">
+                                            {{ term }} fees for {{ current_year }}
+                                        </p>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Fee Preview -->
+                    <div class="form-section">
+                        <h5 class="mb-3">
+                            <i class="fas fa-money-bill-wave me-2"></i>
+                            Fee Preview
+                        </h5>
+                        
+                        <div class="fee-preview mb-4">
+                            <div class="fee-item d-flex justify-content-between">
+                                <div>
+                                    <strong>Tuition Fee</strong>
+                                    <p class="text-muted small mb-0">Term tuition fee</p>
+                                </div>
+                                <div class="amount positive">$450.00</div>
+                            </div>
+                            
+                            <div class="fee-item d-flex justify-content-between">
+                                <div>
+                                    <strong>Hostel Fee</strong>
+                                    <p class="text-muted small mb-0">Boarding charges</p>
+                                </div>
+                                <div class="amount positive">$300.00</div>
+                            </div>
+                            
+                            <div class="fee-item d-flex justify-content-between">
+                                <div>
+                                    <strong>Examination Fee</strong>
+                                    <p class="text-muted small mb-0">Term examination charges</p>
+                                </div>
+                                <div class="amount positive">$150.00</div>
+                            </div>
+                            
+                            <div class="fee-item d-flex justify-content-between">
+                                <div>
+                                    <strong>Uniform Fee</strong>
+                                    <p class="text-muted small mb-0">School uniform</p>
+                                </div>
+                                <div class="amount positive">$200.00</div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Total Amount</h6>
+                                    <p class="text-muted small mb-0">All fees combined</p>
+                                </div>
+                                <div class="total-fee amount positive">$1,100.00</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Notes -->
+                        <div class="mb-4">
+                            <label for="notes" class="form-label">
+                                <i class="fas fa-sticky-note me-1"></i>
+                                Additional Notes (Optional)
+                            </label>
+                            <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                      placeholder="Any special instructions or notes for this invoice..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                        <div>
+                            <a href="{% url 'student_invoices' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-finance-primary">
+                                <i class="fas fa-file-invoice-dollar me-1"></i> Generate Invoice
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Help Information -->
+        <div class="alert alert-info mt-4">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="fas fa-info-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h6 class="alert-heading">About Invoice Generation</h6>
+                    <p class="mb-2">Once generated, this invoice will appear in the student's invoice history and can be accessed by both the student and finance department.</p>
+                    <ul class="mb-0 small">
+                        <li>The invoice will be marked as "Unpaid" until payments are recorded</li>
+                        <li>You can add multiple payments to the same invoice</li>
+                        <li>Automatic reminders can be configured for unpaid invoices</li>
+                        <li>Generated invoices can be printed or exported as PDF</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format all amounts on the page
+        document.querySelectorAll('.amount').forEach(element => {
+            const text = element.textContent;
+            const amount = parseFloat(text.replace(/[^0-9.-]+/g, ''));
+            if (!isNaN(amount)) {
+                element.textContent = formatCurrency(amount);
+            }
+        });
+        
+        // Update fee preview based on selected term
+        const termRadios = document.querySelectorAll('input[name="term"]');
+        termRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    const term = this.value;
+                    // In a real app, you would fetch fee structure based on term
+                    showToast(`Fee structure loaded for ${term}`, 'info');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

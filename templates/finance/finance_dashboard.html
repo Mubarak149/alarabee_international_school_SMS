@@ -1,1198 +1,474 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Dashboard - School SMS</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4e73df;
-            --success-color: #1cc88a;
-            --danger-color: #e74a3b;
-            --warning-color: #f6c23e;
-            --info-color: #36b9cc;
-            --purple-color: #6f42c1;
-            
-            --bg-primary: #f8f9fc;
-            --bg-secondary: #ffffff;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --border-color: #e3e6f0;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        [data-theme="dark"] {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2d2d2d;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --border-color: #444444;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            padding-top: 70px;
-        }
-        
-        /* Navbar */
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            background-color: var(--danger-color) !important;
-        }
-        
-        /* Main Content */
-        .main-content {
-            padding: 20px;
-            min-height: calc(100vh - 70px);
-            background-color: var(--bg-primary);
-        }
-        
-        /* Cards */
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            margin-bottom: 20px;
-            background-color: var(--bg-secondary);
-        }
-        
-        /* Stats */
-        .stat-card {
-            padding: 20px;
-            border-radius: 12px;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            transform: translate(30px, -30px);
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        /* 5-Box Flow */
-        .model-flow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 30px;
-            justify-content: center;
-        }
-        
-        .model-box {
-            flex: 1;
-            min-width: 200px;
-            max-width: 220px;
-            padding: 20px;
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            text-align: center;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-            cursor: pointer;
-        }
-        
-        .model-box:hover {
-            transform: translateY(-5px);
-            border-color: var(--danger-color);
-        }
-        
-        .model-box i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            display: block;
-        }
-        
-        .model-count {
-            display: inline-block;
-            padding: 4px 12px;
-            background: var(--bg-primary);
-            border-radius: 20px;
-            font-size: 0.85rem;
-            margin-top: 8px;
-        }
-        
-        /* Tables */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th {
-            background: var(--danger-color);
-            color: white;
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 500;
-        }
-        
-        .data-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .data-table tr:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-        
-        /* Action Buttons */
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 2px;
-            border: none;
-            cursor: pointer;
-        }
-        
-        .btn-view {
-            background: rgba(54, 185, 204, 0.1);
-            color: var(--info-color);
-        }
-        
-        .btn-edit {
-            background: rgba(246, 194, 62, 0.1);
-            color: var(--warning-color);
-        }
-        
-        .btn-delete {
-            background: rgba(231, 74, 59, 0.1);
-            color: var(--danger-color);
-        }
-        
-        .btn-add {
-            background: var(--success-color);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-        
-        /* Modal */
-        .modal-content {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-        
-        .modal-header {
-            border-bottom-color: var(--border-color);
-        }
-        
-        .modal-footer {
-            border-top-color: var(--border-color);
-        }
-        
-        .form-control, .form-select {
-            background-color: var(--bg-secondary);
-            border-color: var(--border-color);
-            color: var(--text-primary);
-        }
-        
-        .form-control:focus, .form-select:focus {
-            background-color: var(--bg-secondary);
-            border-color: var(--danger-color);
-            color: var(--text-primary);
-            box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
-        }
-        
-        /* Status Badges */
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        
-        .status-paid {
-            background: rgba(28, 200, 138, 0.15);
-            color: var(--success-color);
-        }
-        
-        .status-partial {
-            background: rgba(246, 194, 62, 0.15);
-            color: var(--warning-color);
-        }
-        
-        .status-unpaid {
-            background: rgba(231, 74, 59, 0.15);
-            color: var(--danger-color);
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .model-flow {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .model-box {
-                min-width: 100%;
-            }
-        }
-        
-        /* Utilities */
-        .text-money {
-            font-weight: 600;
-        }
-        
-        .text-success { color: var(--success-color); }
-        .text-danger { color: var(--danger-color); }
-        .text-warning { color: var(--warning-color); }
-        .text-info { color: var(--info-color); }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-chart-line me-2"></i>
-                School Finance Dashboard
-            </a>
-        </div>
-    </nav>
+{% extends "finance/base_finance.html" %}
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Page Header -->
-        <div class="mb-4">
-            <h1 class="h2 mb-2">Finance Dashboard</h1>
-            <p class="text-muted">5-Box Model with Full CRUD Operations</p>
-        </div>
+{% block title %}Finance Dashboard{% endblock %}
 
-        <!-- 5-Box Model Flow -->
-        <div class="model-flow">
-            <div class="model-box" onclick="showFeeCategories()">
-                <i class="fas fa-tags text-danger"></i>
-                <h5>FeeCategory</h5>
-                <p class="text-muted small mb-2">Tuition, Library, Exam, etc.</p>
-                <span class="model-count" id="categoryCount">0 Categories</span>
-            </div>
-            
-            <div class="model-box" onclick="showFeeStructures()">
-                <i class="fas fa-list-alt text-primary"></i>
-                <h5>FeeStructure</h5>
-                <p class="text-muted small mb-2">School Price List</p>
-                <span class="model-count" id="structureCount">0 Structures</span>
-            </div>
-            
-            <div class="model-box" onclick="showStudentFees()">
-                <i class="fas fa-user-graduate text-success"></i>
-                <h5>StudentFee</h5>
-                <p class="text-muted small mb-2">Personalized Bills</p>
-                <span class="model-count" id="studentFeeCount">0 Bills</span>
-            </div>
-            
-            <div class="model-box" onclick="showPayments()">
-                <i class="fas fa-money-bill-wave text-warning"></i>
-                <h5>Payment</h5>
-                <p class="text-muted small mb-2">Installments & Receipts</p>
-                <span class="model-count" id="paymentCount">0 Payments</span>
-            </div>
-            
-            <div class="model-box" onclick="showScholarships()">
-                <i class="fas fa-award text-info"></i>
-                <h5>Scholarship</h5>
-                <p class="text-muted small mb-2">Discounts & Waivers</p>
-                <span class="model-count" id="scholarshipCount">0 Scholarships</span>
-            </div>
-        </div>
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.12);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .revenue-chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    .quick-action-btn {
+        padding: 10px 15px;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .payment-method-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    
+    @media (max-width: 768px) {
+        .revenue-chart-container {
+            height: 250px;
+        }
+        
+        .stat-card .card-body {
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
 
-        <!-- Key Metrics -->
-        <div class="row mb-4">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #1cc88a, #17a673);">
-                    <div class="stat-value">₵ <span id="totalRevenue">0</span></div>
-                    <div class="stat-label">Total Revenue</div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #e74a3b, #d62a24);">
-                    <div class="stat-value">₵ <span id="totalPending">0</span></div>
-                    <div class="stat-label">Pending Payments</div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #4e73df, #2e59d9);">
-                    <div class="stat-value">₵ <span id="totalScholarship">0</span></div>
-                    <div class="stat-label">Scholarships Given</div>
-                </div>
-            </div>
-            
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card" style="background: linear-gradient(135deg, #6f42c1, #5936a2);">
-                    <div class="stat-value"><span id="paidStudents">0</span>/<span id="totalStudents">0</span></div>
-                    <div class="stat-label">Students Paid</div>
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Finance Dashboard</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active">Overview</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <span class="text-muted me-3">
+                <i class="fas fa-calendar-alt me-1"></i>
+                {{ current_year.name }} - {{ current_term.name|default:"Annual" }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Revenue</h6>
+                        <h3 class="mb-0 text-finance-primary">
+                            ${{ total_revenue|floatformat:2|default:"0.00" }}
+                        </h3>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            ${{ current_month_revenue|floatformat:2 }} this month
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-finance-primary">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Students</h6>
+                        <h3 class="mb-0 text-success">{{ total_students }}</h3>
+                        <small class="text-muted">
+                            {% for summary in sponsorship_summary %}
+                                {% if summary.sponsorship_type == 'full' %}
+                                    {{ summary.count }} full scholarships
+                                {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Invoices</h6>
+                        <h3 class="mb-0 text-warning">{{ total_invoices }}</h3>
+                        <small class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            {{ pending_invoices }} pending invoices
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card border-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Payment Status</h6>
+                        <h3 class="mb-0 text-info">
+                            {% for status in invoice_status %}
+                                {% if status.status == 'paid' %}
+                                    {{ status.count }}
+                                {% endif %}
+                            {% endfor %}
+                        </h3>
+                        <small class="text-muted">
+                            {% for status in invoice_status %}
+                                {% if status.status == 'partial' %}
+                                    {{ status.count }} partial payments
+                                {% endif %}
+                            {% endfor %}
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        <!-- Data Display Area -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0" id="currentView">Student Fee Overview</h5>
-                <button class="btn-add" id="addBtn" onclick="openAddModal()">
-                    <i class="fas fa-plus"></i>
-                    Add New
-                </button>
+<!-- Revenue Chart and Quick Actions -->
+<div class="row g-4 mb-4">
+    <!-- Revenue Chart -->
+    <div class="col-xl-8">
+        <div class="finance-card">
+            <div class="card-header bg-finance-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Revenue Overview (Last 7 Months)
+                </h5>
             </div>
             <div class="card-body">
+                <div class="revenue-chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-xl-4">
+        <div class="finance-card">
+            <div class="card-header bg-finance-secondary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="{% url 'student_invoices' %}" 
+                           class="btn btn-finance-primary w-100 quick-action-btn d-flex flex-column align-items-center py-3">
+                            <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
+                            <span>View Invoices</span>
+                            <small class="text-white opacity-75 mt-1">{{ pending_invoices }} pending</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'fee_management' %}" 
+                           class="btn btn-success w-100 quick-action-btn d-flex flex-column align-items-center py-3">
+                            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                            <span>Fee Structure</span>
+                            <small class="text-white opacity-75 mt-1">Manage fees</small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'sponsorship_management' %}" 
+                           class="btn btn-info w-100 quick-action-btn d-flex flex-column align-items-center py-3">
+                            <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
+                            <span>Sponsorships</span>
+                            <small class="text-white opacity-75 mt-1">
+                                {% for summary in sponsorship_summary %}
+                                    {% if summary.sponsorship_type == 'full' %}
+                                        {{ summary.count }} full
+                                    {% endif %}
+                                {% endfor %}
+                            </small>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{% url 'finance_reports' %}" 
+                           class="btn btn-warning w-100 quick-action-btn d-flex flex-column align-items-center py-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <span>Reports</span>
+                            <small class="text-white opacity-75 mt-1">Generate reports</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Invoice Status Summary -->
+                <div class="mt-4 pt-3 border-top">
+                    <h6 class="mb-3">Invoice Status Summary</h6>
+                    {% for status in invoice_status %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">{{ status.status|title }}</span>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">${{ status.total_amount|default:0|floatformat:2 }}</span>
+                            <span class="status-badge badge-status-{{ status.status }}">
+                                {{ status.count }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Payments and Outstanding Invoices -->
+<div class="row g-4">
+    <!-- Recent Payments -->
+    <div class="col-xl-6">
+        <div class="finance-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Recent Payments
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_payments %}
                 <div class="table-responsive">
-                    <table class="data-table" id="dataTable">
-                        <!-- Data will be populated dynamically -->
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ payment.invoice.student.user.get_full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ payment.invoice.student.admission_number }}</small>
+                                    </div>
+                                </td>
+                                <td class="amount positive">
+                                    ${{ payment.amount_paid|floatformat:2 }}
+                                </td>
+                                <td>
+                                    <span class="payment-method-badge bg-secondary text-white">
+                                        {{ payment.get_payment_method_display }}
+                                    </span>
+                                </td>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No recent payments</p>
+                </div>
+                {% endif %}
             </div>
-        </div>
-    </main>
-
-    <!-- CRUD Modals -->
-    <div class="modal fade" id="crudModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Add New</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="crudForm">
-                        <!-- Form fields will be populated dynamically -->
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" onclick="saveData()">Save</button>
-                </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'student_invoices' %}" class="btn btn-sm btn-outline-success">
+                    View All Payments <i class="fas fa-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirm Delete</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    
+    <!-- Outstanding Invoices -->
+    <div class="col-xl-6">
+        <div class="finance-card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Outstanding Invoices
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if outstanding_invoices %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Class</th>
+                                <th>Amount Due</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invoice in outstanding_invoices %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ invoice.student.user.get_full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ invoice.student.admission_number }}</small>
+                                    </div>
+                                </td>
+                                <td>{{ invoice.student.current_class.name }}</td>
+                                <td class="amount negative">
+                                    ${{ invoice.amount_due|floatformat:2 }}
+                                </td>
+                                <td>
+                                    <span class="status-badge badge-status-{{ invoice.status }}">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'invoice_detail' invoice.id %}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <p class="text-success">All invoices are paid!</p>
+                    <small class="text-muted">No outstanding invoices</small>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
-                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'student_invoices' %}?status=unpaid" class="btn btn-sm btn-outline-danger">
+                    View All Outstanding <i class="fas fa-arrow-right ms-1"></i>
+                </a>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Database Simulation
-        let currentView = 'student_fees';
-        let editId = null;
-        let deleteId = null;
-        let deleteType = null;
-
-        // Initialize data
-        let feeCategories = JSON.parse(localStorage.getItem('feeCategories')) || [
-            { id: 1, name: 'Tuition Fees', description: 'Academic tuition fees', is_active: true },
-            { id: 2, name: 'Library Fees', description: 'Library and resource fees', is_active: true },
-            { id: 3, name: 'Exam Fees', description: 'Examination and assessment fees', is_active: true },
-            { id: 4, name: 'Sports Fees', description: 'Sports and activities fees', is_active: true }
-        ];
-
-        let feeStructures = JSON.parse(localStorage.getItem('feeStructures')) || [
-            { id: 1, fee_category_id: 1, class: 'Form 1', term: 'Term 1', academic_year: '2024', amount: 1000 },
-            { id: 2, fee_category_id: 1, class: 'Form 2', term: 'Term 1', academic_year: '2024', amount: 1200 },
-            { id: 3, fee_category_id: 2, class: 'All', term: 'Annual', academic_year: '2024', amount: 200 },
-            { id: 4, fee_category_id: 3, class: 'All', term: 'Term 1', academic_year: '2024', amount: 500 }
-        ];
-
-        let studentFees = JSON.parse(localStorage.getItem('studentFees')) || [
-            {
-                id: 1,
-                student_id: 101,
-                student_name: 'Musa Ahmed',
-                fee_structure_id: 1,
-                original_amount: 35000,
-                scholarship_amount: 15000,
-                discount_amount: 0,
-                final_amount: 20000,
-                status: 'PAID'
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue Chart
+        const monthlyRevenue = {{ monthly_revenue|safe }};
+        
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlyRevenue.map(item => item.month),
+                datasets: [{
+                    label: 'Monthly Revenue',
+                    data: monthlyRevenue.map(item => item.revenue),
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            {
-                id: 2,
-                student_id: 102,
-                student_name: 'Aisha Mohammed',
-                fee_structure_id: 2,
-                original_amount: 38000,
-                scholarship_amount: 8000,
-                discount_amount: 0,
-                final_amount: 30000,
-                status: 'PARTIAL'
-            },
-            {
-                id: 3,
-                student_id: 103,
-                student_name: 'Kofi Mensah',
-                fee_structure_id: 1,
-                original_amount: 35000,
-                scholarship_amount: 0,
-                discount_amount: 0,
-                final_amount: 35000,
-                status: 'UNPAID'
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Revenue: $${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        },
+                        grid: {
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
             }
-        ];
-
-        let payments = JSON.parse(localStorage.getItem('payments')) || [
-            { id: 1, student_fee_id: 1, amount_paid: 10000, payment_method: 'Mobile Money', payment_date: '2024-01-15', reference: 'MM001' },
-            { id: 2, student_fee_id: 1, amount_paid: 10000, payment_method: 'Cash', payment_date: '2024-01-20', reference: 'CS001' },
-            { id: 3, student_fee_id: 2, amount_paid: 15000, payment_method: 'Bank Transfer', payment_date: '2024-01-18', reference: 'BT001' }
-        ];
-
-        let scholarships = JSON.parse(localStorage.getItem('scholarships')) || [
-            { id: 1, name: 'Academic Excellence', type: 'fixed', value: 15000, description: 'For top 5 students' },
-            { id: 2, name: 'Sports Scholarship', type: 'percentage', value: 25, description: 'For sports team members' },
-            { id: 3, name: 'Sibling Discount', type: 'percentage', value: 10, description: 'For siblings in same school' }
-        ];
-
-        // Initialize Dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            showStudentFees();
-            updateStats();
         });
-
-        // Save to localStorage
-        function saveToStorage() {
-            localStorage.setItem('feeCategories', JSON.stringify(feeCategories));
-            localStorage.setItem('feeStructures', JSON.stringify(feeStructures));
-            localStorage.setItem('studentFees', JSON.stringify(studentFees));
-            localStorage.setItem('payments', JSON.stringify(payments));
-            localStorage.setItem('scholarships', JSON.stringify(scholarships));
-            updateStats();
-        }
-
-        // Update Statistics
-        function updateStats() {
-            // Update counts
-            document.getElementById('categoryCount').textContent = `${feeCategories.length} Categories`;
-            document.getElementById('structureCount').textContent = `${feeStructures.length} Structures`;
-            document.getElementById('studentFeeCount').textContent = `${studentFees.length} Bills`;
-            document.getElementById('paymentCount').textContent = `${payments.length} Payments`;
-            document.getElementById('scholarshipCount').textContent = `${scholarships.length} Scholarships`;
-
-            // Calculate financial stats
-            const totalRevenue = payments.reduce((sum, p) => sum + p.amount_paid, 0);
-            const totalPending = studentFees.reduce((sum, f) => {
-                const paid = payments.filter(p => p.student_fee_id === f.id)
-                                   .reduce((sum, p) => sum + p.amount_paid, 0);
-                return sum + Math.max(0, f.final_amount - paid);
-            }, 0);
-            const totalScholarship = studentFees.reduce((sum, f) => sum + f.scholarship_amount, 0);
-            const paidStudents = studentFees.filter(f => {
-                const paid = payments.filter(p => p.student_fee_id === f.id)
-                                   .reduce((sum, p) => sum + p.amount_paid, 0);
-                return paid >= f.final_amount;
-            }).length;
-
-            // Update display
-            document.getElementById('totalRevenue').textContent = totalRevenue.toLocaleString();
-            document.getElementById('totalPending').textContent = totalPending.toLocaleString();
-            document.getElementById('totalScholarship').textContent = totalScholarship.toLocaleString();
-            document.getElementById('paidStudents').textContent = paidStudents;
-            document.getElementById('totalStudents').textContent = studentFees.length;
-        }
-
-        // Show Fee Categories
-        function showFeeCategories() {
-            currentView = 'fee_categories';
-            document.getElementById('currentView').textContent = 'Fee Categories';
-            document.getElementById('addBtn').style.display = 'inline-flex';
-            
-            const table = document.getElementById('dataTable');
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${feeCategories.map(category => `
-                        <tr>
-                            <td>${category.id}</td>
-                            <td>${category.name}</td>
-                            <td>${category.description}</td>
-                            <td>
-                                <span class="status-badge ${category.is_active ? 'status-paid' : 'status-unpaid'}">
-                                    ${category.is_active ? 'Active' : 'Inactive'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="action-btn btn-edit" onclick="editFeeCategory(${category.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteItem('fee_category', ${category.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            `;
-        }
-
-        // Show Fee Structures
-        function showFeeStructures() {
-            currentView = 'fee_structures';
-            document.getElementById('currentView').textContent = 'Fee Structures';
-            document.getElementById('addBtn').style.display = 'inline-flex';
-            
-            const table = document.getElementById('dataTable');
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Category</th>
-                        <th>Class</th>
-                        <th>Term</th>
-                        <th>Year</th>
-                        <th>Amount</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${feeStructures.map(structure => {
-                        const category = feeCategories.find(c => c.id === structure.fee_category_id);
-                        return `
-                        <tr>
-                            <td>${structure.id}</td>
-                            <td>${category ? category.name : 'Unknown'}</td>
-                            <td>${structure.class}</td>
-                            <td>${structure.term}</td>
-                            <td>${structure.academic_year}</td>
-                            <td class="text-money">₵ ${structure.amount.toLocaleString()}</td>
-                            <td>
-                                <button class="action-btn btn-edit" onclick="editFeeStructure(${structure.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteItem('fee_structure', ${structure.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `}).join('')}
-                </tbody>
-            `;
-        }
-
-        // Show Student Fees
-        function showStudentFees() {
-            currentView = 'student_fees';
-            document.getElementById('currentView').textContent = 'Student Fee Overview';
-            document.getElementById('addBtn').style.display = 'inline-flex';
-            
-            const table = document.getElementById('dataTable');
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Student</th>
-                        <th>Original</th>
-                        <th>Scholarship</th>
-                        <th>Final</th>
-                        <th>Paid</th>
-                        <th>Status</th>
-                        <th>Balance</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${studentFees.map(fee => {
-                        const paid = payments.filter(p => p.student_fee_id === fee.id)
-                                          .reduce((sum, p) => sum + p.amount_paid, 0);
-                        const balance = Math.max(0, fee.final_amount - paid);
-                        let status = 'UNPAID';
-                        if (paid >= fee.final_amount) status = 'PAID';
-                        else if (paid > 0) status = 'PARTIAL';
-                        
-                        return `
-                        <tr>
-                            <td>${fee.id}</td>
-                            <td>${fee.student_name}</td>
-                            <td class="text-money">₵ ${fee.original_amount.toLocaleString()}</td>
-                            <td class="text-info">₵ ${fee.scholarship_amount.toLocaleString()}</td>
-                            <td class="text-success text-money">₵ ${fee.final_amount.toLocaleString()}</td>
-                            <td class="text-money">₵ ${paid.toLocaleString()}</td>
-                            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
-                            <td class="${balance > 0 ? 'text-danger' : 'text-success'} text-money">
-                                ₵ ${balance.toLocaleString()}
-                            </td>
-                            <td>
-                                <button class="action-btn btn-view" onclick="viewPayments(${fee.id})">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="action-btn btn-edit" onclick="editStudentFee(${fee.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteItem('student_fee', ${fee.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `}).join('')}
-                </tbody>
-            `;
-        }
-
-        // Show Payments
-        function showPayments() {
-            currentView = 'payments';
-            document.getElementById('currentView').textContent = 'Payments';
-            document.getElementById('addBtn').style.display = 'inline-flex';
-            
-            const table = document.getElementById('dataTable');
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Student Fee ID</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Date</th>
-                        <th>Reference</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${payments.map(payment => {
-                        const fee = studentFees.find(f => f.id === payment.student_fee_id);
-                        return `
-                        <tr>
-                            <td>${payment.id}</td>
-                            <td>${payment.student_fee_id} (${fee ? fee.student_name : 'Unknown'})</td>
-                            <td class="text-success text-money">₵ ${payment.amount_paid.toLocaleString()}</td>
-                            <td>${payment.payment_method}</td>
-                            <td>${payment.payment_date}</td>
-                            <td>${payment.reference}</td>
-                            <td>
-                                <button class="action-btn btn-edit" onclick="editPayment(${payment.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteItem('payment', ${payment.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `}).join('')}
-                </tbody>
-            `;
-        }
-
-        // Show Scholarships
-        function showScholarships() {
-            currentView = 'scholarships';
-            document.getElementById('currentView').textContent = 'Scholarships';
-            document.getElementById('addBtn').style.display = 'inline-flex';
-            
-            const table = document.getElementById('dataTable');
-            table.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Value</th>
-                        <th>Description</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${scholarships.map(scholarship => `
-                        <tr>
-                            <td>${scholarship.id}</td>
-                            <td>${scholarship.name}</td>
-                            <td>
-                                <span class="status-badge ${scholarship.type === 'fixed' ? 'status-paid' : 'status-partial'}">
-                                    ${scholarship.type}
-                                </span>
-                            </td>
-                            <td class="text-money">
-                                ${scholarship.type === 'fixed' ? '₵ ' : ''}
-                                ${scholarship.value.toLocaleString()}
-                                ${scholarship.type === 'percentage' ? '%' : ''}
-                            </td>
-                            <td>${scholarship.description}</td>
-                            <td>
-                                <button class="action-btn btn-edit" onclick="editScholarship(${scholarship.id})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="action-btn btn-delete" onclick="deleteItem('scholarship', ${scholarship.id})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            `;
-        }
-
-        // Open Add Modal
-        function openAddModal() {
-            editId = null;
-            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
-            const form = document.getElementById('crudForm');
-            
-            switch(currentView) {
-                case 'fee_categories':
-                    document.getElementById('modalTitle').textContent = 'Add Fee Category';
-                    form.innerHTML = `
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" id="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="3"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_active" checked>
-                                <label class="form-check-label">Active</label>
-                            </div>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'fee_structures':
-                    document.getElementById('modalTitle').textContent = 'Add Fee Structure';
-                    form.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Fee Category</label>
-                                <select class="form-select" id="fee_category_id" required>
-                                    <option value="">Select Category</option>
-                                    ${feeCategories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Class</label>
-                                <input type="text" class="form-control" id="class" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Term</label>
-                                <select class="form-select" id="term" required>
-                                    <option value="">Select Term</option>
-                                    <option value="Term 1">Term 1</option>
-                                    <option value="Term 2">Term 2</option>
-                                    <option value="Term 3">Term 3</option>
-                                    <option value="Annual">Annual</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Academic Year</label>
-                                <input type="text" class="form-control" id="academic_year" value="2024" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount (₵)</label>
-                            <input type="number" class="form-control" id="amount" required>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'student_fees':
-                    document.getElementById('modalTitle').textContent = 'Add Student Fee';
-                    form.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Student ID</label>
-                                <input type="number" class="form-control" id="student_id" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Student Name</label>
-                                <input type="text" class="form-control" id="student_name" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Fee Structure</label>
-                                <select class="form-select" id="fee_structure_id" required>
-                                    <option value="">Select Structure</option>
-                                    ${feeStructures.map(s => `<option value="${s.id}">${s.class} - Term ${s.term} - ₵${s.amount}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Scholarship Amount (₵)</label>
-                                <input type="number" class="form-control" id="scholarship_amount" value="0">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Original Amount (₵)</label>
-                            <input type="number" class="form-control" id="original_amount" required>
-                        </div>
-                    `;
-                    break;
-                    
-                case 'payments':
-                    document.getElementById('modalTitle').textContent = 'Add Payment';
-                    form.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Student Fee</label>
-                                <select class="form-select" id="student_fee_id" required>
-                                    <option value="">Select Student Fee</option>
-                                    ${studentFees.map(f => `<option value="${f.id}">${f.student_name} - ₵${f.final_amount}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Amount Paid (₵)</label>
-                                <input type="number" class="form-control" id="amount_paid" required>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Payment Method</label>
-                                <select class="form-select" id="payment_method" required>
-                                    <option value="">Select Method</option>
-                                    <option value="Cash">Cash</option>
-                                    <option value="Mobile Money">Mobile Money</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Payment Date</label>
-                                <input type="date" class="form-control" id="payment_date" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Reference</label>
-                            <input type="text" class="form-control" id="reference">
-                        </div>
-                    `;
-                    break;
-                    
-                case 'scholarships':
-                    document.getElementById('modalTitle').textContent = 'Add Scholarship';
-                    form.innerHTML = `
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" id="name" required>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Type</label>
-                                <select class="form-select" id="type" required>
-                                    <option value="">Select Type</option>
-                                    <option value="fixed">Fixed Amount</option>
-                                    <option value="percentage">Percentage</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Value</label>
-                                <input type="number" class="form-control" id="value" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="description" rows="3"></textarea>
-                        </div>
-                    `;
-                    break;
-            }
-            
-            modal.show();
-        }
-
-        // Edit Functions
-        function editFeeCategory(id) {
-            const category = feeCategories.find(c => c.id === id);
-            if (!category) return;
-            
-            editId = id;
-            openAddModal();
-            
-            setTimeout(() => {
-                document.getElementById('name').value = category.name;
-                document.getElementById('description').value = category.description;
-                document.getElementById('is_active').checked = category.is_active;
-            }, 100);
-        }
-
-        function editFeeStructure(id) {
-            const structure = feeStructures.find(s => s.id === id);
-            if (!structure) return;
-            
-            editId = id;
-            openAddModal();
-            
-            setTimeout(() => {
-                document.getElementById('fee_category_id').value = structure.fee_category_id;
-                document.getElementById('class').value = structure.class;
-                document.getElementById('term').value = structure.term;
-                document.getElementById('academic_year').value = structure.academic_year;
-                document.getElementById('amount').value = structure.amount;
-            }, 100);
-        }
-
-        function editStudentFee(id) {
-            const fee = studentFees.find(f => f.id === id);
-            if (!fee) return;
-            
-            editId = id;
-            openAddModal();
-            
-            setTimeout(() => {
-                document.getElementById('student_id').value = fee.student_id;
-                document.getElementById('student_name').value = fee.student_name;
-                document.getElementById('fee_structure_id').value = fee.fee_structure_id;
-                document.getElementById('scholarship_amount').value = fee.scholarship_amount;
-                document.getElementById('original_amount').value = fee.original_amount;
-            }, 100);
-        }
-
-        function editPayment(id) {
-            const payment = payments.find(p => p.id === id);
-            if (!payment) return;
-            
-            editId = id;
-            openAddModal();
-            
-            setTimeout(() => {
-                document.getElementById('student_fee_id').value = payment.student_fee_id;
-                document.getElementById('amount_paid').value = payment.amount_paid;
-                document.getElementById('payment_method').value = payment.payment_method;
-                document.getElementById('payment_date').value = payment.payment_date;
-                document.getElementById('reference').value = payment.reference;
-            }, 100);
-        }
-
-        function editScholarship(id) {
-            const scholarship = scholarships.find(s => s.id === id);
-            if (!scholarship) return;
-            
-            editId = id;
-            openAddModal();
-            
-            setTimeout(() => {
-                document.getElementById('name').value = scholarship.name;
-                document.getElementById('type').value = scholarship.type;
-                document.getElementById('value').value = scholarship.value;
-                document.getElementById('description').value = scholarship.description;
-            }, 100);
-        }
-
-        // Save Data
-        function saveData() {
-            const form = document.getElementById('crudForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            let newItem = {};
-            
-            switch(currentView) {
-                case 'fee_categories':
-                    newItem = {
-                        id: editId || Math.max(...feeCategories.map(c => c.id), 0) + 1,
-                        name: document.getElementById('name').value,
-                        description: document.getElementById('description').value,
-                        is_active: document.getElementById('is_active').checked
-                    };
-                    if (editId) {
-                        const index = feeCategories.findIndex(c => c.id === editId);
-                        feeCategories[index] = newItem;
-                    } else {
-                        feeCategories.push(newItem);
-                    }
-                    break;
-                    
-                case 'fee_structures':
-                    newItem = {
-                        id: editId || Math.max(...feeStructures.map(s => s.id), 0) + 1,
-                        fee_category_id: parseInt(document.getElementById('fee_category_id').value),
-                        class: document.getElementById('class').value,
-                        term: document.getElementById('term').value,
-                        academic_year: document.getElementById('academic_year').value,
-                        amount: parseFloat(document.getElementById('amount').value)
-                    };
-                    if (editId) {
-                        const index = feeStructures.findIndex(s => s.id === editId);
-                        feeStructures[index] = newItem;
-                    } else {
-                        feeStructures.push(newItem);
-                    }
-                    break;
-                    
-                case 'student_fees':
-                    const originalAmount = parseFloat(document.getElementById('original_amount').value);
-                    const scholarshipAmount = parseFloat(document.getElementById('scholarship_amount').value) || 0;
-                    newItem = {
-                        id: editId || Math.max(...studentFees.map(f => f.id), 0) + 1,
-                        student_id: parseInt(document.getElementById('student_id').value),
-                        student_name: document.getElementById('student_name').value,
-                        fee_structure_id: parseInt(document.getElementById('fee_structure_id').value),
-                        original_amount: originalAmount,
-                        scholarship_amount: scholarshipAmount,
-                        discount_amount: 0,
-                        final_amount: originalAmount - scholarshipAmount,
-                        status: 'UNPAID'
-                    };
-                    if (editId) {
-                        const index = studentFees.findIndex(f => f.id === editId);
-                        studentFees[index] = newItem;
-                    } else {
-                        studentFees.push(newItem);
-                    }
-                    break;
-                    
-                case 'payments':
-                    newItem = {
-                        id: editId || Math.max(...payments.map(p => p.id), 0) + 1,
-                        student_fee_id: parseInt(document.getElementById('student_fee_id').value),
-                        amount_paid: parseFloat(document.getElementById('amount_paid').value),
-                        payment_method: document.getElementById('payment_method').value,
-                        payment_date: document.getElementById('payment_date').value,
-                        reference: document.getElementById('reference').value
-                    };
-                    if (editId) {
-                        const index = payments.findIndex(p => p.id === editId);
-                        payments[index] = newItem;
-                    } else {
-                        payments.push(newItem);
-                    }
-                    break;
-                    
-                case 'scholarships':
-                    newItem = {
-                        id: editId || Math.max(...scholarships.map(s => s.id), 0) + 1,
-                        name: document.getElementById('name').value,
-                        type: document.getElementById('type').value,
-                        value: parseFloat(document.getElementById('value').value),
-                        description: document.getElementById('description').value
-                    };
-                    if (editId) {
-                        const index = scholarships.findIndex(s => s.id === editId);
-                        scholarships[index] = newItem;
-                    } else {
-                        scholarships.push(newItem);
-                    }
-                    break;
-            }
-
-            saveToStorage();
-            bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
-            
-            // Refresh current view
-            switch(currentView) {
-                case 'fee_categories': showFeeCategories(); break;
-                case 'fee_structures': showFeeStructures(); break;
-                case 'student_fees': showStudentFees(); break;
-                case 'payments': showPayments(); break;
-                case 'scholarships': showScholarships(); break;
-            }
-        }
-
-        // Delete Item
-        function deleteItem(type, id) {
-            deleteType = type;
-            deleteId = id;
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
-        }
-
-        function confirmDelete() {
-            switch(deleteType) {
-                case 'fee_category':
-                    feeCategories = feeCategories.filter(c => c.id !== deleteId);
-                    break;
-                case 'fee_structure':
-                    feeStructures = feeStructures.filter(s => s.id !== deleteId);
-                    break;
-                case 'student_fee':
-                    studentFees = studentFees.filter(f => f.id !== deleteId);
-                    payments = payments.filter(p => p.student_fee_id !== deleteId);
-                    break;
-                case 'payment':
-                    payments = payments.filter(p => p.id !== deleteId);
-                    break;
-                case 'scholarship':
-                    scholarships = scholarships.filter(s => s.id !== deleteId);
-                    break;
-            }
-
-            saveToStorage();
-            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
-            
-            // Refresh current view
-            switch(currentView) {
-                case 'fee_categories': showFeeCategories(); break;
-                case 'fee_structures': showFeeStructures(); break;
-                case 'student_fees': showStudentFees(); break;
-                case 'payments': showPayments(); break;
-                case 'scholarships': showScholarships(); break;
-            }
-        }
-
-        // View Payments for a Student Fee
-        function viewPayments(studentFeeId) {
-            const feePayments = payments.filter(p => p.student_fee_id === studentFeeId);
-            const fee = studentFees.find(f => f.id === studentFeeId);
-            
-            alert(`Payments for ${fee.student_name} (Total: ₵${fee.final_amount}):
-${feePayments.map(p => `• ₵${p.amount_paid} on ${p.payment_date} via ${p.payment_method} (Ref: ${p.reference})`).join('\n')}
-Total Paid: ₵${feePayments.reduce((sum, p) => sum + p.amount_paid, 0)}
-Balance: ₵${Math.max(0, fee.final_amount - feePayments.reduce((sum, p) => sum + p.amount_paid, 0))}`);
-        }
-    </script>
-</body>
-</html>
+        
+        // Auto-refresh dashboard every 5 minutes
+        setTimeout(() => {
+            window.location.reload();
+        }, 5 * 60 * 1000);
+    });
+</script>
+{% endblock %}
