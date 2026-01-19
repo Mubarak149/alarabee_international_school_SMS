@@ -20,9 +20,16 @@ urlpatterns = [
     # Sponsorship
     path('sponsorships/', views.sponsorship_management, name='sponsorship_management'),
     
-    # Reports
-    path('reports/', views.finance_reports, name='finance_reports'),
-    
-    # AJAX endpoints
-    path('ajax/student-info/', views.get_student_info, name='get_student_info'),
+    #payments
+    path('payments/', views.payment_management, name='payment_management'),
+    path('payments/receipt/<int:payment_id>/', views.payment_receipt, name='payment_receipt'),
+    path('payments/get-invoice-info/<int:invoice_id>/', views.get_invoice_info, name='get_invoice_info'),
+
+    path('term-invoices/<int:class_id>/<int:term_id>/<int:academic_year_id>/', views.term_invoices, name='term_invoices'),
+
+    path('generate-term-invoices/', views.generate_term_invoices, name='generate_term_invoices'),
+    path('term-invoices/send-reminder/<int:invoice_id>/', views.send_reminder, name='send_reminder'),
+    path('print-term-invoices/<int:invoice_id>/', views.print_invoice, name='print_invoice'),
+    path('invoices/<int:invoice_id>/edit/', views.update_invoice, name='update_invoice'),
+    path('invoices/<int:invoice_id>/delete/', views.delete_invoice, name='delete_invoice'),
 ]

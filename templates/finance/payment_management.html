@@ -1,0 +1,353 @@
+{% extends "finance/base_finance.html" %}
+
+{% block title %}Payment Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .payment-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .badge-completed { background-color: #28a745; color: white; }
+    .badge-pending { background-color: #ffc107; color: #212529; }
+    .badge-failed { background-color: #dc3545; color: white; }
+    
+    .form-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1>Payment Management</h1>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Payments</li>
+        </ol>
+    </nav>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Simple Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6>Total Payments</h6>
+                <h4>₦{{ total_amount|floatformat:2 }}</h4>
+                <small>{{ total_count }} payments</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6>Completed</h6>
+                <h4>₦{{ completed_total|floatformat:2 }}</h4>
+                <small>{{ completed_count }} payments</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6>Pending</h6>
+                <h4>₦{{ pending_total|floatformat:2 }}</h4>
+                <small>{{ pending_count }} payments</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6>Average</h6>
+                <h4>₦{{ avg_amount|floatformat:2 }}</h4>
+                <small>Per payment</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Simple Tabs -->
+<div class="card mb-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link {% if view_mode == 'list' or not view_mode %}active{% endif %}" 
+                   href="?view=list">All Payments</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if view_mode == 'form' %}active{% endif %}" 
+                   href="?view=form">{% if selected_payment %}Edit Payment{% else %}New Payment{% endif %}</a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="card-body">
+        {% if view_mode == 'form' %}
+            <!-- Payment Form -->
+            <div class="form-card">
+                <h4 class="mb-4">{% if selected_payment %}Edit Payment{% else %}Record New Payment{% endif %}</h4>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="{% if selected_payment %}update{% else %}create{% endif %}">
+                    {% if selected_payment %}
+                    <input type="hidden" name="payment_id" value="{{ selected_payment.id }}">
+                    {% endif %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Student</label>
+                            <select name="student" class="form-select" required>
+                                <option value="">Select student...</option>
+                                {% for invoice in invoices %}
+                                <option value="{{ invoice.student.id }}" 
+                                        {% if selected_payment and selected_payment.student.id == invoice.student.id %}selected{% endif %}>
+                                    {{ invoice.student.user.get_full_name }} - {{ invoice.student.student_id }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Invoice</label>
+                            <select name="invoice" class="form-select" required>
+                                <option value="">Select invoice...</option>
+                                {% for invoice in invoices %}
+                                <option value="{{ invoice.id }}" 
+                                        {% if selected_payment and selected_payment.invoice.id == invoice.id %}selected{% endif %}>
+                                    Invoice #{{ invoice.id }} - ₦{{ invoice.amount_due|floatformat:2 }} due
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Amount Paid</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₦</span>
+                                <input type="number" name="amount_paid" class="form-control" 
+                                       value="{% if selected_payment %}{{ selected_payment.amount_paid }}{% endif %}" 
+                                       min="0.01" step="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Payment Date</label>
+                            <input type="date" name="payment_date" class="form-control" 
+                                   value="{% if selected_payment %}{{ selected_payment.payment_date|date:'Y-m-d' }}{% else %}{{ today|date:'Y-m-d' }}{% endif %}" 
+                                   required>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Payment Method</label>
+                            <select name="payment_method" class="form-select" required>
+                                {% for method in payments_form.fields.payment_method.choices %}
+                                <option value="{{ method.0 }}" 
+                                        {% if selected_payment and selected_payment.payment_method == method.0 %}selected{% endif %}>
+                                    {{ method.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select" required>
+                                {% for status in payments_form.fields.status.choices %}
+                                <option value="{{ status.0 }}" 
+                                        {% if selected_payment and selected_payment.status == status.0 %}selected{% endif %}
+                                        {% if not selected_payment and status.0 == 'completed' %}selected{% endif %}>
+                                    {{ status.1 }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Notes (Optional)</label>
+                            <input type="text" name="notes" class="form-control" 
+                                   value="{% if selected_payment %}{{ selected_payment.notes }}{% endif %}" 
+                                   placeholder="Payment notes...">
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <div class="d-flex justify-content-between">
+                                <a href="?view=list" class="btn btn-secondary">Cancel</a>
+                                <div>
+                                    {% if selected_payment %}
+                                    <button type="submit" class="btn btn-primary">Update Payment</button>
+                                    {% else %}
+                                    <button type="submit" name="save_and_new" class="btn btn-outline-primary">Save & New</button>
+                                    <button type="submit" class="btn btn-primary">Save Payment</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+        {% else %}
+            <!-- Payment List -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-0">All Payments</h4>
+                    <small class="text-muted">{{ page_obj.paginator.count }} total payments</small>
+                </div>
+                <div>
+                    <a href="?view=form" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New Payment
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Simple Filters -->
+            <form method="get" class="row g-3 mb-4">
+                <input type="hidden" name="view" value="list">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Search..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+                <div class="col-md-12 text-end">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <a href="?view=list" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+            
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover payment-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Invoice</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in page_obj %}
+                            <tr>
+                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                <td>
+                                    {{ payment.student.user.get_full_name }}
+                                    <br><small>{{ payment.student.student_id }}</small>
+                                </td>
+                                <td>#{{ payment.invoice.id }}</td>
+                                <td class="fw-bold">₦{{ payment.amount_paid|floatformat:2 }}</td>
+                                <td>{{ payment.get_payment_method_display }}</td>
+                                <td>
+                                    {% if payment.status == 'completed' %}
+                                    <span class="payment-badge badge-completed">Completed</span>
+                                    {% elif payment.status == 'pending' %}
+                                    <span class="payment-badge badge-pending">Pending</span>
+                                    {% elif payment.status == 'failed' %}
+                                    <span class="payment-badge badge-failed">Failed</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">{{ payment.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="?payment_id={{ payment.id }}&view=form" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="if(confirm('Delete this payment?')) { document.getElementById('delete-form-{{ payment.id }}').submit(); }">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <form method="post" id="delete-form-{{ payment.id }}" style="display: none;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Simple Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Payment pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&view=list">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}&view=list">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}&view=list">Next</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-credit-card fa-4x text-muted mb-3"></i>
+                    <h4>No Payments Found</h4>
+                    <p class="text-muted">No payments have been recorded yet.</p>
+                    <a href="?view=form" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Record First Payment
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

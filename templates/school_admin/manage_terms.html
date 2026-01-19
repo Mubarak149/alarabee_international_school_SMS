@@ -1,0 +1,1243 @@
+{% extends "school_admin/base_admin.html" %}
+{% load academics_tags %}
+
+{% block title %}Manage Terms - School SMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Page-specific styles */
+    .main-content {
+        min-height: calc(100vh - 56px);
+        background-color: var(--bg-primary);
+        transition: margin-left 0.3s ease, background-color 0.3s;
+    }
+    
+    /* Page Header */
+    .page-header {
+        margin-bottom: 20px;
+    }
+    
+    .page-header h1 {
+        font-weight: 700;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+    }
+    
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0;
+        font-size: 0.85rem;
+    }
+    
+    .breadcrumb-item a {
+        color: var(--danger-color);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Card Styles */
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+        transition: background-color 0.3s;
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+        padding: 12px 15px;
+        font-weight: 600;
+        background-color: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.95rem;
+    }
+    
+    /* Toast Messages */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1055;
+    }
+    
+    .custom-toast {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 10px;
+        animation: slideInRight 0.3s ease-out;
+        max-width: 350px;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Term Card */
+    .term-card {
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: var(--bg-secondary);
+        transition: all 0.3s;
+        height: 100%;
+    }
+    
+    .term-card.current {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 2px rgba(28, 200, 138, 0.1);
+    }
+    
+    .term-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .term-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    
+    .term-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-primary);
+    }
+    
+    .term-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+    
+    .badge-current {
+        background-color: rgba(28, 200, 138, 0.1);
+        color: var(--success-color);
+    }
+    
+    .badge-inactive {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: var(--text-secondary);
+    }
+    
+    .term-info {
+        margin-bottom: 15px;
+    }
+    
+    .info-item {
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .info-label {
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+    
+    .term-stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: rgba(78, 115, 223, 0.05);
+        border-radius: 8px;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-weight: 700;
+        font-size: 1rem;
+        color: var(--primary-color);
+        display: block;
+    }
+    
+    .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+    }
+    
+    .term-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    /* Form Controls */
+    .form-control, .form-select {
+        background-color: var(--bg-secondary);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+        transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+        border-radius: 6px;
+        padding: 0.6rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        background-color: var(--bg-secondary);
+        border-color: var(--danger-color);
+        color: var(--text-primary);
+        box-shadow: 0 0 0 0.2rem rgba(231, 74, 59, 0.25);
+    }
+    
+    /* Button Styles */
+    .btn {
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 500;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+    
+    .btn-success {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+    
+    .btn-success:hover {
+        background-color: #17a673;
+        border-color: #17a673;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2e59d9;
+    }
+    
+    .btn-outline-primary {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .btn-outline-success {
+        color: var(--success-color);
+        border-color: var(--success-color);
+    }
+    
+    .btn-outline-success:hover {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+    
+    .btn-outline-danger {
+        color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+    
+    .btn-outline-danger:hover {
+        background-color: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+    
+    /* Statistics Cards */
+    .stats-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 15px;
+        transition: transform 0.3s, background-color 0.3s;
+        background-color: var(--bg-secondary);
+        height: 100%;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .stats-card .card-body {
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        color: white;
+    }
+    
+    .stat-icon-primary {
+        background-color: var(--primary-color);
+    }
+    
+    .stat-icon-success {
+        background-color: var(--success-color);
+    }
+    
+    .stat-icon-warning {
+        background-color: var(--warning-color);
+    }
+    
+    .stat-icon-info {
+        background-color: var(--info-color);
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    /* Bulk Actions */
+    .bulk-actions {
+        background-color: rgba(28, 200, 138, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .filter-header {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
+    
+    /* Table Styles */
+    .table-responsive {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .table {
+        margin-bottom: 0;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+    }
+    
+    .table th {
+        background-color: rgba(78, 115, 223, 0.05);
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        padding: 12px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .table td {
+        padding: 12px 15px;
+        vertical-align: middle;
+        border-color: var(--border-color);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(78, 115, 223, 0.02);
+    }
+    
+    /* Checkbox styling */
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-secondary);
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 30px 15px;
+        color: var(--text-secondary);
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        color: var(--border-color);
+        margin-bottom: 15px;
+    }
+    
+    /* Modal Styles */
+    .modal-content {
+        background-color: var(--bg-secondary);
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 10px 10px 0 0;
+        padding: 15px;
+    }
+    
+    .modal-title {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .modal-body {
+        color: var(--text-primary);
+        padding: 15px;
+    }
+    
+    .modal-footer {
+        padding: 15px;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 991.98px) {
+        .stats-card .stat-number {
+            font-size: 1.1rem;
+        }
+        
+        .page-header h1 {
+            font-size: 1.3rem;
+        }
+        
+        .btn {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+        
+        .term-actions {
+            flex-direction: column;
+        }
+        
+        .term-actions .btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .table th, .table td {
+            padding: 8px 10px;
+        }
+    }
+    
+    @media (max-width: 767.98px) {
+        .main-content {
+            padding: 10px;
+        }
+        
+        .page-header h1 {
+            font-size: 1.2rem;
+        }
+        
+        .term-card {
+            padding: 12px;
+        }
+        
+        .term-stats {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .stats-card {
+            margin-bottom: 10px;
+        }
+        
+        .filter-section .row > div {
+            margin-bottom: 10px;
+        }
+    }
+    
+    @media (max-width: 575.98px) {
+        .term-info .info-item {
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .term-stats {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-responsive {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="custom-toast alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Manage Terms</h1>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addTermModal">
+                <i class="fas fa-plus-circle me-2"></i>Add Term
+            </button>
+        </div>
+        <div class="breadcrumb">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Terms</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-primary">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-number">{{ terms|length }}</div>
+                    <div class="stat-label">Total Terms</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">
+                        {% with current_term=terms|get_current_term %}
+                            {{ current_term.get_name_display|default:"-" }}
+                        {% endwith %}
+                    </div>
+                    <div class="stat-label">Current Term</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-warning">
+                        <i class="fas fa-school"></i>
+                    </div>
+                    <div class="stat-number">{{ academic_years|length }}</div>
+                    <div class="stat-label">Academic Years</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="stat-icon stat-icon-info">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Active Classes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-header">
+            <i class="fas fa-filter me-2"></i>Filter Terms
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" name="action" value="add" class="btn btn-primary">Add Term</button>
+        </form>
+
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions mb-4" id="bulkActions" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span id="selectedCount">0</span> term(s) selected
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-success" onclick="exportSelected()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <button class="btn btn-sm btn-outline-danger" type="button" onclick="submitBulkDelete()">
+                    <i class="fas fa-trash me-1"></i>Delete
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Delete Form (Hidden) -->
+    <form method="POST" action="{% url 'manage_terms' %}" id="bulkDeleteForm" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="bulk_delete">
+        <!-- Selected IDs will be added here -->
+    </form>
+
+    <!-- Set Current Form (Hidden) -->
+    <form method="POST" action="{% url 'manage_terms' %}" id="setCurrentForm" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_current">
+        <input type="hidden" name="term_id" id="setCurrentTermId">
+    </form>
+
+    <!-- Current Term Warning -->
+    {% for term in terms %}
+        {% if term.is_current %}
+        <div class="alert alert-success mb-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fs-4"></i>
+                <div>
+                    <h6 class="mb-1">Current Term</h6>
+                    <p class="mb-0">{{ term.get_name_display }} - {{ term.academic_year.year }}</p>
+                    <small>All academic activities will be recorded under this term.</small>
+                </div>
+                <button class="btn btn-outline-success btn-sm ms-auto" onclick="setCurrentTerm({{ term.id }})">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Terms Table View -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">All Terms</h6>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                <label class="form-check-label" for="selectAll" style="font-size: 0.85rem;">
+                    Select All
+                </label>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="50"></th>
+                            <th>Term</th>
+                            <th>Academic Year</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for term in terms %}
+                        <tr data-term-id="{{ term.id }}">
+                            <td>
+                                <input class="form-check-input term-checkbox" type="checkbox" value="{{ term.id }}" 
+                                       {% if term.is_current %}disabled{% endif %}>
+                            </td>
+                            <td>
+                                <strong>{{ term.get_name_display }}</strong>
+                            </td>
+                            <td>
+                                {{ term.academic_year.year }}
+                            </td>
+                            <td>
+                                {% if term.is_current %}
+                                <span class="badge bg-success">Current</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ term.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    {% if not term.is_current %}
+                                    <button class="btn btn-outline-success btn-sm" onclick="setCurrentTerm({{ term.id }})">
+                                        <i class="fas fa-check-circle me-1"></i>Set Current
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-outline-primary btn-sm" onclick="editTerm({{ term.id }})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'manage_terms' %}" class="d-inline" onsubmit="return confirmDelete()">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete_id" value="{{ term.id }}">
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                {% if term.is_current %}disabled title="Cannot delete current term"{% endif %}>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state py-5">
+                                    <i class="fas fa-calendar-week"></i>
+                                    <h5>No Terms Found</h5>
+                                    <p>Add your first term to get started</p>
+                                    <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#addTermModal">
+                                        <i class="fas fa-plus-circle me-2"></i>Add Term
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms Grid View (Alternative) -->
+    <div class="row mt-4" id="termsGridView" style="display: none;">
+        {% for term in terms %}
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+            <div class="term-card {% if term.is_current %}current{% endif %}" data-term-id="{{ term.id }}">
+                <div class="term-header">
+                    <h5 class="term-title">{{ term.get_name_display }}</h5>
+                    <span class="term-badge {% if term.is_current %}badge-current{% else %}badge-inactive{% endif %}">
+                        {% if term.is_current %}Current{% else %}Inactive{% endif %}
+                    </span>
+                </div>
+                
+                <div class="term-info">
+                    <div class="info-item">
+                        <span class="info-label">Academic Year:</span>
+                        <span class="info-value">{{ term.academic_year.year }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">
+                            {% if term.is_current %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Created:</span>
+                        <span class="info-value">{{ term.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                
+                <div class="term-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Classes</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Students</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Exams</span>
+                    </div>
+                </div>
+                
+                <div class="term-actions">
+                    {% if not term.is_current %}
+                    <button class="btn btn-success btn-sm flex-grow-1" onclick="setCurrentTerm({{ term.id }})">
+                        <i class="fas fa-check-circle me-1"></i>Set Current
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-outline-primary btn-sm" onclick="editTerm({{ term.id }})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form method="POST" action="{% url 'manage_terms' %}" class="d-inline" onsubmit="return confirmDelete()">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_id" value="{{ term.id }}">
+                        <input type="hidden" name="action" value="delete">
+                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                {% if term.is_current %}disabled title="Cannot delete current term"{% endif %}>
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Add Term Modal -->
+<div class="modal fade" id="addTermModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Add Term</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_terms' %}" id="addTermForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Academic Year *</label>
+                            <select class="form-select" name="academic_year" required>
+                                <option value="">Select Academic Year</option>
+                                {% for year in academic_years %}
+                                    <option value="{{ year.id }}">{{ year.year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Term Name *</label>
+                            <select class="form-select" name="name" required>
+                                <option value="">Select Term</option>
+                                <option value="1">First Term</option>
+                                <option value="2">Second Term</option>
+                                <option value="3">Third Term</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_current" id="is_current" value="true">
+                                <label class="form-check-label" for="is_current">
+                                    Set as current term
+                                </label>
+                                <div class="form-text">Only one term can be current per academic year</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="action" value="add">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add Term</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Term Modal -->
+<div class="modal fade" id="editTermModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Term</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_terms' %}" id="editTermForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Academic Year *</label>
+                            <select class="form-select" id="editAcademicYear" name="academic_year" required>
+                                <option value="">Select Academic Year</option>
+                                {% for year in academic_years %}
+                                    <option value="{{ year.id }}">{{ year.year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Term Name *</label>
+                            <select class="form-select" id="editTermName" name="name" required>
+                                <option value="">Select Term</option>
+                                <option value="1">First Term</option>
+                                <option value="2">Second Term</option>
+                                <option value="3">Third Term</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_current" id="editIsCurrent" value="true">
+                                <label class="form-check-label" for="editIsCurrent">
+                                    Set as current term
+                                </label>
+                                <div class="form-text">Only one term can be current per academic year</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="editTermId" name="edit_id">
+                <input type="hidden" name="action" value="edit">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Term</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global Variables
+    let selectedTerms = new Set();
+    const termNames = {
+        '1': 'First Term',
+        '2': 'Second Term',
+        '3': 'Third Term'
+    };
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+        
+        // Auto-hide toast messages after 5 seconds
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(toast => {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
+    });
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Term selection checkboxes
+        document.querySelectorAll('.term-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    selectedTerms.add(parseInt(this.value));
+                } else {
+                    selectedTerms.delete(parseInt(this.value));
+                    document.getElementById('selectAll').checked = false;
+                }
+                updateBulkActions();
+            });
+        });
+    }
+    
+    // Edit term
+    function editTerm(id) {
+        // Find the term row
+        const row = document.querySelector(`tr[data-term-id="${id}"]`);
+        if (!row) return;
+        
+        const termNameText = row.querySelector('td:nth-child(2) strong').textContent.trim();
+        const academicYearText = row.querySelector('td:nth-child(3)').textContent.trim();
+        
+        // Find term name value (reverse lookup)
+        let termValue = '';
+        for (const [key, value] of Object.entries(termNames)) {
+            if (value === termNameText) {
+                termValue = key;
+                break;
+            }
+        }
+        
+        // Get academic year ID (you might need to store this in data attribute)
+        const academicYearSelect = document.getElementById('editAcademicYear');
+        let academicYearId = '';
+        for (let i = 0; i < academicYearSelect.options.length; i++) {
+            if (academicYearSelect.options[i].text === academicYearText) {
+                academicYearId = academicYearSelect.options[i].value;
+                break;
+            }
+        }
+        
+        // Check if current term
+        const isCurrent = row.querySelector('.badge-success') !== null;
+        
+        // Populate the edit form
+        document.getElementById('editAcademicYear').value = academicYearId;
+        document.getElementById('editTermName').value = termValue;
+        document.getElementById('editTermId').value = id;
+        document.getElementById('editIsCurrent').checked = isCurrent;
+        
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('editTermModal'));
+        modal.show();
+    }
+    
+    // Set current term
+    function setCurrentTerm(id) {
+        if (!confirm('Are you sure you want to set this as the current term? This will deactivate the current term in the same academic year.')) {
+            return;
+        }
+        
+        document.getElementById('setCurrentTermId').value = id;
+        document.getElementById('setCurrentForm').submit();
+    }
+    
+    // Confirm delete
+    function confirmDelete() {
+        return confirm('Are you sure you want to delete this term? This action cannot be undone.');
+    }
+    
+    // Toggle select all checkboxes
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.term-checkbox:not(:disabled)');
+        
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll.checked;
+            if (selectAll.checked) {
+                selectedTerms.add(parseInt(cb.value));
+            } else {
+                selectedTerms.delete(parseInt(cb.value));
+            }
+        });
+        
+        updateBulkActions();
+    }
+    
+    // Update bulk actions visibility
+    function updateBulkActions() {
+        const bulkActions = document.getElementById('bulkActions');
+        const selectedCount = document.getElementById('selectedCount');
+        
+        selectedCount.textContent = selectedTerms.size;
+        
+        if (selectedTerms.size > 0) {
+            bulkActions.style.display = 'block';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+    
+    // Clear selection
+    function clearSelection() {
+        selectedTerms.clear();
+        document.getElementById('selectAll').checked = false;
+        document.querySelectorAll('.term-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        updateBulkActions();
+    }
+    
+    // Export selected terms
+    function exportSelected() {
+        if (selectedTerms.size === 0) {
+            showToast('No terms selected for export', 'warning');
+            return;
+        }
+        
+        // Simple CSV export
+        let csvContent = "Term,Academic Year,Status,Created\n";
+        
+        selectedTerms.forEach(id => {
+            const row = document.querySelector(`tr[data-term-id="${id}"]`);
+            if (row) {
+                const termName = row.querySelector('td:nth-child(2) strong').textContent.trim();
+                const academicYear = row.querySelector('td:nth-child(3)').textContent.trim();
+                const status = row.querySelector('.badge-success') ? 'Current' : 'Inactive';
+                const created = row.querySelector('td:nth-child(5)').textContent.trim();
+                csvContent += `"${termName}","${academicYear}","${status}","${created}"\n`;
+            }
+        });
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `terms_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Exported ${selectedTerms.size} term(s)`, 'success');
+    }
+    
+    // Submit bulk delete
+    function submitBulkDelete() {
+        if (selectedTerms.size === 0) {
+            showToast('No terms selected', 'warning');
+            return;
+        }
+        
+        if (!confirm(`Are you sure you want to delete ${selectedTerms.size} term(s)? This action cannot be undone.`)) {
+            return;
+        }
+        
+        // Check if any current terms are selected
+        let hasCurrentTerm = false;
+        selectedTerms.forEach(id => {
+            const row = document.querySelector(`tr[data-term-id="${id}"]`);
+            if (row && row.querySelector('.badge-success')) {
+                hasCurrentTerm = true;
+            }
+        });
+        
+        if (hasCurrentTerm) {
+            showToast('Cannot delete current term(s)!', 'error');
+            return;
+        }
+        
+        // Get the bulk delete form
+        const form = document.getElementById('bulkDeleteForm');
+        
+        // Clear any existing term_ids inputs
+        const existingInputs = form.querySelectorAll('input[name="term_ids"]');
+        existingInputs.forEach(input => input.remove());
+        
+        // Add selected term IDs to the form
+        selectedTerms.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'term_ids';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        // Submit the form
+        form.submit();
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        // Remove existing alerts
+        const existingToasts = document.querySelectorAll('.custom-toast');
+        existingToasts.forEach(toast => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        });
+        
+        // Create new toast
+        const toast = document.createElement('div');
+        toast.className = `custom-toast alert alert-${type} alert-dismissible fade show`;
+        toast.innerHTML = `
+            <i class="fas fa-${getToastIcon(type)} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.getElementById('toastContainer').appendChild(toast);
+        toast.style.display = 'block';
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    function getToastIcon(type) {
+        switch(type) {
+            case 'success': return 'check-circle';
+            case 'danger': 
+            case 'error': return 'exclamation-circle';
+            case 'warning': return 'exclamation-triangle';
+            default: return 'info-circle';
+        }
+    }
+    
+    // Toggle between table and grid view
+    function toggleView() {
+        const tableView = document.querySelector('.table-responsive').closest('.card');
+        const gridView = document.getElementById('termsGridView');
+        
+        if (tableView.style.display !== 'none') {
+            tableView.style.display = 'none';
+            gridView.style.display = 'block';
+        } else {
+            tableView.style.display = 'block';
+            gridView.style.display = 'none';
+        }
+    }
+    
+    // Form validation
+    document.getElementById('addTermForm')?.addEventListener('submit', function(e) {
+        const academicYear = this.querySelector('[name="academic_year"]').value;
+        const termName = this.querySelector('[name="name"]').value;
+        
+        if (!academicYear || !termName) {
+            e.preventDefault();
+            showToast('Please fill all required fields', 'warning');
+        }
+    });
+    
+    document.getElementById('editTermForm')?.addEventListener('submit', function(e) {
+        const academicYear = this.querySelector('[name="academic_year"]').value;
+        const termName = this.querySelector('[name="name"]').value;
+        
+        if (!academicYear || !termName) {
+            e.preventDefault();
+            showToast('Please fill all required fields', 'warning');
+        }
+    });
+</script>
+{% endblock %}

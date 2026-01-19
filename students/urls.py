@@ -3,9 +3,7 @@ from . import views
 
 urlpatterns = [
     path('dashboard/', views.student_dashboard, name='student_dashboard'),
-    path('report-cards/', views.student_report_cards, name='report_cards'),
-    path('subject/', views.student_subject, name='student_subject'),
-    path('profile/', views.student_subject, name='profile'),
-    path('setting/', views.student_subject, name='settings'),
+    path('invoice/pdf/<int:invoice_id>/', views.generate_invoice_pdf, name='generate_invoice_pdf'),
+    path('report-card/pdf/<int:academic_year_id>/<int:term_id>/', views.generate_report_card_pdf, name='generate_report_card_pdf'),
 ]
 # End of file students/urls.py

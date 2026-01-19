@@ -1,15 +1,17 @@
 {% extends "finance/base_finance.html" %}
-
+{% load finance_filters %}
 {% block title %}Sponsorship Management - Finance{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Sponsorship Cards */
     .sponsorship-card {
         border: 1px solid #e0e0e0;
         border-radius: 8px;
         padding: 20px;
         margin-bottom: 20px;
         transition: all 0.3s;
+        cursor: pointer;
     }
     
     .sponsorship-card:hover {
@@ -17,6 +19,23 @@
         transform: translateY(-2px);
     }
     
+    /* Student Cards */
+    .student-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .student-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+        border-color: var(--primary-color);
+    }
+    
+    /* Badges */
     .sponsorship-badge {
         padding: 5px 12px;
         border-radius: 20px;
@@ -29,9 +48,10 @@
     .badge-partial { background-color: #ffc107; color: #212529; }
     .badge-other { background-color: #17a2b8; color: white; }
     
+    /* Percentage Circle */
     .percentage-circle {
-        width: 60px;
-        height: 60px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         background: conic-gradient(#4CAF50 var(--percentage), #f0f0f0 0%);
         display: flex;
@@ -39,27 +59,87 @@
         justify-content: center;
         color: white;
         font-weight: 600;
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     
-    .empty-sponsorships {
+    /* Tabs */
+    .view-tabs {
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .view-tabs .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .view-tabs .nav-link.active {
+        color: var(--primary-color);
+        border-bottom: 3px solid var(--primary-color);
+        background: transparent;
+    }
+    
+    /* Quick Stats */
+    .stat-card {
+        border-radius: 8px;
+        padding: 15px;
         text-align: center;
-        padding: 60px 20px;
+        transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .sponsorship-card:hover .action-buttons {
+        opacity: 1;
+    }
+    
+    /* Student Avatar */
+    .student-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+    }
+    
+    /* Empty States */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
         color: #6c757d;
     }
     
-    .filter-badge {
-        cursor: pointer;
-    }
-    
+    /* Mobile Optimizations */
     @media (max-width: 768px) {
-        .sponsorship-card {
-            padding: 15px;
+        .sponsorship-card, .student-card {
+            padding: 12px;
         }
         
         .percentage-circle {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
+            font-size: 0.8rem;
+        }
+        
+        .action-buttons {
+            opacity: 1;
+        }
+        
+        .view-tabs .nav-link {
+            padding: 0.5rem 1rem;
             font-size: 0.9rem;
         }
     }
@@ -80,23 +160,52 @@
             </nav>
         </div>
         <div>
-            <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addSponsorshipModal">
-                <i class="fas fa-plus me-1"></i> Add Sponsorship
+            <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#assignSponsorshipModal">
+                <i class="fas fa-plus me-1"></i> Assign Sponsorship
             </button>
         </div>
     </div>
 </div>
 
-<!-- Filters and Search -->
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-light">
+            <h3 class="mb-1">{{ total_students }}</h3>
+            <p class="text-muted mb-0">Total Students</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-light">
+            <h3 class="mb-1 text-success">{{ sponsored_count }}</h3>
+            <p class="text-muted mb-0">Sponsored</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-light">
+            <h3 class="mb-1 text-warning">{{ full_count }}</h3>
+            <p class="text-muted mb-0">Full Scholarships</p>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="stat-card bg-light">
+            <h3 class="mb-1 text-info">{{ partial_count }}</h3>
+            <p class="text-muted mb-0">Partial Scholarships</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
 <div class="finance-card mb-4">
     <div class="card-body">
         <div class="row g-3">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <form method="get" class="d-flex">
+                    <input type="hidden" name="view" value="{{ view_mode }}">
                     <input type="text" 
                            name="search" 
                            class="form-control" 
-                           placeholder="Search by student or sponsor..."
+                           placeholder="Search by name or ID..."
                            value="{{ search_query }}">
                     <button type="submit" class="btn btn-finance-primary ms-2">
                         <i class="fas fa-search"></i>
@@ -104,48 +213,65 @@
                 </form>
             </div>
             
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <select name="class" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Classes</option>
+                    {% for class in classes %}
+                    <option value="{{ class.id }}" 
+                            {% if class_filter == class.id|stringformat:"s" %}selected{% endif %}>
+                        {{ class.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-4">
                 <div class="btn-group w-100" role="group">
-                    <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?type=all&class={{ class_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
                        class="btn btn-outline-secondary {% if type_filter == 'all' %}active{% endif %}">
                         All Types
                     </a>
-                    <a href="?type=none{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?type=none&class={{ class_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
                        class="btn btn-outline-dark {% if type_filter == 'none' %}active{% endif %}">
                         No Scholarship
                     </a>
-                    <a href="?type=full{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?type=full&class={{ class_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
                        class="btn btn-outline-success {% if type_filter == 'full' %}active{% endif %}">
                         Full
                     </a>
-                    <a href="?type=partial{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?type=partial&class={{ class_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
                        class="btn btn-outline-warning {% if type_filter == 'partial' %}active{% endif %}">
                         Partial
-                    </a>
-                    <a href="?type=other{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="btn btn-outline-info {% if type_filter == 'other' %}active{% endif %}">
-                        Other
                     </a>
                 </div>
             </div>
         </div>
         
-        {% if type_filter != 'all' or search_query %}
+        {% if type_filter != 'all' or class_filter or search_query %}
         <div class="mt-3">
             <small class="text-muted">Active filters:</small>
             {% if type_filter != 'all' %}
-                <span class="badge bg-info ms-2 filter-badge">
+                <span class="badge bg-info ms-2">
                     Type: {{ type_filter|title }}
-                    <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                    <a href="?type=all&class={{ class_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="text-white ms-1">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </span>
+            {% endif %}
+            {% if class_filter %}
+                <span class="badge bg-primary ms-2">
+                    Class: {{ available_classes|get_item:class_filter|default:class_filter }}
+                    <a href="?type={{ type_filter }}&view={{ view_mode }}{% if search_query %}&search={{ search_query }}{% endif %}"
                        class="text-white ms-1">
                         <i class="fas fa-times"></i>
                     </a>
                 </span>
             {% endif %}
             {% if search_query %}
-                <span class="badge bg-secondary ms-2 filter-badge">
+                <span class="badge bg-secondary ms-2">
                     Search: "{{ search_query }}"
-                    <a href="?type={{ type_filter }}"
+                    <a href="?type={{ type_filter }}&class={{ class_filter }}&view={{ view_mode }}"
                        class="text-white ms-1">
                         <i class="fas fa-times"></i>
                     </a>
@@ -159,20 +285,34 @@
     </div>
 </div>
 
-<!-- Sponsorships Grid -->
+<!-- View Tabs -->
+<ul class="nav view-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if view_mode == 'sponsorships' %}active{% endif %}" 
+           href="?type={{ type_filter }}&class={{ class_filter }}&view=sponsorships{% if search_query %}&search={{ search_query }}{% endif %}">
+            <i class="fas fa-hand-holding-usd me-1"></i> Sponsorships ({{ sponsorships|length }})
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if view_mode == 'students' %}active{% endif %}" 
+           href="?type={{ type_filter }}&class={{ class_filter }}&view=students{% if search_query %}&search={{ search_query }}{% endif %}">
+            <i class="fas fa-users me-1"></i> Students Without Sponsorship ({{ students_without|length }})
+        </a>
+    </li>
+</ul>
+
+<!-- Content based on view mode -->
+{% if view_mode == 'sponsorships' %}
+<!-- SPONSORSHIPS VIEW -->
 <div class="finance-card">
     <div class="card-header bg-finance-primary text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="fas fa-hand-holding-usd me-2"></i>
-            Student Sponsorships ({{ sponsorships|length }})
+            Student Sponsorships
         </h5>
         <div>
-            {% with full_count=sponsorships|filter_sponsorship:"full"|length %}
-            {% with partial_count=sponsorships|filter_sponsorship:"partial"|length %}
             <span class="badge bg-success me-2">{{ full_count }} Full</span>
             <span class="badge bg-warning">{{ partial_count }} Partial</span>
-            {% endwith %}
-            {% endwith %}
         </div>
     </div>
     
@@ -181,14 +321,16 @@
             <div class="row">
                 {% for sponsorship in sponsorships %}
                 <div class="col-xl-4 col-lg-6 mb-4">
-                    <div class="sponsorship-card">
+                    <div class="sponsorship-card" onclick="openEditModal('{{ sponsorship.id }}')">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="mb-1">{{ sponsorship.student.name }}</h5>
-                                <small class="text-muted">{{ sponsorship.student.class }}</small>
+                                <h5 class="mb-1">{{ sponsorship.student.user.get_full_name }}</h5>
+                                <small class="text-muted">
+                                    {{ sponsorship.current_class_name }} • {{ sponsorship.student.student_id }}
+                                </small>
                             </div>
                             <span class="sponsorship-badge badge-{{ sponsorship.sponsorship_type }}">
-                                {{ sponsorship.sponsorship_type_label }}
+                                {{ sponsorship.get_sponsorship_type_display }}
                             </span>
                         </div>
                         
@@ -200,7 +342,7 @@
                                 </div>
                                 <div>
                                     <h6 class="mb-0">Sponsored by</h6>
-                                    <p class="mb-0">{{ sponsorship.sponsor_name }}</p>
+                                    <p class="mb-0">{{ sponsorship.sponsor_name|default:"Not specified" }}</p>
                                 </div>
                             </div>
                         </div>
@@ -211,7 +353,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
                                     <h6 class="mb-0">Coverage</h6>
-                                    <p class="mb-0 text-muted">Percentage covered by sponsor</p>
+                                    <p class="mb-0 text-muted">Percentage covered</p>
                                 </div>
                                 <div class="percentage-circle" 
                                      style="--percentage: {{ sponsorship.percentage_covered }}%">
@@ -222,23 +364,27 @@
                         {% endif %}
                         
                         {% if sponsorship.sponsorship_type == 'full' %}
-                        <div class="alert alert-success mb-3">
+                        <div class="alert alert-success mb-3 py-2">
                             <i class="fas fa-check-circle me-2"></i>
-                            All fees are covered by the sponsor
+                            <small>All fees covered by sponsor</small>
                         </div>
                         {% endif %}
                         
                         <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                             <small class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
-                                Updated recently
+                                Updated: {{ sponsorship.updated_at|date:"M d, Y" }}
                             </small>
-                            <div>
-                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Edit">
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="openEditModal('{{ sponsorship.id }}'); event.stopPropagation()"
+                                        title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-outline-info ms-1" data-bs-toggle="tooltip" title="View Details">
-                                    <i class="fas fa-eye"></i>
+                                <button class="btn btn-sm btn-outline-danger ms-1" 
+                                        onclick="confirmDelete('{{ sponsorship.id }}', '{{ sponsorship.student.user.get_full_name }}'); event.stopPropagation()"
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
@@ -247,73 +393,233 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="empty-sponsorships">
+            <div class="empty-state">
                 <i class="fas fa-hand-holding-usd fa-4x text-muted mb-3"></i>
                 <h4>No Sponsorships Found</h4>
                 <p class="text-muted">
-                    {% if type_filter != 'all' or search_query %}
-                        Try adjusting your filters
+                    {% if type_filter != 'all' or class_filter or search_query %}
+                        Try adjusting your filters or switch to "Students" tab
                     {% else %}
                         No sponsorships have been recorded yet
                     {% endif %}
                 </p>
-                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#addSponsorshipModal">
-                    <i class="fas fa-plus me-1"></i> Add First Sponsorship
+                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#assignSponsorshipModal">
+                    <i class="fas fa-plus me-1"></i> Assign First Sponsorship
                 </button>
             </div>
         {% endif %}
     </div>
-    
-    {% if sponsorships %}
-    <div class="card-footer">
-        <div class="row">
-            <div class="col-md-6">
-                <small class="text-muted">
-                    <i class="fas fa-info-circle me-1"></i>
-                    Sponsorships help track financial support for students
-                </small>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <button class="btn btn-outline-success btn-sm">
-                    <i class="fas fa-file-export me-1"></i> Export List
-                </button>
-                <button class="btn btn-outline-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#bulkUpdateModal">
-                    <i class="fas fa-edit me-1"></i> Bulk Update
-                </button>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
-<!-- Add Sponsorship Modal -->
-<div class="modal fade" id="addSponsorshipModal" tabindex="-1">
-    <div class="modal-dialog">
+{% else %}
+<!-- STUDENTS WITHOUT SPONSORSHIP VIEW -->
+<div class="finance-card">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+            <i class="fas fa-users me-2"></i>
+            Students Available for Sponsorship
+        </h5>
+    </div>
+    
+    <div class="card-body">
+        {% if students_without %}
+            <div class="row">
+                {% for student in students_without %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="student-card" onclick="assignToStudent('{{ student.id }}')">
+                        <div class="d-flex align-items-center">
+                            <div class="student-avatar me-3">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ student.user.get_full_name }}</h6>
+                                <p class="mb-1">
+                                    <small class="text-muted">
+                                        <i class="fas fa-id-card me-1"></i>{{ student.student_id }}
+                                    </small>
+                                </p>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        <i class="fas fa-graduation-cap me-1"></i>
+                                        {{ student.current_class_name|default:"Class not assigned" }}
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="ms-2">
+                                <i class="fas fa-plus text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                <h4>No Students Available</h4>
+                <p class="text-muted">
+                    {% if class_filter or search_query %}
+                        No students match your filters
+                    {% else %}
+                        All students already have sponsorships assigned
+                    {% endif %}
+                </p>
+                <button class="btn btn-finance-primary" data-bs-toggle="modal" data-bs-target="#assignSponsorshipModal">
+                    <i class="fas fa-search me-1"></i> Search All Students
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- MODALS -->
+
+<!-- Assign Sponsorship Modal -->
+<div class="modal fade" id="assignSponsorshipModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-finance-primary text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-plus me-2"></i>
-                    Add New Sponsorship
+                    Assign Sponsorship
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post">
+            <form method="post" id="assignForm">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Select Student *</label>
-                        <select class="form-select" required>
-                            <option value="">Choose a student...</option>
-                            <option value="1">John Smith (Grade 10A)</option>
-                            <option value="2">Sarah Johnson (Grade 11B)</option>
-                            <option value="3">Michael Brown (Grade 9C)</option>
-                            <option value="4">Emily Davis (Grade 12A)</option>
-                        </select>
+                    <!-- Student Selection Section -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">1. Select Student</h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <select name="student" id="studentSelect" class="form-select" required 
+                                        onchange="loadStudentInfo(this.value)">
+                                    <option value="">Choose a student...</option>
+                                    {% for student in students_without %}
+                                    <option value="{{ student.id }}">
+                                        {{ student.user.get_full_name }} - {{ student.student_id }}
+                                        ({{ student.current_class_name|default:"No class" }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="button" class="btn btn-outline-secondary w-100" 
+                                        onclick="switchToStudentsTab()">
+                                    <i class="fas fa-users me-1"></i> View All Students
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Student Info Display -->
+                        <div id="studentInfo" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Name:</strong> <span id="studentName"></span></p>
+                                    <p class="mb-1"><strong>Student ID:</strong> <span id="studentId"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1"><strong>Class:</strong> <span id="studentClass"></span></p>
+                                    <p class="mb-0"><strong>Parent:</strong> <span id="studentParent"></span></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
+                    <!-- Sponsorship Details Section -->
+                    <div>
+                        <h6 class="border-bottom pb-2 mb-3">2. Sponsorship Details</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Sponsorship Type *</label>
+                            <select name="sponsorship_type" class="form-select" id="sponsorshipType" required 
+                                    onchange="toggleSponsorshipFields()">
+                                <option value="">Select type...</option>
+                                <option value="none">No Scholarship</option>
+                                <option value="full">Full Scholarship</option>
+                                <option value="partial">Partial Scholarship</option>
+                                <option value="other">Other / Unknown</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3" id="sponsorNameGroup" style="display: none;">
+                            <label class="form-label">Sponsor Name *</label>
+                            <input type="text" 
+                                   name="sponsor_name" 
+                                   class="form-control" 
+                                   placeholder="Government, NGO, Parent, Company, etc.">
+                        </div>
+                        
+                        <div class="mb-3" id="percentageGroup" style="display: none;">
+                            <label class="form-label">Percentage Covered *</label>
+                            <div class="input-group">
+                                <input type="number" 
+                                       name="percentage_covered" 
+                                       class="form-control" 
+                                       min="1" 
+                                       max="100" 
+                                       placeholder="e.g., 50">
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Enter percentage (1-100) for partial scholarship</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notes (Optional)</label>
+                            <textarea name="notes" class="form-control" rows="2" 
+                                      placeholder="Any additional information about this sponsorship..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-finance-primary">Assign Sponsorship</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Sponsorship Modal -->
+<div class="modal fade" id="editSponsorshipModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>
+                    Edit Sponsorship
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" id="editForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="sponsorship_id" id="editSponsorshipId">
+                
+                <div class="modal-body">
+                    <!-- Student Info Display -->
+                    <div class="alert alert-info mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Student:</strong> <span id="editStudentName"></span></p>
+                                <p class="mb-1"><strong>Student ID:</strong> <span id="editStudentId"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Class:</strong> <span id="editStudentClass"></span></p>
+                                <p class="mb-0"><strong>Current Status:</strong> <span id="editCurrentStatus"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sponsorship Details -->
                     <div class="mb-3">
                         <label class="form-label">Sponsorship Type *</label>
-                        <select class="form-select" id="sponsorshipType" required>
+                        <select name="sponsorship_type" class="form-select" id="editSponsorshipType" required 
+                                onchange="toggleEditSponsorshipFields()">
                             <option value="">Select type...</option>
                             <option value="none">No Scholarship</option>
                             <option value="full">Full Scholarship</option>
@@ -322,16 +628,24 @@
                         </select>
                     </div>
                     
-                    <div class="mb-3" id="sponsorNameGroup" style="display: none;">
+                    <div class="mb-3" id="editSponsorNameGroup">
                         <label class="form-label">Sponsor Name *</label>
-                        <input type="text" class="form-control" 
+                        <input type="text" 
+                               name="sponsor_name" 
+                               id="editSponsorName"
+                               class="form-control" 
                                placeholder="Government, NGO, Parent, Company, etc.">
                     </div>
                     
-                    <div class="mb-3" id="percentageGroup" style="display: none;">
+                    <div class="mb-3" id="editPercentageGroup">
                         <label class="form-label">Percentage Covered *</label>
                         <div class="input-group">
-                            <input type="number" class="form-control" min="1" max="100" 
+                            <input type="number" 
+                                   name="percentage_covered" 
+                                   id="editPercentage"
+                                   class="form-control" 
+                                   min="1" 
+                                   max="100" 
                                    placeholder="e.g., 50">
                             <span class="input-group-text">%</span>
                         </div>
@@ -340,45 +654,50 @@
                     
                     <div class="mb-3">
                         <label class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control" rows="3" 
-                                  placeholder="Any additional information about this sponsorship..."></textarea>
+                        <textarea name="notes" id="editNotes" class="form-control" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger me-auto" 
+                            onclick="confirmDeleteFromEdit()">
+                        <i class="fas fa-trash me-1"></i> Delete
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-finance-primary">Add Sponsorship</button>
+                    <button type="submit" class="btn btn-primary">Update Sponsorship</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Bulk Update Modal -->
-<div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
+            <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit me-2"></i>
-                    Bulk Update Sponsorships
+                    <i class="fas fa-trash me-2"></i>
+                    Delete Sponsorship
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p class="text-muted">
-                    Select multiple students and update their sponsorship status in bulk.
-                </p>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    This feature allows you to update multiple sponsorships at once.
+            <form method="post" id="deleteForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="sponsorship_id" id="deleteSponsorshipId">
+                
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the sponsorship for <strong id="deleteStudentName"></strong>?</p>
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        This action cannot be undone.
+                    </p>
                 </div>
-                <button class="btn btn-info w-100" disabled>
-                    <i class="fas fa-cogs me-1"></i> Coming Soon
-                </button>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Sponsorship</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -386,34 +705,162 @@
 
 {% block extra_js %}
 <script>
+    // Store sponsorship data for quick access
+    const sponsorshipData = {};
+    {% for sponsorship in sponsorships %}
+    sponsorshipData['{{ sponsorship.id }}'] = {
+        id: '{{ sponsorship.id }}',
+        studentName: '{{ sponsorship.student.user.get_full_name|escapejs }}',
+        studentId: '{{ sponsorship.student.student_id|escapejs }}',
+        className: '{{ sponsorship.current_class_name|escapejs }}',
+        type: '{{ sponsorship.sponsorship_type|escapejs }}',
+        sponsorName: '{{ sponsorship.sponsor_name|escapejs }}',
+        percentage: '{{ sponsorship.percentage_covered|default:""|escapejs }}',
+        notes: '{{ sponsorship.notes|default:""|escapejs }}',
+        status: '{{ sponsorship.get_sponsorship_type_display|escapejs }}'
+    };
+    {% endfor %}
+    
+    // Store student data for quick access
+    const studentData = {};
+    {% for student in students_without %}
+    studentData['{{ student.id }}'] = {
+        id: '{{ student.id }}',
+        name: '{{ student.user.get_full_name|escapejs }}',
+        studentId: '{{ student.student_id|escapejs }}',
+        className: '{{ student.current_class_name|default:"Not Assigned"|escapejs }}',
+        parentName: '{{ student.parent_name|escapejs }}',
+        parentContact: '{{ student.parent_contact|escapejs }}'
+    };
+    {% endfor %}
+    
+    // Toggle sponsorship fields based on type
+    function toggleSponsorshipFields() {
+        const type = document.getElementById('sponsorshipType').value;
+        const sponsorGroup = document.getElementById('sponsorNameGroup');
+        const percentageGroup = document.getElementById('percentageGroup');
+        
+        if (type === 'none') {
+            sponsorGroup.style.display = 'none';
+            percentageGroup.style.display = 'none';
+        } else if (type === 'partial') {
+            sponsorGroup.style.display = 'block';
+            percentageGroup.style.display = 'block';
+        } else if (type === 'full' || type === 'other') {
+            sponsorGroup.style.display = 'block';
+            percentageGroup.style.display = 'none';
+        }
+    }
+    
+    // Toggle edit sponsorship fields
+    function toggleEditSponsorshipFields() {
+        const type = document.getElementById('editSponsorshipType').value;
+        const sponsorGroup = document.getElementById('editSponsorNameGroup');
+        const percentageGroup = document.getElementById('editPercentageGroup');
+        
+        if (type === 'none') {
+            sponsorGroup.style.display = 'none';
+            percentageGroup.style.display = 'none';
+        } else if (type === 'partial') {
+            sponsorGroup.style.display = 'block';
+            percentageGroup.style.display = 'block';
+        } else if (type === 'full' || type === 'other') {
+            sponsorGroup.style.display = 'block';
+            percentageGroup.style.display = 'none';
+        }
+    }
+    
+    // Load student info when selected in assign modal
+    function loadStudentInfo(studentId) {
+        const student = studentData[studentId];
+        const infoDiv = document.getElementById('studentInfo');
+        
+        if (student) {
+            document.getElementById('studentName').textContent = student.name;
+            document.getElementById('studentId').textContent = student.studentId;
+            document.getElementById('studentClass').textContent = student.className;
+            document.getElementById('studentParent').textContent = student.parentName;
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.style.display = 'none';
+        }
+    }
+    
+    // Assign sponsorship to a specific student (from student card)
+    function assignToStudent(studentId) {
+        const student = studentData[studentId];
+        if (student) {
+            const select = document.getElementById('studentSelect');
+            select.value = studentId;
+            loadStudentInfo(studentId);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('assignSponsorshipModal'));
+            modal.show();
+        }
+    }
+    
+    // Open edit modal with sponsorship data
+    function openEditModal(sponsorshipId) {
+        const data = sponsorshipData[sponsorshipId];
+        if (!data) return;
+        
+        // Set form values
+        document.getElementById('editSponsorshipId').value = data.id;
+        document.getElementById('editStudentName').textContent = data.studentName;
+        document.getElementById('editStudentId').textContent = data.studentId;
+        document.getElementById('editStudentClass').textContent = data.className;
+        document.getElementById('editCurrentStatus').textContent = data.status;
+        
+        document.getElementById('editSponsorshipType').value = data.type;
+        document.getElementById('editSponsorName').value = data.sponsorName;
+        document.getElementById('editPercentage').value = data.percentage;
+        document.getElementById('editNotes').value = data.notes;
+        
+        // Toggle fields based on type
+        toggleEditSponsorshipFields();
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editSponsorshipModal'));
+        modal.show();
+    }
+    
+    // Confirm deletion
+    function confirmDelete(sponsorshipId, studentName) {
+        document.getElementById('deleteSponsorshipId').value = sponsorshipId;
+        document.getElementById('deleteStudentName').textContent = studentName;
+        
+        const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        modal.show();
+    }
+    
+    // Confirm deletion from edit modal
+    function confirmDeleteFromEdit() {
+        const sponsorshipId = document.getElementById('editSponsorshipId').value;
+        const studentName = document.getElementById('editStudentName').textContent;
+        
+        // Close edit modal
+        const editModal = bootstrap.Modal.getInstance(document.getElementById('editSponsorshipModal'));
+        editModal.hide();
+        
+        // Show delete modal
+        confirmDelete(sponsorshipId, studentName);
+    }
+    
+    // Switch to students tab
+    function switchToStudentsTab() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', 'students');
+        window.location.href = url.toString();
+    }
+    
+    // Initialize percentage circles
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize tooltips
         const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         tooltips.forEach(tooltip => {
             new bootstrap.Tooltip(tooltip);
         });
-        
-        // Show/hide form fields based on sponsorship type
-        const typeSelect = document.getElementById('sponsorshipType');
-        const sponsorNameGroup = document.getElementById('sponsorNameGroup');
-        const percentageGroup = document.getElementById('percentageGroup');
-        
-        if (typeSelect) {
-            typeSelect.addEventListener('change', function() {
-                const type = this.value;
-                
-                if (type === 'none') {
-                    sponsorNameGroup.style.display = 'none';
-                    percentageGroup.style.display = 'none';
-                } else if (type === 'partial') {
-                    sponsorNameGroup.style.display = 'block';
-                    percentageGroup.style.display = 'block';
-                } else if (type === 'full' || type === 'other') {
-                    sponsorNameGroup.style.display = 'block';
-                    percentageGroup.style.display = 'none';
-                }
-            });
-        }
         
         // Initialize percentage circles
         document.querySelectorAll('.percentage-circle').forEach(circle => {
@@ -423,12 +870,17 @@
                 circle.style.setProperty('--percentage', `${percentage}%`);
             }
         });
+        
+        // Auto-hide messages after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                if (!alert.classList.contains('alert-danger')) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
     });
-    
-    // Custom filter for template (you'll need to add this to your template filters)
-    // In a real Django app, you would create a custom template filter
-    function filterSponsorships(sponsorships, type) {
-        return sponsorships.filter(s => s.sponsorship_type === type);
-    }
 </script>
 {% endblock %}

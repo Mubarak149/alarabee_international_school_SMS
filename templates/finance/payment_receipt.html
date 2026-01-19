@@ -1,0 +1,231 @@
+{% extends "finance/base_finance.html" %}
+{% block title %}Payment Receipt - Finance{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        body {
+            background: white !important;
+        }
+        
+        .receipt-container {
+            box-shadow: none !important;
+            border: none !important;
+        }
+        
+        .btn {
+            display: none !important;
+        }
+    }
+    
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 30px;
+        background: white;
+    }
+    
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #4CAF50;
+        padding-bottom: 20px;
+    }
+    
+    .receipt-details {
+        margin-bottom: 30px;
+    }
+    
+    .amount-box {
+        border: 2px solid #4CAF50;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        background-color: #f8fff8;
+        margin: 20px 0;
+    }
+    
+    .signature-box {
+        margin-top: 50px;
+        padding-top: 20px;
+        border-top: 1px dashed #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="receipt-container">
+        <!-- Action Buttons -->
+        <div class="no-print mb-4">
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'payment_management' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Payments
+                </a>
+                <div>
+                    <button onclick="window.print()" class="btn btn-primary me-2">
+                        <i class="fas fa-print me-1"></i> Print Receipt
+                    </button>
+                    <a href="{% url 'payment_management' %}?view=form&payment_id={{ payment.id }}" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i> Edit Payment
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Receipt Header -->
+        <div class="receipt-header">
+            <h1 class="mb-2">{{ request.site.name|default:"School SMS" }}</h1>
+            <p class="text-muted mb-0">Payment Receipt</p>
+            <p class="text-muted mb-0">{{ request.site.domain|default:"www.schoolsms.com" }}</p>
+        </div>
+        
+        <!-- Receipt Details -->
+        <div class="receipt-details">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Payment Information</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Receipt No:</th>
+                            <td>{{ payment.reference|default:"N/A" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date:</th>
+                            <td>{{ payment.payment_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Time:</th>
+                            <td>{{ payment.created_at|time:"g:i A" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Method:</th>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                        </tr>
+                        {% if payment.transaction_id %}
+                        <tr>
+                            <th>Transaction ID:</th>
+                            <td>{{ payment.transaction_id }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="mb-3">Student Information</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Student Name:</th>
+                            <td>{{ payment.student.user.get_full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Student ID:</th>
+                            <td>{{ payment.student.student_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Parent Name:</th>
+                            <td>{{ payment.student.parent_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Parent Contact:</th>
+                            <td>{{ payment.student.parent_contact }}</td>
+                        </tr>
+                        <tr>
+                            <th>Class:</th>
+                            <td>{{ payment.student.current_class_name|default:"Not assigned" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Invoice Information -->
+            <div class="mt-4">
+                <h5 class="mb-3">Invoice Details</h5>
+                <table class="table table-sm">
+                    <tr>
+                        <th>Academic Year:</th>
+                        <td>{{ payment.invoice.academic_year }}</td>
+                    </tr>
+                    <tr>
+                        <th>Term:</th>
+                        <td>{{ payment.invoice.term }}</td>
+                    </tr>
+                    <tr>
+                        <th>Invoice Total:</th>
+                        <td>₦{{ payment.invoice.total_amount|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Previously Paid:</th>
+                        <td>₦{{ payment.invoice.amount_paid|floatformat:2 }}</td>
+                    </tr>
+                    <tr>
+                        <th>Amount Due:</th>
+                        <td>₦{{ payment.invoice.amount_due|floatformat:2 }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <!-- Amount Box -->
+            <div class="amount-box">
+                <h3 class="mb-2">Amount Paid</h3>
+                <h1 class="text-success mb-0">₦{{ payment.amount_paid|floatformat:2 }}</h1>
+                <p class="text-muted mb-0">Paid in full</p>
+            </div>
+            
+            {% if payment.notes %}
+            <div class="mt-4">
+                <h5>Notes</h5>
+                <p class="text-muted">{{ payment.notes }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Signature Area -->
+        <div class="signature-box">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1">Received by:</p>
+                    <p class="border-top pt-2">
+                        <strong>{{ payment.received_by.get_full_name|default:payment.received_by.username }}</strong>
+                    </p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-1">Signature:</p>
+                    <p class="border-top pt-2" style="min-height: 40px;"></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-5 text-center text-muted">
+            <p class="mb-0">This is an official receipt from {{ request.site.name|default:"School SMS" }}</p>
+            <p class="mb-0">Generated on {{ today|date:"F d, Y \a\t g:i A" }}</p>
+            <p class="mb-0">Receipt ID: PAY-{{ payment.id }}-{{ payment.created_at|date:"Ymd" }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-print option
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') {
+            window.print();
+        }
+    });
+</script>
+{% endblock %}

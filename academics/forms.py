@@ -1,5 +1,5 @@
 from django import forms
-from .models import SchoolClass, AcademicYear
+from .models import SchoolClass, AcademicYear, Term
 import re
 
 # forms.py
@@ -123,3 +123,15 @@ class AcademicYearForm(forms.ModelForm):
                         f'Start date should be in {start_year} for academic year {year}')
         
         return cleaned_data
+    
+
+class TermForm(forms.ModelForm):
+    class Meta:
+        model = Term
+        fields = ['academic_year', 'name', 'is_current']
+
+        widgets = {
+            'academic_year': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'name': forms.Select(attrs={'class': 'form-control', 'required': True}),
+            'is_current': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }

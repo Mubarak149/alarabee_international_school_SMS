@@ -191,11 +191,11 @@
                         {% for invoice in invoices %}
                         <tr>
                             <td>
-                                <strong>{{ invoice.student.name }}</strong>
+                                <strong>{{ invoice.student }}</strong>
                                 <br>
                                 <small class="text-muted">{{ invoice.student.admission }}</small>
                             </td>
-                            <td>{{ invoice.class_name }}</td>
+                            <td>{{ invoice.student.current_class_name }}</td>
                             <td>{{ invoice.term }}</td>
                             <td class="amount positive">${{ invoice.total_amount|floatformat:2 }}</td>
                             <td class="amount {% if invoice.amount_due > 0 %}negative{% else %}positive{% endif %}">
@@ -203,7 +203,7 @@
                             </td>
                             <td>
                                 <span class="invoice-status-badge badge-status-{{ invoice.status }}">
-                                    {{ invoice.status_label }}
+                                    {{ invoice.status }}
                                 </span>
                             </td>
                             <td>{{ invoice.created_at|date:"M d, Y" }}</td>
@@ -245,31 +245,34 @@
                                             <div class="mb-3">
                                                 <label class="form-label">Student</label>
                                                 <input type="text" class="form-control" 
-                                                       value="{{ invoice.student.name }}" readonly>
+                                                    value="{{ invoice.student.name }}" readonly>
                                             </div>
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
                                                     <label class="form-label">Total Amount</label>
                                                     <input type="text" class="form-control" 
-                                                           value="${{ invoice.total_amount|floatformat:2 }}" readonly>
+                                                        value="${{ invoice.total_amount|floatformat:2 }}" readonly>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label">Amount Due</label>
                                                     <input type="text" class="form-control" 
-                                                           value="${{ invoice.amount_due|floatformat:2 }}" readonly>
+                                                        value="${{ invoice.amount_due|floatformat:2 }}" readonly>
                                                 </div>
                                             </div>
+                                            
+                                            <!-- Django Form Fields -->
                                             <div class="mb-3">
                                                 <label class="form-label">Amount Paid *</label>
                                                 <input type="number" 
-                                                       name="amount_paid" 
-                                                       class="form-control" 
-                                                       min="0.01" 
-                                                       max="{{ invoice.amount_due }}" 
-                                                       step="0.01"
-                                                       required>
+                                                    name="amount_paid" 
+                                                    class="form-control" 
+                                                    min="0.01" 
+                                                    max="{{ invoice.amount_due }}" 
+                                                    step="0.01"
+                                                    required>
                                                 <small class="text-muted">Maximum: ${{ invoice.amount_due|floatformat:2 }}</small>
                                             </div>
+                                            
                                             <div class="mb-3">
                                                 <label class="form-label">Payment Method *</label>
                                                 <select name="payment_method" class="form-select" required>
@@ -280,10 +283,11 @@
                                                     <option value="online">Online</option>
                                                 </select>
                                             </div>
+                                            
                                             <div class="mb-3">
-                                                <label class="form-label">Reference Number (Optional)</label>
-                                                <input type="text" name="reference" class="form-control" 
-                                                       placeholder="Transaction ID, Receipt #, etc.">
+                                                <label class="form-label">Notes (Optional)</label>
+                                                <textarea name="notes" class="form-control" rows="2" 
+                                                        placeholder="Any additional notes about this payment"></textarea>
                                             </div>
                                         </div>
                                         <div class="modal-footer">

@@ -1,0 +1,65 @@
+<!-- Sidebar -->
+<div class="sidebar bg-dark">
+    <div class="sidebar-header">
+        <div class="student-info">
+            <div class="student-avatar">
+                <img src="https://ui-avatars.com/api/?name=John+Doe&background=4e73df&color=fff&size=80" alt="Student">
+            </div>
+            <div class="student-details">
+                <h6>{{ student.full_name }}</h6>
+                <p class="text-muted">Grade {{ student.current_class_name }} • Student ID: {{ student.student_id }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- In sidebar.html -->
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'student_dashboard' %}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#invoices">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>All Invoices</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#scores">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Academic Scores</span>
+                </a>
+            </li>
+            <!-- Keep other links as needed -->
+        </ul>
+    </nav>
+    
+    <!-- Update the sidebar-footer section in sidebar.html -->
+    <div class="sidebar-footer">
+        <div class="average-score-display">
+            <div class="score-circle">
+                <div class="circle-progress" data-value="{{ average_score|default:0 }}"></div>
+                <div class="score-text">
+                    <span class="score-value">
+                        {% if average_score %}
+                            {{ average_score }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </span>
+                    <span class="score-label">Average</span>
+                </div>
+            </div>
+            <div class="text-center mt-2 text-light">
+                {% if class_rank %}
+                    <small>Rank: {{ class_rank }}{% if class_rank == 1 %}st{% elif class_rank == 2 %}nd{% elif class_rank == 3 %}rd{% else %}th{% endif %}</small>
+                {% else %}
+                    <small>No rank data</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,870 +1,1142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard - School SMS</title>
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Custom CSS for Sidebar Toggle */
-        body {
-            font-family: 'Poppins', sans-serif;
-            overflow-x: hidden;
-            padding-top: 70px; /* Add padding for fixed navbar */
-        }
-        
-        /* Sidebar Styles */
-        .sidebar {
-            width: 250px;
-            height: calc(100vh - 70px); /* Subtract navbar height */
-            position: fixed;
-            left: 0;
-            top: 70px; /* Start below navbar */
-            z-index: 100;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-            margin-top: 0;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #34495e;
-        }
-        
-        .student-info {
-            text-align: center;
-        }
-        
-        .student-avatar img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid #4e73df;
-        }
-        
-        .student-details h6 {
-            color: #fff;
-            margin-top: 10px;
-            margin-bottom: 5px;
-        }
-        
-        .sidebar-nav {
-            padding: 20px 0;
-        }
-        
-        .sidebar-nav .nav-link {
-            color: #b0b7c3;
-            padding: 12px 20px;
-            transition: all 0.3s;
-        }
-        
-        .sidebar-nav .nav-link:hover,
-        .sidebar-nav .nav-link.active {
-            color: #fff;
-            background-color: #4e73df;
-        }
-        
-        .sidebar-nav .nav-link i {
-            width: 20px;
-            margin-right: 10px;
-        }
-        
-        .sidebar-nav .badge {
-            float: right;
-            margin-top: 2px;
-        }
-        
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #34495e;
-        }
-        
-        .score-circle {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto;
-        }
-        
-        .circle-progress {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(#4e73df 85%, #2d3748 0%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .score-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #fff;
-        }
-        
-        .score-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: block;
-        }
-        
-        /* Main Content */
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            min-height: calc(100vh - 70px); /* Subtract navbar height */
-            background-color: #f8f9fc;
-            transition: margin-left 0.3s ease;
-            margin-top: 70px; /* Add margin for fixed navbar */
-        }
-        
-        .page-header {
-            margin-bottom: 30px;
-        }
-        
-        .page-header h1 {
-            font-weight: 700;
-            color: #2e3a59;
-        }
-        
-        /* Stats Cards */
-        .stats-card {
-            border-left: 4px solid !important;
-            transition: transform 0.3s;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .border-left-primary {
-            border-left-color: #4e73df !important;
-        }
-        
-        .border-left-info {
-            border-left-color: #36b9cc !important;
-        }
-        
-        /* Subject Table */
-        .subject-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .subject-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin-right: 10px;
-        }
-        
-        .subject-name {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .grade-badge {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 30px;
-            font-weight: bold;
-            color: white;
-        }
-        
-        .grade-a {
-            background-color: #28a745;
-        }
-        
-        .grade-b {
-            background-color: #17a2b8;
-        }
-        
-        .grade-c {
-            background-color: #ffc107;
-        }
-        
-        /* Quick Actions */
-        .quick-action-btn {
-            display: block;
-            text-align: center;
-            text-decoration: none;
-            color: #2e3a59;
-            transition: transform 0.3s;
-        }
-        
-        .quick-action-btn:hover {
-            transform: translateY(-3px);
-            color: #2e3a59;
-        }
-        
-        .action-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px;
-            color: white;
-            font-size: 1.5rem;
-        }
-        
-        /* Mobile Sidebar Toggle Styles */
-        .sidebar-toggle {
-            position: fixed;
-            top: 80px; /* Position below navbar */
-            left: 15px;
-            z-index: 1100;
-            background: #4e73df;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            width: 40px;
-            height: 40px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 70px; /* Start below navbar */
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-        
-        .sidebar-overlay.show {
-            display: block;
-        }
-        
-        /* Navbar Brand */
-        .brand-text {
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        
-        .brand-highlight {
-            color: #ffc107;
-        }
-        
-        .user-avatar {
-            display: flex;
-            align-items: center;
-        }
-        
-        .user-avatar img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        /* Chart Containers */
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-        
-        .score-progress-chart {
-            position: relative;
-            height: 250px;
-        }
-        
-        /* Responsive Styles */
-        @media (max-width: 768px) {
-            body {
-                padding-top: 70px;
-            }
-            
-            .sidebar-toggle {
-                display: flex;
-                top: 80px;
-            }
-            
-            .sidebar {
-                height: calc(100vh - 70px);
-                top: 70px;
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0 !important;
-                margin-top: 70px;
-                padding-top: 20px;
-                min-height: calc(100vh - 70px);
-            }
-            
-            .page-header {
-                margin-top: 0;
-            }
-            
-            .sidebar-overlay {
-                top: 70px;
-            }
-            
-            /* Adjust the toggle button position when navbar expands */
-            .navbar-collapse.show ~ .sidebar-toggle {
-                top: 130px; /* Adjust based on expanded navbar height */
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .sidebar-overlay {
-                display: none !important;
-            }
-        }
-        
-        /* Fix navbar to stay on top properly */
-        .navbar {
-            z-index: 1030; /* Bootstrap default for fixed-top */
-        }
-    </style>
-</head>
-<body>
-    <!-- Sidebar Toggle Button for Mobile -->
-    <button class="sidebar-toggle" id="sidebarToggle">
-        <i class="fas fa-bars"></i>
-    </button>
+{% extends 'student/base.html' %}
+{% load static %}
 
-    <!-- Overlay for Mobile Sidebar -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% block title %}Student Dashboard - School SMS{% endblock %}
+
+{% block page_title %}Student Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block page_css %}
+<style>
+    /* Dashboard-specific CSS */
+    .stats-card {
+        border-left: 4px solid !important;
+        transition: transform 0.3s;
+    }
     
-    <!-- Top Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
-                <span class="user-role badge bg-light text-primary ms-2">Student</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <div class="user-avatar">
-                                <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="User">
-                                <span class="user-name">John Doe</span>
-                            </div>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end">
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-user me-2"></i> My Profile
-                            </a>
-                            <a class="dropdown-item" href="#">
-                                <i class="fas fa-cog me-2"></i> Settings
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="index.html">
-                                <i class="fas fa-sign-out-alt me-2"></i> Logout
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .border-left-primary {
+        border-left-color: #4e73df !important;
+    }
+    
+    .border-left-info {
+        border-left-color: #36b9cc !important;
+    }
+    
+    .border-left-success {
+        border-left-color: #1cc88a !important;
+    }
+    
+    .border-left-warning {
+        border-left-color: #f6c23e !important;
+    }
+    
+    .border-left-danger {
+        border-left-color: #e74a3b !important;
+    }
+    
+    .invoice-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-partial {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-unpaid {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .payment-method-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        color: white;
+    }
+    
+    .term-card {
+        border-left: 4px solid;
+        transition: all 0.3s;
+        margin-bottom: 20px;
+    }
+    
+    .term-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .term-card.current-term {
+        border-color: #4e73df;
+    }
+    
+    .term-card.previous-term {
+        border-color: #6c757d;
+    }
+    
+    .score-circle {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+    
+    .circle-progress {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .score-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .progress-chart {
+        height: 10px;
+        border-radius: 5px;
+        background-color: #e9ecef;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        border-radius: 5px;
+    }
+    
+    .invoice-details-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    /* Section management styles */
+    .content-section {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .content-section.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .section-nav {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .section-nav .nav-pills .nav-link {
+        color: #495057;
+        font-weight: 500;
+        padding: 10px 20px;
+        margin: 0 5px;
+    }
+    
+    .section-nav .nav-pills .nav-link.active {
+        background-color: #4e73df;
+        color: white;
+    }
+    
+    .back-to-dashboard {
+        display: inline-flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.5rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #4e73df;
+        font-weight: 500;
+    }
+    
+    .back-to-dashboard i {
+        margin-right: 0.5rem;
+    }
+    
+    /* Academic performance styles */
+    .rank-badge {
+        font-size: 1rem;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+    
+    .rank-1 { background-color: #FFD700; color: #856404; }
+    .rank-2 { background-color: #C0C0C0; color: #333; }
+    .rank-3 { background-color: #CD7F32; color: #fff; }
+    
+    /* Invoice item styles */
+    .invoice-item-row {
+        border-bottom: 1px solid #e9ecef;
+        padding: 10px 0;
+    }
+    
+    .invoice-item-row:last-child {
+        border-bottom: none;
+    }
+    
+    .payment-item {
+        padding: 10px;
+        background-color: #f8f9fc;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+    
+    .term-score-item {
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f8f9fc;
+        margin-bottom: 15px;
+    }
+    
+    .term-score-item.current {
+        background-color: #e8f4fd;
+        border-left: 4px solid #4e73df;
+    }
+</style>
+{% endblock %}
 
-    <!-- Sidebar -->
-    <div class="sidebar bg-dark">
-        <div class="sidebar-header">
-            <div class="student-info">
-                <div class="student-avatar">
-                    <img src="https://ui-avatars.com/api/?name=John+Doe&background=4e73df&color=fff&size=80" alt="Student">
-                </div>
-                <div class="student-details">
-                    <h6>John Doe</h6>
-                    <p class="text-muted">Grade 10 • Roll No: S10123</p>
-                </div>
-            </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-            <ul class="nav flex-column">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Performance</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-book"></i>
-                        <span>Subjects</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-file-pdf"></i>
-                        <span>Report Cards</span>
-                        <span class="badge bg-success">New</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        
-        <div class="sidebar-footer">
-            <div class="average-score-display">
-                <div class="score-circle">
-                    <div class="circle-progress" data-value="85"></div>
-                    <div class="score-text">
-                        <span class="score-value">85%</span>
-                        <span class="score-label">Average</span>
+{% block content %}
+<!-- Dashboard Overview Section -->
+<div id="dashboard-section" class="content-section active">
+    <!-- Welcome Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-primary text-white shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h4 class="mb-2">Welcome, {{ student.full_name }}!</h4>
+                            <p class="mb-0">
+                                Student ID: {{ student.student_id }} • 
+                                Class: {{ student.current_class_name }} • 
+                                {% if academic_session %}
+                                Academic Year: {{ academic_session.name }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            {% if sponsorship %}
+                            <div class="badge bg-light text-primary p-2">
+                                <i class="fas fa-award me-1"></i>
+                                {{ sponsorship.get_sponsorship_type_display }}
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-                <p class="text-center mt-2 text-light">Current Term</p>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1>Student Dashboard</h1>
-            <div class="breadcrumb">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active">Dashboard</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="row stats-row">
-            <div class="col-xl-6 col-md-6 mb-4">
-                <div class="card stats-card border-left-primary">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Average Score
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">85%</div>
-                                <div class="mt-2">
-                                    <span class="badge bg-success">Excellent</span>
-                                </div>
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <!-- Current Term Average -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-success h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Current Term Average
                             </div>
-                            <div class="col-auto">
-                                <i class="fas fa-star fa-2x text-primary"></i>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if current_term_average %}
+                                    {{ current_term_average }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-success">
+                                    {% if current_term %}
+                                        {{ current_term.name }} Term
+                                    {% else %}
+                                        No active term
+                                    {% endif %}
+                                </small>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-xl-6 col-md-6 mb-4">
-                <div class="card stats-card border-left-info">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Class Rank
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">5th</div>
-                                <div class="mt-2">
-                                    <small class="text-info">Top 10% of class</small>
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fas fa-trophy fa-2x text-info"></i>
-                            </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-success"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Charts Row -->
-        <div class="row">
-            <!-- Left Column -->
-            <div class="col-xl-8">
-                <!-- Performance Chart -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">Academic Performance</h6>
-                        <div class="dropdown no-arrow">
-                            <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+        <!-- Current Invoice -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-primary h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Current Invoice
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if current_invoice %}
+                                    ${{ current_invoice.total_amount }}
+                                {% else %}
+                                    Not Issued
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                {% if current_invoice %}
+                                    <span class="invoice-status status-{{ current_invoice.status }}">
+                                        {{ current_invoice.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-invoice-dollar fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amount Due -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-danger h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Amount Due
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if current_invoice %}
+                                    ${{ current_invoice.amount_due }}
+                                {% else %}
+                                    $0
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-danger">
+                                    {% if current_invoice and current_invoice.amount_due > 0 %}
+                                        Due immediately
+                                    {% else %}
+                                        All paid up!
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-check-alt fa-2x text-danger"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Rank -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-info h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Class Rank
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {% if current_term_rank %}
+                                    {{ current_term_rank }}{% if current_term_rank == 1 %}st{% elif current_term_rank == 2 %}nd{% elif current_term_rank == 3 %}rd{% else %}th{% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-info">
+                                    {% if current_term_rank %}
+                                        Out of {{ class_size|default:"?" }} students
+                                    {% else %}
+                                        Rank not available
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-medal fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="#" class="btn btn-primary btn-lg w-100" onclick="showSection('invoice-section')">
+                                <i class="fas fa-file-invoice-dollar me-2"></i>
+                                View All Invoices
                             </a>
-                            <div class="dropdown-menu dropdown-menu-end shadow">
-                                <a class="dropdown-item" href="#">View Details</a>
-                                <a class="dropdown-item" href="#">Export Data</a>
-                            </div>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container">
-                            <canvas id="performanceChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column -->
-            <div class="col-xl-4">
-                <!-- Average Score Progress -->
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Average Score Progress</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="score-progress-chart">
-                            <canvas id="scoreChart"></canvas>
-                        </div>
-                        <div class="mt-4 text-center">
-                            <p class="mb-1">Current Average: <strong>85%</strong></p>
-                            <p class="text-muted small">Target: 90%</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="card shadow">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row quick-actions">
-                            <div class="col-6 mb-3">
-                                <a href="#" class="quick-action-btn">
-                                    <div class="action-icon bg-primary">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </div>
-                                    <span>Report Card</span>
-                                </a>
-                            </div>
-                            
-                            <div class="col-6 mb-3">
-                                <a href="#" class="quick-action-btn">
-                                    <div class="action-icon bg-warning">
-                                        <i class="fas fa-book"></i>
-                                    </div>
-                                    <span>Subjects</span>
-                                </a>
-                            </div>
-                          
+                        <div class="col-md-6 mb-3">
+                            <a href="#" class="btn btn-success btn-lg w-100" onclick="showSection('scores-section')">
+                                <i class="fas fa-chart-line me-2"></i>
+                                View Academic Scores
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Subjects Performance -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card shadow">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Subjects Performance Current Term</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Subject</th>
-                                        <th>Teacher</th>
-                                        <th>1st CA</th>
-                                        <th>2nd CA</th>
-                                        <th>Exam</th>
-                                        <th>Total</th>
-                                        <th>Average</th>
-                                        <th>Grade</th>
-                                        <th>Position</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <div class="subject-info">
-                                                <div class="subject-icon bg-primary">
-                                                    <i class="fas fa-calculator"></i>
-                                                </div>
-                                                <div class="subject-name">
-                                                    <strong>Mathematics</strong>
-                                                    <small>Mr. Smith</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Mr. Smith</td>
-                                        <td><span class="badge bg-info">85</span></td>
-                                        <td><span class="badge bg-info">88</span></td>
-                                        <td><span class="badge bg-success">90</span></td>
-                                        <td><strong>263</strong></td>
-                                        <td><strong>87.7%</strong></td>
-                                        <td><span class="grade-badge grade-a">A</span></td>
-                                        <td>5th</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="subject-info">
-                                                <div class="subject-icon bg-success">
-                                                    <i class="fas fa-language"></i>
-                                                </div>
-                                                <div class="subject-name">
-                                                    <strong>English</strong>
-                                                    <small>Mrs. Johnson</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Mrs. Johnson</td>
-                                        <td><span class="badge bg-info">78</span></td>
-                                        <td><span class="badge bg-info">82</span></td>
-                                        <td><span class="badge bg-success">85</span></td>
-                                        <td><strong>245</strong></td>
-                                        <td><strong>81.7%</strong></td>
-                                        <td><span class="grade-badge grade-b">B</span></td>
-                                        <td>12th</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="subject-info">
-                                                <div class="subject-icon bg-warning">
-                                                    <i class="fas fa-atom"></i>
-                                                </div>
-                                                <div class="subject-name">
-                                                    <strong>Physics</strong>
-                                                    <small>Mr. Williams</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Mr. Williams</td>
-                                        <td><span class="badge bg-info">92</span></td>
-                                        <td><span class="badge bg-info">88</span></td>
-                                        <td><span class="badge bg-success">95</span></td>
-                                        <td><strong>275</strong></td>
-                                        <td><strong>91.7%</strong></td>
-                                        <td><span class="grade-badge grade-a">A+</span></td>
-                                        <td>2nd</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="subject-info">
-                                                <div class="subject-icon bg-info">
-                                                    <i class="fas fa-flask"></i>
-                                                </div>
-                                                <div class="subject-name">
-                                                    <strong>Chemistry</strong>
-                                                    <small>Ms. Davis</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Ms. Davis</td>
-                                        <td><span class="badge bg-info">85</span></td>
-                                        <td><span class="badge bg-info">82</span></td>
-                                        <td><span class="badge bg-success">88</span></td>
-                                        <td><strong>255</strong></td>
-                                        <td><strong>85%</strong></td>
-                                        <td><span class="grade-badge grade-a">A</span></td>
-                                        <td>8th</td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <div class="subject-info">
-                                                <div class="subject-icon bg-danger">
-                                                    <i class="fas fa-globe"></i>
-                                                </div>
-                                                <div class="subject-name">
-                                                    <strong>Geography</strong>
-                                                    <small>Mr. Brown</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>Mr. Brown</td>
-                                        <td><span class="badge bg-info">75</span></td>
-                                        <td><span class="badge bg-info">78</span></td>
-                                        <td><span class="badge bg-success">82</span></td>
-                                        <td><strong>235</strong></td>
-                                        <td><strong>78.3%</strong></td>
-                                        <td><span class="grade-badge grade-c">C</span></td>
-                                        <td>15th</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+    <!-- Recent Summary -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-receipt me-2"></i>Recent Invoices
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_invoices %}
+                        {% for invoice in recent_invoices %}
+                        <div class="invoice-item-row">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ invoice.term.name }} Term</h6>
+                                    <small class="text-muted">{{ invoice.academic_year.name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="h6 mb-1">${{ invoice.total_amount }}</div>
+                                    <span class="invoice-status status-{{ invoice.status }}">
+                                        {{ invoice.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <p class="mb-0">No invoices found</p>
+                    </div>
+                    {% endif %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-outline-primary" onclick="showSection('invoice-section')">
+                            View All Invoices
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-chart-bar me-2"></i>Recent Scores
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if term_scores %}
+                        {% for term_score in term_scores %}
+                        <div class="term-score-item {% if term_score.term.is_current %}current{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ term_score.term.name }} Term</h6>
+                                    <small class="text-muted">{{ term_score.academic_year.name }}</small>
+                                </div>
+                                <div class="text-end">
+                                    {% if term_score.average_score %}
+                                    <div class="h4 mb-1">{{ term_score.average_score }}%</div>
+                                    {% if term_score.rank %}
+                                    <span class="badge bg-info">Rank: {{ term_score.rank }}</span>
+                                    {% endif %}
+                                    {% else %}
+                                    <div class="text-muted">No scores</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <p class="mb-0">No scores available</p>
+                    </div>
+                    {% endif %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-outline-success" onclick="showSection('scores-section')">
+                            View All Scores
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invoices Section -->
+<div id="invoice-section" class="content-section">
+    <a href="#" class="back-to-dashboard" onclick="showSection('dashboard-section')">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mobile Sidebar Toggle Functionality
+    <div class="col-12">
+        <!-- Section Navigation -->
+        <div class="section-nav">
+            <ul class="nav nav-pills justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" onclick="showSection('dashboard-section')">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('scores-section')">
+                        <i class="fas fa-chart-line me-1"></i>Scores
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h4 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>Invoices & Payments
+                    {% if academic_session %}
+                    <small class="text-muted">({{ academic_session.name }})</small>
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if all_invoices_by_term %}
+                    {% for term_invoice in all_invoices_by_term %}
+                    <div class="card term-card {% if term_invoice.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                {{ term_invoice.term.name }} Term
+                                {% if term_invoice.term.is_current %}
+                                <span class="badge bg-primary ms-2">Current</span>
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if term_invoice.invoice %}
+                            <!-- Invoice Details -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <h6>Invoice Details</h6>
+                                    <table class="table table-sm invoice-details-table">
+                                        <tr>
+                                            <th width="40%">Invoice #:</th>
+                                            <td>{{ term_invoice.invoice.id }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Date Issued:</th>
+                                            <td>{{ term_invoice.invoice.created_at|date:"F d, Y" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status:</th>
+                                            <td>
+                                                <span class="invoice-status status-{{ term_invoice.invoice.status }}">
+                                                    {{ term_invoice.invoice.get_status_display }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Payment Summary</h6>
+                                    <table class="table table-sm invoice-details-table">
+                                        <tr>
+                                            <th width="40%">Total Amount:</th>
+                                            <td class="text-end">${{ term_invoice.invoice.total_amount }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Amount Paid:</th>
+                                            <td class="text-end">
+                                                ${{ term_invoice.invoice.total_amount|add:term_invoice.invoice.amount_due|floatformat:2 }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Amount Due:</th>
+                                            <td class="text-end">
+                                                <strong class="{% if term_invoice.invoice.amount_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                                                    ${{ term_invoice.invoice.amount_due }}
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Items -->
+                            <h6 class="mb-3">Invoice Items</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item</th>
+                                            <th class="text-end">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in term_invoice.invoice.items.all %}
+                                        <tr>
+                                            <td>{{ item.fee_type.name }}</td>
+                                            <td class="text-end">${{ item.amount }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="2" class="text-center">No items found</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-active">
+                                            <th>Total</th>
+                                            <th class="text-end">${{ term_invoice.invoice.total_amount }}</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <!-- Payments -->
+                            <h6 class="mb-3">Payments</h6>
+                            {% if term_invoice.payments %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Payment Method</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Reference</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in term_invoice.payments %}
+                                        <tr>
+                                            <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                            <td>{{ payment.get_payment_method_display }}</td>
+                                            <td class="text-end">${{ payment.amount_paid }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ payment.status_color }}">
+                                                    {{ payment.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>{{ payment.transaction_id|default:"-" }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No payments recorded for this invoice.
+                            </div>
+                            {% endif %}
+
+                            <div class="mt-3 text-end">
+                                <a href="{% url 'generate_invoice_pdf' term_invoice.invoice.id %}" class="btn btn-primary">
+                                    <i class="fas fa-download me-1"></i> Download Invoice
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-file-invoice"></i>
+                                <h5>No Invoice for this Term</h5>
+                                <p>An invoice has not been issued for the {{ term_invoice.term.name }} Term.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h5>No Invoices Available</h5>
+                    <p>You don't have any invoices for the current academic year.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Academic Scores Section -->
+<div id="scores-section" class="content-section">
+    <a href="#" class="back-to-dashboard" onclick="showSection('dashboard-section')">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+    
+    <div class="col-12">
+        <!-- Section Navigation -->
+        <div class="section-nav">
+            <ul class="nav nav-pills justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('dashboard-section')">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" onclick="showSection('invoice-section')">
+                        <i class="fas fa-file-invoice-dollar me-1"></i>Invoices
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h4 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-chart-line me-2"></i>Academic Performance
+                    {% if academic_session %}
+                    <small class="text-muted">({{ academic_session.name }})</small>
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if term_scores %}
+                    {% for term_score in term_scores %}
+                    <div class="card term-card {% if term_score.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                {{ term_score.term.name }} Term
+                                {% if term_score.term.is_current %}
+                                <span class="badge bg-success ms-2">Current</span>
+                                {% endif %}
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Average Score -->
+                                <div class="col-md-4 text-center">
+                                    <h6>Average Score</h6>
+                                    <div class="score-circle">
+                                        {% if term_score.average_score %}
+                                        <div class="circle-progress" 
+                                             style="background: conic-gradient(#1cc88a {{ term_score.average_score }}%, #e9ecef 0%);">
+                                        </div>
+                                        <div class="score-text">
+                                            <span class="score-value">{{ term_score.average_score }}%</span>
+                                            <span class="score-label">Average</span>
+                                        </div>
+                                        {% else %}
+                                        <div class="score-circle">
+                                            <div class="circle-progress" style="background: #e9ecef;"></div>
+                                            <div class="score-text">
+                                                <span class="score-value">N/A</span>
+                                                <span class="score-label">No Data</span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Class Rank -->
+                                <div class="col-md-4 text-center">
+                                    <h6>Class Rank</h6>
+                                    {% if term_score.rank %}
+                                    <div class="h1 mb-3">{{ term_score.rank }}</div>
+                                    <div class="mb-2">
+                                        <span class="badge rank-badge rank-{{ term_score.rank }}">
+                                            {{ term_score.rank }}{% if term_score.rank == 1 %}st{% elif term_score.rank == 2 %}nd{% elif term_score.rank == 3 %}rd{% else %}th{% endif %}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">Out of {{ term_score.class_size|default:"?" }} students</small>
+                                    {% else %}
+                                    <div class="h1 mb-3 text-muted">-</div>
+                                    <div class="text-muted">Rank not available</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Subject Scores -->
+                                <div class="col-md-4">
+                                    <h6>Subject Performance</h6>
+                                    {% if term_score.subject_scores %}
+                                        {% for subject_score in term_score.subject_scores %}
+                                        <div class="mb-2">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>{{ subject_score.subject }}</span>
+                                                <span>{{ subject_score.score }}%</span>
+                                            </div>
+                                            <div class="progress-chart">
+                                                <div class="progress-bar" 
+                                                     style="width: {{ subject_score.score }}%; 
+                                                            background-color: {% if subject_score.score >= 80 %}#1cc88a{% elif subject_score.score >= 60 %}#f6c23e{% else %}#e74a3b{% endif %};">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                    <div class="text-muted">No subject scores available</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Detailed Subject Scores Table -->
+                            {% if term_score.subject_scores %}
+                            <div class="mt-4">
+                                <h6>Detailed Subject Scores</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Subject</th>
+                                                <th>Score</th>
+                                                <th>Grade</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for subject_score in term_score.subject_scores %}
+                                            <tr>
+                                                <td>{{ subject_score.subject }}</td>
+                                                <td>{{ subject_score.score }}%</td>
+                                                <td>
+                                                    <span class="badge 
+                                                        {% if subject_score.score >= 80 %}bg-success
+                                                        {% elif subject_score.score >= 60 %}bg-warning
+                                                        {% else %}bg-danger{% endif %}">
+                                                        {% if subject_score.score >= 80 %}A
+                                                        {% elif subject_score.score >= 70 %}B
+                                                        {% elif subject_score.score >= 60 %}C
+                                                        {% elif subject_score.score >= 50 %}D
+                                                        {% else %}E{% endif %}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if subject_score.score >= 80 %}Excellent
+                                                    {% elif subject_score.score >= 60 %}Good
+                                                    {% else %}Needs Improvement{% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Report Card Download -->
+                            <div class="mt-3 text-end">
+                                <a href="{% url 'generate_report_card_pdf' term_score.academic_year.id term_score.term.id %}" 
+                                   class="btn btn-success {% if not term_score.average_score %}disabled{% endif %}">
+                                    <i class="fas fa-download me-1"></i> Download Report Card
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <h5>No Academic Data Available</h5>
+                    <p>Your academic scores have not been recorded yet.</p>
+                </div>
+                {% endif %}
+
+                <!-- Performance Summary -->
+                {% if term_scores %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Performance Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Term Averages</h6>
+                                <canvas id="termAveragesChart" height="200"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Overall Progress</h6>
+                                <div class="mt-4">
+                                    {% for term_score in term_scores %}
+                                    {% if term_score.average_score %}
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span>{{ term_score.term.name }} Term</span>
+                                            <span>{{ term_score.average_score }}%</span>
+                                        </div>
+                                        <div class="progress-chart">
+                                            <div class="progress-bar" 
+                                                 style="width: {{ term_score.average_score }}%; 
+                                                        background-color: #4e73df;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Make Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Make Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>To make a payment, please contact the school accounts office or use one of the following methods:</p>
+                <ul>
+                    <li><strong>Bank Transfer:</strong> Account details available at accounts office</li>
+                    <li><strong>Mobile Money:</strong> Use code 123456 for payment</li>
+                    <li><strong>In Person:</strong> Visit school accounts office during working hours</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="mailto:accounts@school.edu" class="btn btn-primary">
+                    <i class="fas fa-envelope me-1"></i> Contact Accounts
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize sections
+    const sections = {
+        'dashboard-section': document.getElementById('dashboard-section'),
+        'invoice-section': document.getElementById('invoice-section'),
+        'scores-section': document.getElementById('scores-section')
+    };
+    
+    // Function to show a specific section
+    window.showSection = function(sectionId) {
+        // Hide all sections
+        Object.values(sections).forEach(section => {
+            if (section) {
+                section.classList.remove('active');
+            }
+        });
+        
+        // Show selected section
+        if (sections[sectionId]) {
+            sections[sectionId].classList.add('active');
+            
+            // Update URL hash
+            history.pushState(null, null, `#${sectionId}`);
+            
+            // Update page title
+            updatePageTitle(sectionId);
+            
+            // Update active state in sidebar
+            updateSidebarActiveState(sectionId);
+        }
+        
+        // Scroll to top
+        window.scrollTo(0, 0);
+    };
+    
+    // Update page title based on section
+    function updatePageTitle(sectionId) {
+        const pageTitle = document.querySelector('h1.page-title');
+        if (!pageTitle) return;
+        
+        const titles = {
+            'dashboard-section': 'Student Dashboard',
+            'invoice-section': 'Invoices & Payments',
+            'scores-section': 'Academic Performance'
+        };
+        
+        if (titles[sectionId]) {
+            pageTitle.textContent = titles[sectionId];
+        }
+    }
+    
+    // Update sidebar active state
+    function updateSidebarActiveState(sectionId) {
+        // Remove active class from all sidebar links
+        document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+            link.classList.remove('active');
+        });
+        
+        // Add active class to the appropriate sidebar link
+        let targetLink = null;
+        if (sectionId === 'dashboard-section') {
+            targetLink = document.querySelector('.sidebar-nav a[href="{% url "student_dashboard" %}"]');
+        } else if (sectionId === 'invoice-section') {
+            targetLink = document.querySelector('.sidebar-nav a[href="#invoices"]');
+        } else if (sectionId === 'scores-section') {
+            targetLink = document.querySelector('.sidebar-nav a[href="#scores"]');
+        }
+        
+        if (targetLink) {
+            targetLink.classList.add('active');
+        }
+        
+        // Close sidebar on mobile
+        if (window.innerWidth <= 768) {
             const sidebar = document.querySelector('.sidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
-            
-            if (sidebarToggle && sidebar) {
-                // Toggle sidebar when button is clicked
-                sidebarToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    sidebar.classList.toggle('show');
-                    sidebarOverlay.classList.toggle('show');
-                    document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
-                });
-                
-                // Close sidebar when overlay is clicked
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.remove('show');
-                    sidebarOverlay.classList.remove('show');
-                    document.body.style.overflow = '';
-                });
-                
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768) {
-                        if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                            sidebar.classList.remove('show');
-                            sidebarOverlay.classList.remove('show');
-                            document.body.style.overflow = '';
-                        }
-                    }
-                });
-                
-                // Close sidebar when pressing Escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        sidebar.classList.remove('show');
-                        sidebarOverlay.classList.remove('show');
-                        document.body.style.overflow = '';
-                    }
-                });
+            if (sidebar && sidebarOverlay) {
+                sidebar.classList.remove('show');
+                sidebarOverlay.classList.remove('show');
+                document.body.style.overflow = '';
             }
-            
-            // Update main content margin for desktop
-            function updateMainContentMargin() {
-                const mainContent = document.querySelector('.main-content');
-                if (window.innerWidth > 768) {
-                    mainContent.style.marginLeft = '250px';
-                } else {
-                    mainContent.style.marginLeft = '0';
-                }
+        }
+    }
+    
+    // Initialize from URL hash
+    if (window.location.hash) {
+        const sectionId = window.location.hash.substring(1);
+        if (sections[sectionId]) {
+            showSection(sectionId);
+        } else {
+            showSection('dashboard-section');
+        }
+    } else {
+        showSection('dashboard-section');
+    }
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        if (window.location.hash) {
+            const sectionId = window.location.hash.substring(1);
+            if (sections[sectionId]) {
+                showSection(sectionId);
             }
+        } else {
+            showSection('dashboard-section');
+        }
+    });
+    
+    // Update sidebar links to use section navigation
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const href = this.getAttribute('href');
             
-            // Update sidebar and toggle button positions based on navbar state
-            function updateSidebarPosition() {
-                const navbar = document.querySelector('.navbar');
-                const navbarHeight = navbar.offsetHeight;
+            if (href.startsWith('#')) {
+                const sectionMap = {
+                    '#invoices': 'invoice-section',
+                    '#scores': 'scores-section'
+                };
                 
-                // Update body padding
-                document.body.style.paddingTop = navbarHeight + 'px';
-                
-                // Update sidebar position
-                if (sidebar) {
-                    sidebar.style.top = navbarHeight + 'px';
-                    sidebar.style.height = `calc(100vh - ${navbarHeight}px)`;
+                if (sectionMap[href]) {
+                    showSection(sectionMap[href]);
                 }
-                
-                // Update main content
-                const mainContent = document.querySelector('.main-content');
-                if (mainContent) {
-                    mainContent.style.marginTop = navbarHeight + 'px';
-                    mainContent.style.minHeight = `calc(100vh - ${navbarHeight}px)`;
-                }
-                
-                // Update sidebar toggle button
-                if (sidebarToggle) {
-                    sidebarToggle.style.top = (navbarHeight + 10) + 'px';
-                }
-                
-                // Update overlay
-                if (sidebarOverlay) {
-                    sidebarOverlay.style.top = navbarHeight + 'px';
-                }
+            } else if (href.includes('student_dashboard')) {
+                showSection('dashboard-section');
+            } else if (href.includes('generate_')) {
+                // Allow PDF download links to work normally
+                window.location.href = href;
             }
+        });
+    });
+    
+    // Initialize status badges
+    const statusColors = {
+        'paid': 'success',
+        'partial': 'warning',
+        'unpaid': 'danger'
+    };
+    
+    document.querySelectorAll('.invoice-status').forEach(badge => {
+        const status = badge.classList[1].replace('status-', '');
+        if (statusColors[status]) {
+            badge.classList.add('bg-' + statusColors[status]);
+        }
+    });
+    
+    // Initialize rank badges
+    document.querySelectorAll('.rank-badge').forEach(badge => {
+        const rankClass = badge.classList[1];
+        badge.classList.add('rank-' + rankClass.replace('rank-', ''));
+    });
+    
+    // Initialize term averages chart if data exists
+    const termScoresData = {{ term_scores|safe|default:'[]' }};
+    if (termScoresData.length > 0) {
+        const ctx = document.getElementById('termAveragesChart');
+        if (ctx) {
+            const labels = termScoresData.map(ts => ts.term.name + ' Term');
+            const data = termScoresData.map(ts => ts.average_score || 0);
             
-            // Initial call
-            updateMainContentMargin();
-            updateSidebarPosition();
-            
-            // Update on resize
-            window.addEventListener('resize', function() {
-                updateMainContentMargin();
-                updateSidebarPosition();
-            });
-            
-            // Update when navbar expands/collapses on mobile
-            const navbarToggler = document.querySelector('.navbar-toggler');
-            if (navbarToggler) {
-                navbarToggler.addEventListener('click', function() {
-                    // Small delay to let Bootstrap handle the collapse/expand
-                    setTimeout(updateSidebarPosition, 350);
-                });
-            }
-            
-            // Performance Chart
-            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-            new Chart(performanceCtx, {
+            new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['1st Term', '2nd Term', '3rd Term', 'Current Term'],
+                    labels: labels,
                     datasets: [{
-                        label: 'Mathematics',
-                        data: [78, 82, 85, 87.7],
-                        borderColor: '#4e73df',
-                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'English',
-                        data: [75, 78, 80, 81.7],
+                        label: 'Average Score (%)',
+                        data: data,
                         borderColor: '#1cc88a',
                         backgroundColor: 'rgba(28, 200, 138, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: 'Physics',
-                        data: [80, 85, 88, 91.7],
-                        borderColor: '#f6c23e',
-                        backgroundColor: 'rgba(246, 194, 62, 0.1)',
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.4
                     }]
@@ -872,15 +1144,9 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        }
-                    },
                     scales: {
                         y: {
-                            beginAtZero: false,
-                            min: 70,
+                            beginAtZero: true,
                             max: 100,
                             ticks: {
                                 callback: function(value) {
@@ -891,54 +1157,24 @@
                     }
                 }
             });
-
-            // Score Progress Chart
-            const scoreCtx = document.getElementById('scoreChart').getContext('2d');
-            new Chart(scoreCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Mathematics', 'English', 'Physics', 'Chemistry', 'Geography'],
-                    datasets: [{
-                        data: [87.7, 81.7, 91.7, 85, 78.3],
-                        backgroundColor: [
-                            '#4e73df',
-                            '#1cc88a',
-                            '#f6c23e',
-                            '#36b9cc',
-                            '#e74a3b'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + '%';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Update sidebar progress circle
-            const progressCircle = document.querySelector('.circle-progress');
-            if (progressCircle) {
-                const value = progressCircle.dataset.value || 85;
-                progressCircle.style.background = `conic-gradient(#4e73df ${value}%, #2d3748 0%)`;
-            }
+        }
+    }
+    
+    // Update progress circles in scores section
+    document.querySelectorAll('#scores-section .circle-progress').forEach(circle => {
+        const scoreText = circle.nextElementSibling.querySelector('.score-value');
+        if (scoreText && scoreText.textContent !== 'N/A') {
+            const score = parseFloat(scoreText.textContent);
+            circle.style.background = `conic-gradient(#1cc88a ${score}%, #e9ecef 0%)`;
+        }
+    });
+    
+    // Payment modal handler
+    document.querySelectorAll('[data-bs-target="#paymentModal"]').forEach(button => {
+        button.addEventListener('click', function() {
+            // You can add pre-fill logic here if needed
         });
-    </script>
-</body>
-</html>
+    });
+});
+</script>
+{% endblock %}

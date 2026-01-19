@@ -1,100 +1,28 @@
-<!-- Mobile Sidebar -->
-<div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
-<div class="mobile-sidebar" id="mobileSidebar">
-    <div class="mobile-sidebar-header">
-        <div class="text-center">
-            <h6 class="mb-1">Finance Department</h6>
-            <small class="text-muted">{{ request.user.get_full_name }}</small>
+<!-- Sidebar Overlay (Mobile Only) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+        <div class="sidebar-user-info">
+            <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|urlencode }}&background=4CAF50&color=fff" 
+                 alt="{{ request.user.get_full_name }}" 
+                 class="sidebar-user-avatar">
+            <div class="sidebar-user-details">
+                <h6>{{ request.user.get_full_name|truncatechars:15 }}</h6>
+                <small class="text-muted">Finance Department</small>
+            </div>
         </div>
-        <button class="mobile-sidebar-close" id="mobileSidebarClose">
+        <button class="sidebar-close d-lg-none" id="sidebarClose">
             <i class="fas fa-times"></i>
         </button>
-    </div>
-    
-    <nav class="sidebar-nav">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'finance_dashboard' %}active{% endif %}"
-                   href="{% url 'finance_dashboard' %}">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'student_invoices' %}active{% endif %}"
-                   href="{% url 'student_invoices' %}">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>Student Invoices</span>
-                    {% if pending_invoices %}
-                        <span class="badge bg-danger">{{ pending_invoices }}</span>
-                    {% endif %}
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'fee_management' %}active{% endif %}"
-                   href="{% url 'fee_management' %}">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <span>Fee Management</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'sponsorship_management' %}active{% endif %}"
-                   href="{% url 'sponsorship_management' %}">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    <span>Sponsorships</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'finance_reports' %}active{% endif %}"
-                   href="{% url 'finance_reports' %}">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reports</span>
-                </a>
-            </li>
-        </ul>
-        
-        <div class="sidebar-divider"></div>
-        
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-print"></i>
-                    <span>Print Receipts</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-file-export"></i>
-                    <span>Export Data</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    
-    <div class="sidebar-footer">
-        <div class="d-grid">
-            <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
-                <i class="fas fa-sign-out-alt me-1"></i> Logout
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Desktop Sidebar -->
-<div class="desktop-sidebar" id="desktopSidebar">
-    <div class="sidebar-header">
-        <h6>Finance Department</h6>
-        <small class="text-muted">{{ request.user.get_full_name }}</small>
-        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn">
+        <button class="sidebar-collapse d-none d-lg-block" id="sidebarCollapse">
             <i class="fas fa-chevron-left"></i>
         </button>
     </div>
-    
+
+    <!-- Sidebar Navigation -->
     <nav class="sidebar-nav">
         <ul class="nav flex-column">
             <li class="nav-item">
@@ -106,12 +34,23 @@
             </li>
             
             <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'payment_management' %}active{% endif %}"
+                   href="{% url 'payment_management' %}">
+                    <i class="fas fa-credit-card"></i>
+                    <span class="sidebar-text">Payments</span>
+                    {% if pending_payments %}
+                        <span class="sidebar-badge bg-warning">{{ pending_payments }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'student_invoices' %}active{% endif %}"
                    href="{% url 'student_invoices' %}">
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span class="sidebar-text">Student Invoices</span>
                     {% if pending_invoices %}
-                        <span class="badge bg-danger">{{ pending_invoices }}</span>
+                        <span class="sidebar-badge bg-danger">{{ pending_invoices }}</span>
                     {% endif %}
                 </a>
             </li>
@@ -132,29 +71,22 @@
                 </a>
             </li>
             
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'finance_reports' %}active{% endif %}"
-                   href="{% url 'finance_reports' %}">
-                    <i class="fas fa-chart-bar"></i>
-                    <span class="sidebar-text">Reports</span>
-                </a>
+            <!-- Additional Finance Links (Grouped) -->
+            <li class="nav-item mt-3">
+                <small class="sidebar-text px-3 text-uppercase text-muted" style="font-size: 0.7rem;">Quick Access</small>
             </li>
-        </ul>
-        
-        <div class="sidebar-divider"></div>
-        
-        <ul class="nav flex-column">
+            
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-print"></i>
-                    <span class="sidebar-text">Print Receipts</span>
+                <a class="nav-link" href="{% url 'payment_management' %}?view=form">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="sidebar-text">Record Payment</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-file-export"></i>
-                    <span class="sidebar-text">Export Data</span>
+                <a class="nav-link" href="{% url 'sponsorship_management' %}?view=form">
+                    <i class="fas fa-user-plus"></i>
+                    <span class="sidebar-text">Assign Sponsorship</span>
                 </a>
             </li>
             
@@ -165,5 +97,381 @@
                 </a>
             </li>
         </ul>
+        
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <div class="row g-2">
+                <div class="col-6">
+                    <a href="{% url 'payment_management' %}?view=form" 
+                       class="btn btn-success btn-sm w-100"
+                       title="Quick Record Payment">
+                        <i class="fas fa-plus"></i>
+                        <span class="sidebar-text">New Payment</span>
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm w-100">
+                        <i class="fas fa-sign-out-alt me-1"></i> 
+                        <span class="sidebar-text">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </nav>
-</div>
+</aside>
+
+<style>
+    /* ===== SIDEBAR STYLES ===== */
+    .sidebar {
+        position: fixed;
+        top: var(--navbar-height);
+        left: 0;
+        width: var(--sidebar-width);
+        height: calc(100vh - var(--navbar-height));
+        background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+        z-index: 1020;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* Sidebar Collapsed State */
+    body.sidebar-collapsed .sidebar {
+        width: var(--sidebar-collapsed-width);
+    }
+    
+    body.sidebar-collapsed .sidebar-text {
+        display: none;
+    }
+    
+    body.sidebar-collapsed .sidebar-user-details,
+    body.sidebar-collapsed .sidebar-badge,
+    body.sidebar-collapsed .sidebar-footer .row {
+        display: none;
+    }
+    
+    body.sidebar-collapsed .sidebar-collapse i {
+        transform: rotate(180deg);
+    }
+    
+    /* Sidebar Header */
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        position: relative;
+    }
+    
+    .sidebar-user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .sidebar-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid var(--primary-color);
+    }
+    
+    .sidebar-user-details h6 {
+        color: white;
+        margin-bottom: 2px;
+        font-size: 0.9rem;
+    }
+    
+    .sidebar-user-details small {
+        font-size: 0.75rem;
+    }
+    
+    .sidebar-close,
+    .sidebar-collapse {
+        position: absolute;
+        background: var(--primary-color);
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .sidebar-close {
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-collapse {
+        top: 50%;
+        right: -15px;
+        transform: translateY(-50%);
+        z-index: 1021;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-collapse:hover {
+        background: var(--primary-dark);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    /* Sidebar Navigation */
+    .sidebar-nav {
+        padding: 15px 0;
+        flex: 1;
+    }
+    
+    .sidebar-nav .nav-link {
+        color: #adb5bd;
+        padding: 12px 20px;
+        border-left: 4px solid transparent;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        position: relative;
+    }
+    
+    .sidebar-nav .nav-link:hover:not(.active) {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-left-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-nav .nav-link.active {
+        color: #fff;
+        background: linear-gradient(90deg, rgba(76, 175, 80, 0.2) 0%, rgba(76, 175, 80, 0.1) 100%);
+        border-left-color: var(--primary-color);
+    }
+    
+    .sidebar-nav .nav-link i {
+        width: 20px;
+        margin-right: 10px;
+        text-align: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    
+    .sidebar-badge {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+    
+    /* Quick Access Section */
+    .sidebar-nav .nav-item.mt-3 {
+        margin-top: 1rem !important;
+    }
+    
+    .sidebar-nav .nav-item.mt-3 small {
+        opacity: 0.7;
+        font-weight: 500;
+    }
+    
+    /* Sidebar Footer */
+    .sidebar-footer {
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .sidebar-footer .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .sidebar-footer .btn-success {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .sidebar-footer .btn-success:hover {
+        background-color: var(--primary-dark);
+        border-color: var(--primary-dark);
+    }
+    
+    /* Sidebar Overlay (Mobile Only) */
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1019;
+        display: none;
+    }
+    
+    /* Mobile Styles */
+    @media (max-width: 992px) {
+        .sidebar {
+            left: -280px;
+            width: 280px;
+            z-index: 1020;
+        }
+        
+        body.sidebar-mobile-open .sidebar {
+            left: 0;
+        }
+        
+        body.sidebar-mobile-open .sidebar-overlay {
+            display: block;
+        }
+        
+        .sidebar-collapse {
+            display: none;
+        }
+        
+        .main-content {
+            margin-left: 0;
+        }
+    }
+    
+    /* Scrollbar Styling */
+    .sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .sidebar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+    }
+    
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Active State Colors for Payment Link */
+    .sidebar-nav .nav-link[href*="payment_management"].active {
+        border-left-color: #4CAF50;
+    }
+    
+    .sidebar-nav .nav-link[href*="payment_management"] i {
+        color: #4CAF50;
+    }
+    
+    /* Active State Colors for Sponsorship Link */
+    .sidebar-nav .nav-link[href*="sponsorship_management"].active {
+        border-left-color: #2196F3;
+    }
+    
+    .sidebar-nav .nav-link[href*="sponsorship_management"] i {
+        color: #2196F3;
+    }
+    
+    /* Active State Colors for Invoice Link */
+    .sidebar-nav .nav-link[href*="student_invoices"].active {
+        border-left-color: #FF9800;
+    }
+    
+    .sidebar-nav .nav-link[href*="student_invoices"] i {
+        color: #FF9800;
+    }
+</style>
+
+<script>
+    // Sidebar JavaScript
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const sidebarCollapse = document.getElementById('sidebarCollapse');
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        const desktopSidebarToggle = document.getElementById('desktopSidebarToggle');
+        
+        // Toggle sidebar collapse (Desktop)
+        function toggleSidebarCollapse() {
+            document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+        }
+        
+        // Open sidebar (Mobile)
+        function openSidebarMobile() {
+            document.body.classList.add('sidebar-mobile-open');
+        }
+        
+        // Close sidebar (Mobile)
+        function closeSidebarMobile() {
+            document.body.classList.remove('sidebar-mobile-open');
+        }
+        
+        // Event Listeners
+        if (sidebarCollapse) {
+            sidebarCollapse.addEventListener('click', toggleSidebarCollapse);
+        }
+        
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', openSidebarMobile);
+        }
+        
+        if (desktopSidebarToggle) {
+            desktopSidebarToggle.addEventListener('click', toggleSidebarCollapse);
+        }
+        
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', closeSidebarMobile);
+        }
+        
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeSidebarMobile);
+        }
+        
+        // Close sidebar when clicking on links (Mobile)
+        document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 992) {
+                    closeSidebarMobile();
+                }
+            });
+        });
+        
+        // Load saved sidebar state
+        const savedSidebarState = localStorage.getItem('sidebar-collapsed');
+        if (savedSidebarState === 'true' && window.innerWidth > 992) {
+            document.body.classList.add('sidebar-collapsed');
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth <= 992) {
+                document.body.classList.remove('sidebar-collapsed');
+            }
+        });
+        
+        // Highlight current page in sidebar
+        function highlightCurrentPage() {
+            const currentUrl = window.location.pathname;
+            document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+                link.classList.remove('active');
+                
+                // Check if this link's URL matches current page
+                const linkUrl = link.getAttribute('href');
+                if (linkUrl && currentUrl.includes(linkUrl.split('?')[0])) {
+                    link.classList.add('active');
+                }
+                
+                // Special handling for payment management with view parameter
+                if (currentUrl.includes('/finance/payments/') || 
+                    (currentUrl.includes('/finance/payments') && linkUrl && linkUrl.includes('payment_management'))) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        // Initialize page highlighting
+        highlightCurrentPage();
+        
+        // Update highlighting when URL changes (for SPA-like behavior)
+        window.addEventListener('popstate', highlightCurrentPage);
+    });
+</script>

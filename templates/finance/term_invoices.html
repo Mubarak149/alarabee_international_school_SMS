@@ -1,0 +1,721 @@
+{% extends "finance/base_finance.html" %}
+{% load finance_filters %}
+{% load humanize %}
+
+
+{% block title %}Term Invoices - Finance{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .invoice-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .badge-unpaid { background-color: #dc3545; color: white; }
+        .badge-partial { background-color: #ffc107; color: #212529; }
+        .badge-paid { background-color: #28a745; color: white; }
+        
+        .amount-due { color: #dc3545; font-weight: 600; }
+        .amount-paid { color: #28a745; font-weight: 600; }
+        .amount-total { color: #2c3e50; font-weight: 600; }
+        
+        .fee-summary-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .student-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #dee2e6;
+        }
+        
+        .action-buttons .btn {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 768px) {
+            .invoice-table {
+                font-size: 0.85rem;
+            }
+            
+            .action-buttons .btn {
+                padding: 3px 6px;
+                font-size: 0.75rem;
+            }
+            
+            .student-photo {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Term Invoices</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'finance_dashboard' %}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'fee_management' %}">Fee Management</a></li>
+                    <li class="breadcrumb-item active">Term Invoices</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'fee_management' %}" class="btn btn-outline-finance-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Fees
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Term Information -->
+<div class="finance-card mb-4">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-file-invoice-dollar me-2"></i>
+                {{ term.name }} Invoices - {{ school_class.name }}
+            </h5>
+            <div>
+                <span class="badge bg-light text-dark">{{ academic_year.year }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong>Academic Year:</strong> {{ academic_year.year }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Class:</strong> {{ school_class.name }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2">
+                            <strong>Term:</strong> {{ term.name }}
+                        </p>
+                        <p class="mb-2">
+                            <strong>Total Students:</strong> {{ students|length }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Fee Summary -->
+                {% if fee_structures %}
+                <div class="fee-summary-card p-3 mt-3">
+                    <h6 class="mb-3">Fee Structure for {{ term.name }}:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fee Type</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for fee_structure in fee_structures %}
+                                <tr>
+                                    <td>{{ fee_structure.fee_type.name }}</td>
+                                    <td class="text-end">₦{{ fee_structure.amount|floatformat:2|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="table-success">
+                                    <td><strong>Total Per Student:</strong></td>
+                                    <td class="text-end">
+                                        <strong>₦{% with total=0 %}
+                                            {% for fee_structure in fee_structures %}
+                                                {% with total=total|add:fee_structure.amount %}
+                                                {% endwith %}
+                                            {% endfor %}
+                                            {{ total|floatformat:2|intcomma }}
+                                        {% endwith %}</strong>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-4">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1">Total Invoices</h6>
+                                <h4 class="card-title mb-0">{{ total_invoices }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1">Total Amount</h6>
+                                <h4 class="card-title mb-0">₦{{ total_amount|floatformat:2|intcomma }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1">Amount Due</h6>
+                                <h4 class="card-title mb-0">₦{{ total_due|floatformat:2|intcomma }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1">Amount Paid</h6>
+                                <h4 class="card-title mb-0">₦{{ total_paid|floatformat:2|intcomma }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="finance-card mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <form method="get" class="d-flex">
+                    <input type="text" 
+                           name="search" 
+                           class="form-control" 
+                           placeholder="Search student name or ID..."
+                           value="{{ search_query }}">
+                    <button type="submit" class="btn btn-finance-primary ms-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-6">
+                <div class="btn-group w-100" role="group">
+                    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=all"
+                       class="btn btn-outline-secondary {% if not request.GET.status or request.GET.status == 'all' %}active{% endif %}">
+                        All ({{ total_invoices }})
+                    </a>
+                    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=unpaid"
+                       class="btn btn-outline-danger {% if request.GET.status == 'unpaid' %}active{% endif %}">
+                        Unpaid ({{ unpaid_count }})
+                    </a>
+                    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=partial"
+                       class="btn btn-outline-warning {% if request.GET.status == 'partial' %}active{% endif %}">
+                        Partial ({{ partial_count }})
+                    </a>
+                    <a href="?{% if search_query %}search={{ search_query }}&{% endif %}status=paid"
+                       class="btn btn-outline-success {% if request.GET.status == 'paid' %}active{% endif %}">
+                        Paid ({{ paid_count }})
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        {% if search_query %}
+        <div class="mt-3">
+            <small class="text-muted">Search results for: "{{ search_query }}"</small>
+            <a href="{% url 'term_invoices' school_class.id term.id academic_year.id %}" 
+               class="btn btn-sm btn-outline-secondary ms-2">
+                Clear Search
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Invoices Table -->
+<div class="finance-card">
+    <div class="card-header bg-finance-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-receipt me-2"></i>
+            Student Invoices ({{ page_obj.paginator.count }})
+        </h5>
+        <div>
+            <button class="btn btn-light btn-sm" onclick="printInvoices()">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+            <button class="btn btn-light btn-sm ms-2" onclick="exportToExcel()">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Invoice #</th>
+                            <th>Total Amount</th>
+                            <th>Amount Paid</th>
+                            <th>Amount Due</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if invoice.student.profile_picture %}
+                                    <img src="{{ invoice.student.profile_picture.url }}" 
+                                         alt="{{ invoice.student.user.get_full_name }}"
+                                         class="student-photo me-2">
+                                    {% else %}
+                                    <div class="student-photo bg-secondary text-white d-flex align-items-center justify-content-center me-2">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ invoice.student.user.get_full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ invoice.student.student_id }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>#{{ invoice.id }}</strong>
+                                <br>
+                                <small class="text-muted">{{ invoice.term.name }}</small>
+                            </td>
+                            <td class="amount-total">₦{{ invoice.total_amount|floatformat:2|intcomma }}</td>
+                            <td class="amount-paid">₦{{ invoice.total_amount|subtract:invoice.amount_due|floatformat:2|intcomma }}</td>
+                            <td class="amount-due">₦{{ invoice.amount_due|floatformat:2|intcomma }}</td>
+                            <td>
+                                {% if invoice.status == 'unpaid' %}
+                                <span class="status-badge badge-unpaid">Unpaid</span>
+                                {% elif invoice.status == 'partial' %}
+                                <span class="status-badge badge-partial">Partial</span>
+                                {% elif invoice.status == 'paid' %}
+                                <span class="status-badge badge-paid">Paid</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ invoice.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <!-- Record Payment Button -->
+                                    {% if invoice.status != 'paid' %}
+                                    <button class="btn btn-success btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#recordPaymentModal{{ invoice.id }}"
+                                            title="Record Payment">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <!-- View Invoice Button -->
+                                    <a href="{% url 'invoice_detail' invoice.id %}" 
+                                       class="btn btn-primary btn-sm"
+                                       title="View Invoice Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    <!-- Print Invoice Button -->
+                                    <a href="{% url 'print_invoice' invoice.id %}" 
+                                       class="btn btn-secondary btn-sm"
+                                       target="_blank"
+                                       title="Print Invoice">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    
+                                    <!-- Send Reminder Button -->
+                                    {% if invoice.status != 'paid' %}
+                                    <button class="btn btn-warning btn-sm"
+                                            onclick="sendReminder('{{ invoice.id }}', '{{ invoice.student.user.get_full_name }}')"
+                                            title="Send Reminder">
+                                        <i class="fas fa-bell"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Record Payment Modal for each invoice -->
+                        <div class="modal fade" id="recordPaymentModal{{ invoice.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">Record Payment</h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'record_payment' invoice.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Student</label>
+                                                <input type="text" class="form-control" 
+                                                       value="{{ invoice.student.user.get_full_name }}" readonly>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Total Amount</label>
+                                                    <input type="text" class="form-control" 
+                                                           value="₦{{ invoice.total_amount|floatformat:2 }}" readonly>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Amount Due</label>
+                                                    <input type="text" class="form-control" 
+                                                           value="₦{{ invoice.amount_due|floatformat:2 }}" readonly>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Amount Paid *</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">₦</span>
+                                                    <input type="number" 
+                                                           name="amount_paid" 
+                                                           class="form-control" 
+                                                           min="0.01" 
+                                                           max="{{ invoice.amount_due }}" 
+                                                           step="0.01"
+                                                           required>
+                                                </div>
+                                                <small class="text-muted">Maximum: ₦{{ invoice.amount_due|floatformat:2 }}</small>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Payment Method *</label>
+                                                <select name="payment_method" class="form-select" required>
+                                                    <option value="">Select method...</option>
+                                                    <option value="cash">Cash</option>
+                                                    <option value="transfer">Bank Transfer</option>
+                                                    <option value="pos">POS</option>
+                                                    <option value="online">Online</option>
+                                                    <option value="cheque">Cheque</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Payment Date *</label>
+                                                <input type="date" 
+                                                       name="payment_date" 
+                                                       class="form-control" 
+                                                       value="{% now 'Y-m-d' %}"
+                                                       required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Notes (Optional)</label>
+                                                <textarea name="notes" 
+                                                          class="form-control" 
+                                                          rows="2"
+                                                          placeholder="Payment reference or notes..."></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-success">Record Payment</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-file-invoice fa-4x text-muted mb-3"></i>
+                <h4>No Invoices Found</h4>
+                <p class="text-muted">
+                    {% if search_query %}
+                        No invoices match your search criteria
+                    {% else %}
+                        No invoices have been generated for this term yet
+                    {% endif %}
+                </p>
+                {% if not search_query %}
+                <button class="btn btn-success" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#generateInvoicesModal">
+                    <i class="fas fa-file-invoice-dollar me-1"></i>
+                    Generate Invoices
+                </button>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer">
+        <nav aria-label="Invoice pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Generate Invoices Modal -->
+<div class="modal fade" id="generateInvoicesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'generate_term_invoices' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="school_class_id" value="{{ school_class.id }}">
+            <input type="hidden" name="term_id" value="{{ term.id }}">
+            <input type="hidden" name="academic_year_id" value="{{ academic_year.id }}">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Generate {{ term.name }} Invoices
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Generate invoices for all students in <strong>{{ school_class.name }}</strong>
+                    for <strong>{{ term.name }}</strong> - {{ academic_year.year }}
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Fee Summary:</h6>
+                    <ul class="list-group">
+                        {% for fee_structure in fee_structures %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ fee_structure.fee_type.name }}
+                            <span class="badge bg-primary rounded-pill">₦{{ fee_structure.amount|floatformat:2 }}</span>
+                        </li>
+                        {% endfor %}
+                        <li class="list-group-item list-group-item-success d-flex justify-content-between align-items-center">
+                            <strong>Total per student</strong>
+                            <strong>₦{% with total=0 %}
+                                {% for fee_structure in fee_structures %}
+                                    {% with total=total|add:fee_structure.amount %}
+                                    {% endwith %}
+                                {% endfor %}
+                                {{ total|floatformat:2 }}
+                            {% endwith %}</strong>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Students to generate for:</h6>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-users me-2"></i>
+                        {{ students|length }} students in {{ school_class.name }}
+                    </div>
+                </div>
+                
+                <!-- Options -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="skip_existing" id="skipExisting" checked>
+                        <label class="form-check-label" for="skipExisting">
+                            Skip students who already have invoices for this term
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="apply_sponsorship" id="applySponsorship" checked>
+                        <label class="form-check-label" for="applySponsorship">
+                            Apply sponsorship discounts automatically
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" name="send_notifications" id="sendNotifications">
+                        <label class="form-check-label" for="sendNotifications">
+                            Send email notifications to students/parents
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-file-invoice-dollar me-1"></i>
+                    Generate Invoices
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Format all amounts on the page
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.amount-total, .amount-paid, .amount-due').forEach(element => {
+            const text = element.textContent;
+            const amount = parseFloat(text.replace(/[^0-9.-]+/g, ''));
+            if (!isNaN(amount)) {
+                element.textContent = '₦' + amount.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        });
+        
+        // Initialize tooltips
+        const tooltips = document.querySelectorAll('[title]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+        
+        // Set max amount for payment input
+        document.querySelectorAll('input[name="amount_paid"]').forEach(input => {
+            const maxAmount = parseFloat(input.getAttribute('max'));
+            input.addEventListener('input', function() {
+                if (parseFloat(this.value) > maxAmount) {
+                    this.value = maxAmount.toFixed(2);
+                    alert(`Maximum payment amount is ₦${maxAmount.toFixed(2)}`);
+                }
+            });
+        });
+    });
+    
+    // Send reminder function
+    function sendReminder(invoiceId, studentName) {
+        if (confirm(`Send payment reminder to ${studentName}?`)) {
+            // Show loading
+            const btn = event.target.closest('button');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            
+            // Simulate API call
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                alert(`Reminder sent to ${studentName}`);
+            }, 1000);
+        }
+    }
+    
+    // Print invoices
+    function printInvoices() {
+        window.print();
+    }
+    
+    // Export to Excel
+    function exportToExcel() {
+        let csvContent = "Student Name,Student ID,Invoice #,Total Amount,Amount Paid,Amount Due,Status,Created Date\n";
+        
+        document.querySelectorAll('tbody tr').forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 8) {
+                const studentName = cells[0].querySelector('strong').textContent.trim();
+                const studentId = cells[0].querySelector('small').textContent.trim();
+                const invoiceNumber = cells[1].querySelector('strong').textContent.trim();
+                const totalAmount = cells[2].textContent.trim().replace('₦', '');
+                const amountPaid = cells[3].textContent.trim().replace('₦', '');
+                const amountDue = cells[4].textContent.trim().replace('₦', '');
+                const status = cells[5].querySelector('.status-badge').textContent.trim();
+                const createdDate = cells[6].textContent.trim();
+                
+                csvContent += `"${studentName}","${studentId}","${invoiceNumber}","${totalAmount}","${amountPaid}","${amountDue}","${status}","${createdDate}"\n`;
+            }
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `invoices_{{ school_class.name }}_{{ term.name }}_{{ academic_year.year }}_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    
+    // Quick payment function
+    function quickPayment(invoiceId, maxAmount) {
+        const amount = prompt(`Enter payment amount (Maximum: ₦${parseFloat(maxAmount).toFixed(2)})`, maxAmount);
+        if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+            if (parseFloat(amount) > parseFloat(maxAmount)) {
+                alert(`Amount cannot exceed ₦${parseFloat(maxAmount).toFixed(2)}`);
+                return;
+            }
+            
+            // Submit form
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = `/finance/invoices/${invoiceId}/record-payment/`;
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            const amountInput = document.createElement('input');
+            amountInput.type = 'hidden';
+            amountInput.name = 'amount_paid';
+            amountInput.value = amount;
+            form.appendChild(amountInput);
+            
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = 'payment_method';
+            methodInput.value = 'cash';
+            form.appendChild(methodInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

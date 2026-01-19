@@ -14,8 +14,8 @@ from students.utils import generate_student_id, normalize_name
 from staff.forms import TeacherProfileForm, TeacherSubjectForm, TeacherBankDetailsForm
 from staff.models import User, TeacherProfile, TeacherSubject, TeacherBankDetails
 
-from academics.forms import SchoolClassForm, AcademicYearForm
-from academics.models import AcademicYear, SchoolClass, Subject, ScoreType
+from academics.forms import SchoolClassForm, AcademicYearForm, TermForm
+from academics.models import AcademicYear, SchoolClass, Subject, ScoreType, Term
 
 from .models import AdminProfile
 from .forms import AdminProfileForm
@@ -900,4 +900,95 @@ def manage_academic_years(request):
     
     return render(request, 'school_admin/manage_academic_years.html', {
         'academic_years': academic_years
+    })
+
+
+
+
+def manage_terms(request):
+    terms = Term.objects.select_related('academic_year').order_by('-academic_year__year', 'name')
+    academic_years = AcademicYear.objects.all()
+
+    if request.method == "POST":
+        action = request.POST.get('action')
+
+        # ========== ADD ==========
+        if action == 'add':
+            form = TermForm(request.POST)
+            if form.is_valid():
+                term = form.save(commit=False)
+                if term.is_current:
+                    Term.objects.filter(
+                        academic_year=term.academic_year,
+                        is_current=True
+                    ).update(is_current=False)
+                term.save()
+                messages.success(request, f'{term.get_name_display()} added to {term.academic_year.year}')
+                return redirect('manage_terms')
+
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('manage_terms')
+
+        # ========== EDIT ==========
+        elif action == 'edit':
+            term_id = request.POST.get('edit_id')
+            term = get_object_or_404(Term, id=term_id)
+            form = TermForm(request.POST, instance=term)
+            if form.is_valid():
+                updated_term = form.save(commit=False)
+                if updated_term.is_current:
+                    Term.objects.filter(
+                        academic_year=updated_term.academic_year,
+                        is_current=True
+                    ).exclude(pk=term.pk).update(is_current=False)
+                updated_term.save()
+                messages.success(request, f'{updated_term.get_name_display()} updated successfully')
+                return redirect('manage_terms')
+
+            for error in form.errors.values():
+                messages.error(request, error)
+            return redirect('manage_terms')
+
+        # ========== SET CURRENT ==========
+        elif action == 'set_current':
+            term_id = request.POST.get('term_id')
+            term = get_object_or_404(Term, id=term_id)
+            Term.objects.filter(
+                academic_year=term.academic_year,
+                is_current=True
+            ).update(is_current=False)
+            term.is_current = True
+            term.save()
+            messages.success(request, f'{term.get_name_display()} is now the current term for {term.academic_year.year}')
+            return redirect('manage_terms')
+
+        # ========== DELETE ==========
+        elif action == 'delete':
+            term_id = request.POST.get('delete_id')
+            term = get_object_or_404(Term, id=term_id)
+            if term.is_current:
+                messages.error(request, 'Cannot delete the current term!')
+                return redirect('manage_terms')
+            term_name = term.get_name_display()
+            term.delete()
+            messages.success(request, f'{term_name} deleted successfully!')
+            return redirect('manage_terms')
+
+        # ========== BULK DELETE ==========
+        elif action == 'bulk_delete':
+            term_ids = request.POST.getlist('term_ids')
+            current_terms = Term.objects.filter(id__in=term_ids, is_current=True)
+            if current_terms.exists():
+                messages.error(request, 'Cannot delete current term(s)!')
+                return redirect('manage_terms')
+            if term_ids:
+                deleted_count = Term.objects.filter(id__in=term_ids).delete()[0]
+                messages.success(request, f'{deleted_count} term(s) deleted successfully!')
+            return redirect('manage_terms')
+
+    return render(request, 'school_admin/manage_terms.html', {
+        'terms': terms,
+        'academic_years': academic_years,
+        'form': TermForm(),  # Add a blank form for the template
     })

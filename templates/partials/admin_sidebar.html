@@ -32,6 +32,14 @@
                         <span>Academic Years</span>
                     </a>
                 </li>
+                <!-- ADDED: Manage Terms Link -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'manage_terms' %}active{% endif %}"
+                       href="{% url 'manage_terms' %}">
+                        <i class="fas fa-calendar-week"></i>
+                        <span>Manage Terms</span>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'manage_students' %}active{% endif %}"
                        href="{% url 'manage_students' %}">
@@ -63,7 +71,6 @@
                         <span>Manage Subjects</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'manage_score_types' %}active{% endif %}"
                        href="{% url 'manage_score_types' %}">
@@ -71,7 +78,6 @@
                         <span>Manage Score Types</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
                        href="#">
@@ -115,6 +121,14 @@
                    href="{% url 'manage_academic_years' %}">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Academic Years</span>
+                </a>
+            </li>
+            <!-- ADDED: Manage Terms Link -->
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'manage_terms' %}active{% endif %}"
+                   href="{% url 'manage_terms' %}">
+                    <i class="fas fa-calendar-week"></i>
+                    <span>Manage Terms</span>
                 </a>
             </li>
             <li class="nav-item">

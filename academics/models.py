@@ -46,10 +46,29 @@ class Term(models.Model):
         ('2nd', 'Second Term'),
         ('3rd', 'Third Term'),
     ]
+
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name='terms',
+        null=True,   
+        blank=True     
+    )
     name = models.CharField(max_length=3, choices=TERM_CHOICES)
+    is_current = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.academic_year.year}"
+    
+    def save(self, *args, **kwargs):
+        if self.is_current:
+            Term.objects.filter(
+                academic_year=self.academic_year,
+                is_current=True
+            ).exclude(pk=self.pk).update(is_current=False)
+        super().save(*args, **kwargs)
+
+
 
 
 class ScoreType(models.Model):

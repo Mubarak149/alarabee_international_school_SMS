@@ -38,3 +38,5 @@ class StudentClassForm(forms.ModelForm):
             'school_class': forms.Select(attrs={'class': 'form-select'}),
             'academic_year': forms.Select(attrs={'class': 'form-select'}),
         }
+
+

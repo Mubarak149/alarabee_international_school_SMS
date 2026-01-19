@@ -215,6 +215,7 @@ def update_bank_details(request):
         messages.error(request, 'Please correct the errors in bank details.')
     
     return redirect('teacher_profile')
+
 @login_required
 def teacher_assigned_classes(request):
     try:
