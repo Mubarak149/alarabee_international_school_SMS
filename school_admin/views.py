@@ -17,8 +17,8 @@ from staff.models import User, TeacherProfile, TeacherSubject, TeacherBankDetail
 from academics.forms import SchoolClassForm, AcademicYearForm, TermForm
 from academics.models import AcademicYear, SchoolClass, Subject, ScoreType, Term
 
-from .models import AdminProfile
-from .forms import AdminProfileForm
+from .models import AdminProfile, SystemSettings
+from .forms import AdminProfileForm, SystemSettingsForm
 
 def admin_dashboard(request):
     # Get real data from database
@@ -189,7 +189,7 @@ def manage_students(request):
         students = paginator.page(paginator.num_pages)
     
     if request.method == "POST":
-        print("POST request received", request.POST)
+        # print("POST request received", request.POST)
         action = request.POST.get('action')
         # ADD STUDENT
         if action == 'add':
@@ -202,6 +202,12 @@ def manage_students(request):
                     with transaction.atomic():
                         # 1️⃣ Save User first to get a DB ID
                         user = user_form.save(commit=False)
+                        
+                        # Get system settings
+                        system_settings = SystemSettings.get_settings()
+                        prefix = system_settings.student_id_prefix
+                        default_password = system_settings.default_student_password
+                        student_id = generate_student_id(prefix, profile.id)
 
                         # Normalize the first_name and last_name
                         user.first_name = normalize_name(user.first_name)
@@ -214,14 +220,19 @@ def manage_students(request):
                         profile.user = user
                         profile.save()  # profile.id exists now
 
-                        # 3️⃣ Generate student ID using profile.id
-                        student_id = generate_student_id(profile.id)
-                        profile.student_id = student_id
+                         # 3️⃣ Generate student ID
+                        if system_settings.student_id_option == 'auto':
+                            # Automatic generation
+                            profile.student_id = student_id
+                        else:
+                            # Manual input - use the ID provided in form
+                            student_id = profile_form.cleaned_data['student_id']
+                            profile.student_id = student_id
+                        
                         profile.save()
-
                         # 4️⃣ Set username to student_id
                         user.username = student_id
-                        user.set_password("Password123")  # default password same as student_id
+                        user.set_password(default_password)  # default password same as student_id
                         user.save()
 
                         # 5️⃣ Save StudentClass
@@ -243,25 +254,29 @@ def manage_students(request):
                         messages.error(request, error)
                 return redirect('manage_students')
         
-       # EDIT STUDENT
+        # EDIT STUDENT
+        # In manage_students view, update the EDIT STUDENT section:
         elif action == 'edit':
             student_id = request.POST.get('edit_id')
             try:
                 profile = StudentProfile.objects.get(id=student_id)
                 user = profile.user
                 
+                # Get system settings
+                system_settings = SystemSettings.get_settings()
+                
                 # Create form instances with existing data
                 user_form = StudentUserForm(request.POST, instance=user)
                 profile_form = StudentProfileForm(request.POST, instance=profile)
                 
                 # Get or create StudentClass
-                student_class = profile.class_records.first()
+                student_class = profile.class_records.filter(is_current=True).first()
                 if student_class:
                     class_form = StudentClassForm(request.POST, instance=student_class)
                 else:
                     class_form = StudentClassForm(request.POST)
                 
-                # Clean the form data - strip whitespace from select fields
+                # Clean the form data
                 post_data = request.POST.copy()
                 post_data['school_class'] = post_data.get('school_class', '').strip()
                 post_data['academic_year'] = post_data.get('academic_year', '').strip()
@@ -278,6 +293,14 @@ def manage_students(request):
                             user = user_form.save(commit=False)
                             user.first_name = normalize_name(user.first_name)
                             user.last_name = normalize_name(user.last_name)
+                            
+                            # If manual mode and student ID changed, update username
+                            if system_settings.student_id_option == 'manual':
+                                new_student_id = profile_form.cleaned_data.get('student_id')
+                                if new_student_id and new_student_id != profile.student_id:
+                                    profile.student_id = new_student_id
+                                    user.username = new_student_id
+                            
                             user.save()
                             
                             # Save profile
@@ -303,6 +326,7 @@ def manage_students(request):
                         'user_form': user_form,
                         'profile_form': profile_form,
                         'class_form': class_form,
+                        'system_settings': system_settings,
                     }
                     # Add error messages
                     for form in [user_form, profile_form, class_form]:
@@ -615,7 +639,6 @@ def manage_teacher_subjects(request):
     
     return render(request, "school_admin/manage_teacher_subjects.html", context)
 
-
 @login_required
 def manage_bank_details(request, teacher_id):
     teacher = get_object_or_404(TeacherProfile, id=teacher_id)
@@ -903,8 +926,6 @@ def manage_academic_years(request):
     })
 
 
-
-
 def manage_terms(request):
     terms = Term.objects.select_related('academic_year').order_by('-academic_year__year', 'name')
     academic_years = AcademicYear.objects.all()
@@ -991,4 +1012,25 @@ def manage_terms(request):
         'terms': terms,
         'academic_years': academic_years,
         'form': TermForm(),  # Add a blank form for the template
+    })
+
+
+@login_required
+def system_settings(request):
+    """Simple system settings view"""
+    # Get current settings or create default
+    settings_instance = SystemSettings.get_settings()
+    
+    if request.method == 'POST':
+        form = SystemSettingsForm(request.POST, instance=settings_instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "System settings saved successfully!")
+            return redirect('system_settings')
+    else:
+        form = SystemSettingsForm(instance=settings_instance)
+    
+    return render(request, 'school_admin/system_settings.html', {
+        'form': form,
+        'settings': settings_instance
     })

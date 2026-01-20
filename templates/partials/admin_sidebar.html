@@ -80,7 +80,7 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
-                       href="#">
+                    href="{% url 'system_settings' %}">
                         <i class="fas fa-cogs"></i>
                         <span>System Settings</span>
                     </a>
@@ -179,7 +179,7 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'system_settings' %}active{% endif %}"
-                   href="#">
+                href="{% url 'system_settings' %}">
                     <i class="fas fa-cogs"></i>
                     <span>System Settings</span>
                 </a>

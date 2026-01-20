@@ -8,6 +8,7 @@ urlpatterns = [
     path("teachers/", manage_teachers, name="manage_teachers"),
     path("classes/", manage_classes, name="manage_classes"),
     path("subjects/", manage_subjects, name="manage_subjects"),
+    path('system-settings/', system_settings, name='system_settings'),
     path('score-types/', manage_score_types, name='manage_score_types'),
     path('teacher-subjects/', manage_teacher_subjects, name='manage_teacher_subjects'),
     path('terms/', manage_terms, name='manage_terms'),

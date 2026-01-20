@@ -178,6 +178,21 @@
         color: var(--text-secondary);
         margin-top: 10px;
     }
+
+
+    #studentIdField {
+        transition: all 0.3s ease;
+    }
+
+    .student-id-readonly {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    .student-id-editable {
+        background-color: #ffffff;
+    }
+
 </style>
 {% endblock %}
 
@@ -536,25 +551,40 @@
                 <h5 class="modal-title">Add New Student</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'manage_students' %}">
+            <form method="POST" action="{% url 'manage_students' %}" id="addStudentForm">
                 {% csrf_token %}
 
                 <div class="modal-body">
                     <div class="row">
+                        <!-- STUDENT ID FIELD - Conditionally shown -->
+                        <div class="col-md-6 mb-3" id="studentIdField" 
+                             style="display: {% if system_settings.student_id_option == 'auto' %}none{% else %}block{% endif %};">
+                            <label class="form-label">Student ID 
+                                {% if system_settings.student_id_option == 'manual' %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {{ profile_form.student_id }}
+                            {% if system_settings.student_id_option == 'auto' %}
+                            <small class="text-muted">Student ID will be generated automatically</small>
+                            {% else %}
+                            <small class="text-muted">Enter a unique student ID</small>
+                            {% endif %}
+                        </div>
 
                         <!-- USER INFO -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">First Name</label>
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
                             {{ user_form.first_name }}
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Last Name</label>
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
                             {{ user_form.last_name }}
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Email Address</label>
+                            <label class="form-label">Email Address <span class="text-danger">*</span></label>
                             {{ user_form.email }}
                         </div>
 
@@ -569,22 +599,20 @@
                         </div>
 
                         <div class="col-md-12 mb-3">
-                            <label class="form-label">Gender</label>
+                            <label class="form-label">Gender <span class="text-danger">*</span></label>
                             {{ user_form.gender }}
                         </div>
 
                         <hr>
 
                         <!-- STUDENT PROFILE -->
-                       
-
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Parent / Guardian Name</label>
+                            <label class="form-label">Parent / Guardian Name <span class="text-danger">*</span></label>
                             {{ profile_form.parent_name }}
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Parent Contact</label>
+                            <label class="form-label">Parent Contact <span class="text-danger">*</span></label>
                             {{ profile_form.parent_contact }}
                         </div>
 
@@ -592,12 +620,12 @@
 
                         <!-- CLASS ASSIGNMENT -->
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Class</label>
+                            <label class="form-label">Class <span class="text-danger">*</span></label>
                             {{ class_form.school_class }}
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Academic Year</label>
+                            <label class="form-label">Academic Year <span class="text-danger">*</span></label>
                             {{ class_form.academic_year }}
                         </div>
 
@@ -610,7 +638,6 @@
                     <button type="submit" class="btn btn-success">Add Student</button>
                 </div>
             </form>
-
         </div>
     </div>
 </div>
@@ -830,6 +857,65 @@
             tableInfo.textContent = `Showing ${visibleCount} of ${totalCards} students on this page`;
         }
     }
+// Function to handle Student ID field validation
+function setupStudentIdValidation() {
+    const studentIdField = document.getElementById('studentIdField');
+    const studentIdInput = document.getElementById('studentIdInput');
+    const addStudentForm = document.getElementById('addStudentForm');
+    
+    if (!studentIdField || !studentIdInput || !addStudentForm) return;
+    
+    // Listen for form submission
+    addStudentForm.addEventListener('submit', function(e) {
+        const systemSettingsAuto = {{ system_settings.student_id_option|safe }} === 'auto';
+        
+        if (!systemSettingsAuto) {
+            // Manual mode - validate that student ID is provided
+            if (!studentIdInput.value.trim()) {
+                e.preventDefault();
+                showToast('Please enter a Student ID', 'error');
+                studentIdInput.focus();
+                return false;
+            }
+        }
+        return true;
+    });
+}
+
+// Function to check if student ID already exists (optional - for better UX)
+async function checkStudentIdExists(studentId) {
+    if (!studentId) return false;
+    
+    try {
+        const response = await fetch(`/api/check-student-id/?student_id=${studentId}`);
+        const data = await response.json();
+        return data.exists;
+    } catch (error) {
+        console.error('Error checking student ID:', error);
+        return false;
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setupStudentIdValidation();
+    
+    // Listen for changes on student ID input for real-time validation
+    const studentIdInput = document.getElementById('studentIdInput');
+    if (studentIdInput) {
+        studentIdInput.addEventListener('blur', async function() {
+            if (this.value.trim()) {
+                const exists = await checkStudentIdExists(this.value.trim());
+                if (exists) {
+                    this.classList.add('is-invalid');
+                    showToast('This Student ID already exists', 'error');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            }
+        });
+    }
+});
 
     // View student details - Updated version
     function viewStudent(id) {
@@ -875,124 +961,203 @@
     }
     // Edit student - Updated version with all fields
     function editStudent(id) {
-        const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
-        if (!card) return;
+    const card = document.querySelector(`.student-card[data-student-id="${id}"]`);
+    if (!card) return;
 
-        const rows = card.querySelectorAll('.student-row');
-        
-        // Extract data from the card
-        const studentClass = rows[0]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentYear = rows[1]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentEmail = rows[2]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentGender = rows[3]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentDOB = rows[4]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentAddress = rows[5]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentParent = rows[6]?.querySelector('.student-value')?.textContent.trim() || '';
-        const studentParentContact = rows[7]?.querySelector('.student-value')?.textContent.trim() || '';
-        
-        const studentName = card.querySelector('h6').textContent;
-        const studentId = card.querySelector('.student-id').textContent;
+    const rows = card.querySelectorAll('.student-row');
+    
+    // Extract data from the card
+    const studentClass = rows[0]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentYear = rows[1]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentEmail = rows[2]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentGender = rows[3]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentDOB = rows[4]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentAddress = rows[5]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentParent = rows[6]?.querySelector('.student-value')?.textContent.trim() || '';
+    const studentParentContact = rows[7]?.querySelector('.student-value')?.textContent.trim() || '';
+    
+    const studentName = card.querySelector('h6').textContent;
+    const studentId = card.querySelector('.student-id').textContent;
 
-        const nameParts = studentName.split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.slice(1).join(' ');
+    const nameParts = studentName.split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
 
-        // Convert gender text to code
-        function getGenderCode(genderText) {
-            if (genderText === 'Male') return 'M';
-            if (genderText === 'Female') return 'F';
-            if (genderText === 'Other') return 'O';
-            if (genderText === 'Prefer not to say') return 'N';
-            return '';
-        }
-
-        const genderCode = getGenderCode(studentGender);
-
-        // Generate class options HTML
-        let classOptionsHtml = '<option value="">Select Class</option>';
-        classOptions.forEach(option => {
-            const isSelected = studentClass === option.label.trim();
-            classOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
-        });
-        
-        // Generate year options HTML
-        let yearOptionsHtml = '<option value="">Select Year</option>';
-        yearOptions.forEach(option => {
-            const isSelected = studentYear === option.label.trim();
-            yearOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
-        });
-
-        // Generate gender options HTML with selected value
-        let genderOptionsHtml = `
-            <option value="" ${!genderCode ? 'selected' : ''}>Select Gender</option>
-            <option value="M" ${genderCode === 'M' ? 'selected' : ''}>Male</option>
-            <option value="F" ${genderCode === 'F' ? 'selected' : ''}>Female</option>
-            <option value="O" ${genderCode === 'O' ? 'selected' : ''}>Other</option>
-            <option value="N" ${genderCode === 'N' ? 'selected' : ''}>Prefer not to say</option>
-        `;
-
-        const modalBody = `
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">First Name</label>
-                    <input type="text" class="form-control" name="first_name" value="${firstName}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" class="form-control" name="last_name" value="${lastName}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Student ID</label>
-                    <input type="text" class="form-control" name="student_id" value="${studentId}" readonly>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" class="form-control" name="email" value="${studentEmail}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Gender</label>
-                    <select class="form-select" name="gender" required>
-                        ${genderOptionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" class="form-control" name="dob" value="${studentDOB}">
-                </div>
-                <div class="col-md-12 mb-3">
-                    <label class="form-label">Address</label>
-                    <textarea class="form-control" name="address" rows="2">${studentAddress === '-' ? '' : studentAddress}</textarea>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Parent / Guardian Name</label>
-                    <input type="text" class="form-control" name="parent_name" value="${studentParent === '-' ? '' : studentParent}" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Parent Contact</label>
-                    <input type="text" class="form-control" name="parent_contact" value="${studentParentContact === '-' ? '' : studentParentContact}" placeholder="Phone number" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Class</label>
-                    <select class="form-select" name="school_class" required>
-                        ${classOptionsHtml}
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Academic Year</label>
-                    <select class="form-select" name="academic_year" required>
-                        ${yearOptionsHtml}
-                    </select>
-                </div>
-            </div>
-            <input type="hidden" name="edit_id" value="${id}">
-        `;
-
-        document.getElementById('editStudentModalBody').innerHTML = modalBody;
-        const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
-        modal.show();
+    // Convert gender text to code
+    function getGenderCode(genderText) {
+        if (genderText === 'Male') return 'M';
+        if (genderText === 'Female') return 'F';
+        if (genderText === 'Other') return 'O';
+        if (genderText === 'Prefer not to say') return 'N';
+        return '';
     }
 
+    const genderCode = getGenderCode(studentGender);
+
+    // Generate class options HTML
+    let classOptionsHtml = '<option value="">Select Class</option>';
+    classOptions.forEach(option => {
+        const isSelected = studentClass === option.label.trim();
+        classOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
+    });
     
+    // Generate year options HTML
+    let yearOptionsHtml = '<option value="">Select Year</option>';
+    yearOptions.forEach(option => {
+        const isSelected = studentYear === option.label.trim();
+        yearOptionsHtml += `<option value="${option.value}" ${isSelected ? 'selected' : ''}>${option.label}</option>`;
+    });
+
+    // Generate gender options HTML with selected value
+    let genderOptionsHtml = `
+        <option value="" ${!genderCode ? 'selected' : ''}>Select Gender</option>
+        <option value="M" ${genderCode === 'M' ? 'selected' : ''}>Male</option>
+        <option value="F" ${genderCode === 'F' ? 'selected' : ''}>Female</option>
+        <option value="O" ${genderCode === 'O' ? 'selected' : ''}>Other</option>
+        <option value="N" ${genderCode === 'N' ? 'selected' : ''}>Prefer not to say</option>
+    `;
+
+    // Get system settings from Django template
+    const systemSettings = {
+        studentIdOption: '{{ system_settings.student_id_option|default:"auto" }}'
+    };
+    
+    // Generate student ID field based on system settings
+    let studentIdFieldHtml = '';
+    if (systemSettings.studentIdOption === 'manual') {
+        // Show editable student ID field for manual mode
+        studentIdFieldHtml = `
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Student ID <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="student_id" value="${studentId}" required>
+                <small class="text-muted">Enter student ID</small>
+            </div>
+        `;
+    } else {
+        // Show readonly student ID field for auto mode
+        studentIdFieldHtml = `
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Student ID</label>
+                <input type="text" class="form-control" name="student_id" value="${studentId}" readonly>
+                <small class="text-muted">Auto-generated student ID</small>
+            </div>
+        `;
+    }
+
+    const modalBody = `
+        <div class="row">
+            <!-- Student ID Field (Conditional based on system settings) -->
+            ${studentIdFieldHtml}
+            
+            <div class="col-md-6 mb-3">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-control" name="first_name" value="${firstName}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-control" name="last_name" value="${lastName}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-control" name="email" value="${studentEmail}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Gender</label>
+                <select class="form-select" name="gender" required>
+                    ${genderOptionsHtml}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" name="dob" value="${studentDOB}">
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label">Address</label>
+                <textarea class="form-control" name="address" rows="2">${studentAddress === '-' ? '' : studentAddress}</textarea>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Parent / Guardian Name</label>
+                <input type="text" class="form-control" name="parent_name" value="${studentParent === '-' ? '' : studentParent}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Parent Contact</label>
+                <input type="text" class="form-control" name="parent_contact" value="${studentParentContact === '-' ? '' : studentParentContact}" placeholder="Phone number" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Class</label>
+                <select class="form-select" name="school_class" required>
+                    ${classOptionsHtml}
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Academic Year</label>
+                <select class="form-select" name="academic_year" required>
+                    ${yearOptionsHtml}
+                </select>
+            </div>
+        </div>
+        <input type="hidden" name="edit_id" value="${id}">
+    `;
+
+    document.getElementById('editStudentModalBody').innerHTML = modalBody;
+    const modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+    modal.show();
+}
+
+// Add this to your JavaScript section
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for edit modal show event
+    const editModal = document.getElementById('editStudentModal');
+    if (editModal) {
+        editModal.addEventListener('shown.bs.modal', function() {
+            const studentIdInput = this.querySelector('input[name="student_id"]');
+            const systemSettingsManual = '{{ system_settings.student_id_option|default:"auto" }}' === 'manual';
+            
+            if (studentIdInput) {
+                if (systemSettingsManual) {
+                    // Manual mode - make it editable
+                    studentIdInput.readOnly = false;
+                    studentIdInput.classList.remove('student-id-readonly');
+                    studentIdInput.classList.add('student-id-editable');
+                } else {
+                    // Auto mode - keep it readonly
+                    studentIdInput.readOnly = true;
+                    studentIdInput.classList.add('student-id-readonly');
+                    studentIdInput.classList.remove('student-id-editable');
+                }
+            }
+        });
+    }
+    
+    // Real-time student ID validation for manual mode
+    document.addEventListener('input', function(e) {
+        if (e.target.name === 'student_id' && e.target.form.id === 'editStudentForm') {
+            validateStudentId(e.target.value);
+        }
+    });
+    
+    async function validateStudentId(studentId) {
+        if (!studentId.trim()) return;
+        
+        try {
+            const response = await fetch(`/check-student-id/?student_id=${encodeURIComponent(studentId)}`);
+            const data = await response.json();
+            
+            const input = document.querySelector('input[name="student_id"]');
+            if (data.exists) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                showToast('This Student ID already exists', 'error');
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            }
+        } catch (error) {
+            console.error('Error validating student ID:', error);
+        }
+    }
+});    
+
     // Confirm delete
     function confirmDelete() {
         return confirm('Are you sure you want to delete this student? This action cannot be undone.');

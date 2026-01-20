@@ -1,0 +1,112 @@
+{% extends "school_admin/base_admin.html" %}
+
+{% block title %}System Settings - School SMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>System Settings</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Configure System Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <!-- School Name -->
+                    <div class="mb-3">
+                        <label class="form-label">School Name</label>
+                        {{ form.school_name }}
+                    </div>
+                    
+                    <!-- Default Student Password -->
+                    <div class="mb-3">
+                        <label class="form-label">Default Student Password</label>
+                        {{ form.default_student_password }}
+                        <small class="text-muted">This password will be set for all new students</small>
+                    </div>
+                    
+                    <!-- Student ID Options -->
+                    <div class="mb-3">
+                        <label class="form-label">Student ID Generation</label>
+                        {{ form.student_id_option }}
+                    </div>
+                    
+                    <!-- Student ID Prefix -->
+                    <div class="mb-4" id="prefixSection">
+                        <label class="form-label">Student ID Prefix</label>
+                        {{ form.student_id_prefix }}
+                        <small class="text-muted">
+                            For automatic generation: e.g., STU for STU1001, STU1002, etc.
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Current Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>School Name:</strong><br>
+                    {{ settings.school_name }}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Student ID Mode:</strong><br>
+                    {% if settings.student_id_option == 'auto' %}
+                        Automatic Generation
+                    {% else %}
+                        Manual Input
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Sample Student ID:</strong><br>
+                    {% if settings.student_id_option == 'auto' %}
+                        {{ settings.student_id_prefix }}1001
+                    {% else %}
+                        User will input manually
+                    {% endif %}
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Changes will apply to newly created students.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const idOptionSelect = document.getElementById('{{ form.student_id_option.id_for_label }}');
+    const prefixSection = document.getElementById('prefixSection');
+    
+    function togglePrefixSection() {
+        if (idOptionSelect.value === 'auto') {
+            prefixSection.style.display = 'block';
+        } else {
+            prefixSection.style.display = 'none';
+        }
+    }
+    
+    // Initial check
+    togglePrefixSection();
+    
+    // Listen for changes
+    idOptionSelect.addEventListener('change', togglePrefixSection);
+});
+</script>
+{% endblock %}

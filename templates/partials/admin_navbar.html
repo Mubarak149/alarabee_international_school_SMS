@@ -3,7 +3,11 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'admin_dashboard' %}">
             <i class="fas fa-user-shield me-2"></i>
-            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <!-- Add school name here -->
+            <span class="brand-text">
+                <span class="school-name">{{ system_settings.school_name|default:"Our School" }}</span>
+                <span class="brand-highlight">SMS</span>
+            </span>
             <span class="user-role badge bg-light text-danger ms-2">Administrator</span>
         </a>
         
