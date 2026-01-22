@@ -881,20 +881,20 @@ function setupStudentIdValidation() {
         return true;
     });
 }
-
-// Function to check if student ID already exists (optional - for better UX)
+const CHECK_STUDENT_ID_URL = "{% url 'check_student_id' %}";
 async function checkStudentIdExists(studentId) {
     if (!studentId) return false;
-    
     try {
-        const response = await fetch(`/api/check-student-id/?student_id=${studentId}`);
+        const response = await fetch(CHECK_STUDENT_ID_URL + "?student_id=" + encodeURIComponent(studentId))
         const data = await response.json();
         return data.exists;
     } catch (error) {
-        console.error('Error checking student ID:', error);
+        console.error("Error checking student ID:", error);
         return false;
     }
 }
+
+
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {

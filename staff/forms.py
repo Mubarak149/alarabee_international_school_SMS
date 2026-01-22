@@ -85,13 +85,8 @@ class TeacherProfileEditForm(forms.ModelForm):
             'contact',
             'nin',
             'status',
-            'subjects',
         ]
         widgets = {
-            'subjects': forms.CheckboxSelectMultiple(),
-            'qualification': forms.Select(attrs={
-                'class': 'form-control'
-            }),
             'contact': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Phone number'

@@ -1,9 +1,11 @@
 from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
 
 from accounts.forms import StudentUserForm, TeacherUserForm, UserEditForm, AdminUserForm
 from students.forms import StudentProfileForm, StudentClassForm
@@ -207,7 +209,7 @@ def manage_students(request):
                         system_settings = SystemSettings.get_settings()
                         prefix = system_settings.student_id_prefix
                         default_password = system_settings.default_student_password
-                        student_id = generate_student_id(prefix, profile.id)
+                        
 
                         # Normalize the first_name and last_name
                         user.first_name = normalize_name(user.first_name)
@@ -223,6 +225,7 @@ def manage_students(request):
                          # 3️⃣ Generate student ID
                         if system_settings.student_id_option == 'auto':
                             # Automatic generation
+                            student_id = generate_student_id(prefix, profile.id)
                             profile.student_id = student_id
                         else:
                             # Manual input - use the ID provided in form
@@ -363,6 +366,17 @@ def manage_students(request):
         "class_form": class_form,
         "students": students,
     })
+
+
+
+@require_GET
+def check_student_id(request):
+    student_id = request.GET.get("student_id", "").strip()
+    if not student_id:
+        return JsonResponse({"exists": False})
+    exists = StudentProfile.objects.filter(student_id=student_id).exists()
+    return JsonResponse({"exists": exists})
+
 
 def manage_teachers(request):
     # Get all teachers with related data

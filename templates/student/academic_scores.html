@@ -1,0 +1,583 @@
+{% extends 'student/base.html' %}
+{% load static %}
+{% load dict_extras %}
+
+{% block title %}Academic Scores - School SMS{% endblock %}
+
+{% block page_title %}Academic Performance{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+<li class="breadcrumb-item active">Academic Scores</li>
+{% endblock %}
+
+{% block page_css %}
+<style>
+    /* Academic scores specific styles */
+    .score-card {
+        border-left: 4px solid;
+        transition: all 0.3s;
+        margin-bottom: 20px;
+    }
+    
+    .score-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .score-card.current-term {
+        border-color: #1cc88a;
+    }
+    
+    .score-card.previous-term {
+        border-color: #6c757d;
+    }
+    
+    .score-circle {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+    
+    .circle-progress {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .score-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+    
+    .score-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .progress-chart {
+        height: 10px;
+        border-radius: 5px;
+        background-color: #e9ecef;
+        overflow: hidden;
+        margin-top: 5px;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        border-radius: 5px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    /* Rank badges */
+    .rank-badge {
+        font-size: 1rem;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+    
+    .rank-1 { background-color: #FFD700; color: #856404; }
+    .rank-2 { background-color: #C0C0C0; color: #333; }
+    .rank-3 { background-color: #CD7F32; color: #fff; }
+    
+    /* Grade colors */
+    .grade-A { color: #28a745; }
+    .grade-B { color: #20c997; }
+    .grade-C { color: #ffc107; }
+    .grade-D { color: #fd7e14; }
+    .grade-E { color: #dc3545; }
+    
+    /* Subject performance indicators */
+    .subject-performance {
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .performance-excellent { background-color: rgba(40, 167, 69, 0.1); }
+    .performance-good { background-color: rgba(255, 193, 7, 0.1); }
+    .performance-poor { background-color: rgba(220, 53, 69, 0.1); }
+    
+    /* Filter Form Styles */
+    .filter-group {
+        margin-bottom: 0;
+    }
+    
+    .filter-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .score-value {
+            font-size: 1.2rem;
+        }
+        
+        .score-card .card-header h5 {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 bg-success text-white shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">Academic Performance</h4>
+                        <p class="mb-0">
+                            View your academic scores, grades, and performance over time.
+                            Student ID: {{ student.student_id }} • Class: {{ student.current_class_name }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if current_term_scores %}
+                        <a href="{% url 'download_report_card_pdf' current_term_scores.academic_year.id current_term_scores.term.id %}" 
+                           class="btn btn-light">
+                            <i class="fas fa-download me-2"></i> Download Current Report Card
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Search & Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{% url 'student_academic_scores' %}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-4 col-12">
+                    <div class="filter-group">
+                        <label class="filter-label">Search Scores</label>
+                        <input type="text" class="form-control" name="search" 
+                               value="{{ search_query }}" placeholder="Subject, term, or year...">
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Academic Year</label>
+                        <select class="form-select" name="year">
+                            <option value="all" {% if year_filter == 'all' %}selected{% endif %}>All Years</option>
+                            <option value="current" {% if year_filter == 'current' %}selected{% endif %}>Current Year</option>
+                            {% for year in years %}
+                            <option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                            <option value="older" {% if year_filter == 'older' %}selected{% endif %}>Older Records</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Subject</label>
+                        <select class="form-select" name="subject">
+                            <option value="all" {% if subject_filter == 'all' %}selected{% endif %}>All Subjects</option>
+                            {% for subject in all_subjects %}
+                            <option value="{{ subject }}" {% if subject_filter == subject %}selected{% endif %}>{{ subject }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-12">
+                    <div class="filter-group d-flex align-items-end h-100">
+                        <div class="d-flex gap-2 w-100">
+                            <button class="btn btn-success flex-grow-1" type="submit">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                            <a href="{% url 'student_academic_scores' %}" class="btn btn-outline-success">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Academic Scores List -->
+{% if scores_by_term %}
+    {% for term_name, term_data in scores_by_term.items %}
+    <div class="card score-card {% if term_data.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">{{ term_data.term.name }} Term • {{ term_data.academic_year.name }}</h5>
+                <small class="text-muted">Subjects: {{ term_data.subjects|join:", " }}</small>
+            </div>
+            {% if term_data.term.is_current %}
+            <span class="badge bg-success">Current Term</span>
+            {% else %}
+            <span class="badge bg-secondary">Previous Term</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <!-- Performance Summary -->
+            <div class="row mb-4">
+                <div class="col-md-4 text-center">
+                    <h6>Average Score</h6>
+                    <div class="score-circle">
+                        {% if term_data.average_score %}
+                        <div class="circle-progress" 
+                             style="background: conic-gradient(#1cc88a {{ term_data.average_score }}%, #e9ecef 0%);">
+                        </div>
+                        <div class="score-text">
+                            <span class="score-value">{{ term_data.average_score }}%</span>
+                            <span class="score-label">Average</span>
+                        </div>
+                        {% else %}
+                        <div class="circle-progress" style="background: #e9ecef;"></div>
+                        <div class="score-text">
+                            <span class="score-value">N/A</span>
+                            <span class="score-label">No Data</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-md-4 text-center">
+                    <h6>Class Rank</h6>
+                    {% if term_data.rank %}
+                    <div class="h1 mb-3">{{ term_data.rank }}</div>
+                    <div class="mb-2">
+                        <span class="badge rank-badge rank-{{ term_data.rank }}">
+                            {{ term_data.rank }}{% if term_data.rank == 1 %}st{% elif term_data.rank == 2 %}nd{% elif term_data.rank == 3 %}rd{% else %}th{% endif %}
+                        </span>
+                    </div>
+                    <small class="text-muted">Out of {{ term_data.class_size }} students</small>
+                    {% else %}
+                    <div class="h1 mb-3 text-muted">-</div>
+                    <div class="text-muted">Rank not available</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    <h6>Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'download_report_card_pdf' term_data.academic_year.id term_data.term.id %}" 
+                           class="btn btn-outline-success {% if not term_data.average_score %}disabled{% endif %}">
+                            <i class="fas fa-download me-2"></i> Download Report Card
+                        </a>
+                        <button class="btn btn-outline-primary" onclick="showPerformanceChart('{{ term_name }}')">
+                            <i class="fas fa-chart-bar me-2"></i> View Performance Chart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Performance -->
+            <h6 class="mb-3">Subject Performance</h6>
+            <div class="row">
+                {% for subject in scores_by_subject %}
+                    {% for s in subject.list %}
+                    <tr>
+                        <td>{{ subject.grouper.name }}</td>
+                        <td>{{ s.score_type.name }}</td>
+                        <td>{{ s.score }}%</td>
+                        <td>
+                            {% if s.score >= 80 %}A
+                            {% elif s.score >= 70 %}B
+                            {% elif s.score >= 60 %}C
+                            {% elif s.score >= 50 %}D
+                            {% else %}E{% endif %}
+                        </td>
+                        <td>
+                            {% if s.score >= 80 %}Excellent
+                            {% elif s.score >= 60 %}Good
+                            {% else %}Needs Improvement{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+
+            </div>
+
+            <!-- Detailed Scores Table -->
+            <div class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Detailed Subject Scores</h6>
+                    <small class="text-muted">{{ first_term_data.scores|length }} subjects</small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Subject</th>
+                                {% for st in score_types %}
+                                <th>{{ st.name }}</th>
+                                {% endfor %}
+                                <th>Total</th>
+                                <th>Grade</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for subject, data in subject_rows.items %}
+                        <tr>
+                            <!-- Subject -->
+                            <td><strong>{{ subject }}</strong></td>
+
+                            <!-- Dynamic score types -->
+                            {% for st in score_types %}
+                                <td>
+                                    {% if st.name in data.scores %}
+                                        {{ data.scores|get_item:st.name }}%
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+
+                            <!-- Total -->
+                            <td>{{ data.total }}%</td>
+
+                            <!-- Grade -->
+                            <td>
+                                {% if data.total >= 80 %}A
+                                {% elif data.total >= 70 %}B
+                                {% elif data.total >= 60 %}C
+                                {% elif data.total >= 50 %}D
+                                {% else %}E{% endif %}
+                            </td>
+
+                            <!-- Remark -->
+                            <td>
+                                {% if data.total >= 80 %}Excellent
+                                {% elif data.total >= 60 %}Good
+                                {% else %}Needs Improvement{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <h5>No Academic Records Found</h5>
+            <p>{% if search_query or year_filter != 'all' or subject_filter != 'all' %}
+                No academic records match your search criteria. Try changing your filters.
+               {% else %}
+                Your academic scores have not been recorded yet.
+               {% endif %}
+            </p>
+            {% if search_query or year_filter != 'all' or subject_filter != 'all' %}
+            <a href="{% url 'student_academic_scores' %}" class="btn btn-success mt-2">
+                Clear Filters
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Performance Statistics -->
+{% if scores_by_term %}
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-success shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Best Subject
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% with best_score=term_data.scores|first %}{{ best_score.subject.name }}{% endwith %}
+                        </div>
+                        <div class="text-xs text-success">
+                            {% with best_score=term_data.scores|first %}{{ best_score.score }}%{% endwith %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-trophy fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-info shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Current Average
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% for term_name, term_data in scores_by_term.items %}
+                                {% if term_data.term.is_current %}
+                                    {{ term_data.average_score|default:"N/A" }}%
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-warning shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Total Subjects
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if first_term_data %}
+                                {{ first_term_data.scores|length }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-book fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Performance Chart Modal -->
+<div class="modal fade" id="performanceChartModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Performance Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <canvas id="performanceChart" height="300"></canvas>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+function showPerformanceChart(termName) {
+    // This function would load and display a chart for the specific term
+    // For now, we'll just show the modal
+    const modal = new bootstrap.Modal(document.getElementById('performanceChartModal'));
+    modal.show();
+    
+    // Example chart data - you would populate this with actual data
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Math', 'English', 'Science', 'History', 'Geography'],
+            datasets: [{
+                label: 'Scores (%)',
+                data: [85, 78, 92, 65, 88],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(40, 167, 69, 0.7)',
+                ],
+                borderColor: [
+                    'rgb(40, 167, 69)',
+                    'rgb(40, 167, 69)',
+                    'rgb(40, 167, 69)',
+                    'rgb(255, 193, 7)',
+                    'rgb(40, 167, 69)',
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Score (%)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize any page-specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Update progress circles
+    document.querySelectorAll('.circle-progress').forEach(circle => {
+        const scoreText = circle.nextElementSibling.querySelector('.score-value');
+        if (scoreText && scoreText.textContent !== 'N/A') {
+            const score = parseFloat(scoreText.textContent);
+            circle.style.background = `conic-gradient(#1cc88a ${score}%, #e9ecef 0%)`;
+        }
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

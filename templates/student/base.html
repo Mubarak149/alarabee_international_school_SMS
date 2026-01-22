@@ -247,7 +247,17 @@
             background-color: transparent;
             padding: 0;
         }
-        
+        .sidebar .nav-link.btn {
+            width: 100%;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link.btn:hover,
+        .sidebar .nav-link.btn.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
         .breadcrumb-item.active {
             color: #4e73df;
             font-weight: 500;
@@ -257,7 +267,40 @@
         .footer {
             margin-top: auto;
         }
-        
+        /* Sidebar base */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            transition: transform 0.3s ease;
+        }
+
+        /* Mobile behavior */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                transform: translateX(-100%);
+                z-index: 1050;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+                }
+            }
+            #sidebarOverlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.4);
+                display: none;
+                z-index: 1040;
+            }
+
+            #sidebarOverlay.show {
+                display: block;
+            }
+
+
         {% block page_css %}{% endblock %}
     </style>
 </head>
@@ -425,7 +468,29 @@
                 progressCircle.style.background = `conic-gradient(#4e73df ${value}%, #2d3748 0%)`;
             }
         });
-        
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const toggle = document.getElementById('sidebarToggle');
+
+            if (toggle) {
+                toggle.addEventListener('click', () => {
+                    sidebar.classList.add('show');
+                    overlay.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                });
+            }
+        });
+
         {% block page_js %}{% endblock %}
     </script>
 </body>

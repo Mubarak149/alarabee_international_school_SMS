@@ -23,7 +23,6 @@ class TeacherProfile(models.Model):
     contact = models.CharField(max_length=20, blank=True)
     nin = models.CharField(max_length=50, blank=True, unique=True)  # National Identification Number
     status = models.CharField(max_length=20, choices=TEACHER_STATUS, default='active')
-    subjects = models.ManyToManyField('academics.Subject', related_name='teachers', blank=True)
     
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.subjects})"

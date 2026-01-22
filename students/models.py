@@ -22,6 +22,15 @@ class StudentProfile(models.Model):
     def full_name(self):
         """Get student's full name"""
         return f"{self.user.first_name} {self.user.last_name}"
+    
+    @property
+    def current_class(self):
+        """Return the current SchoolClass object"""
+        current_record = self.class_records.filter(is_current=True).first()
+        if current_record:
+            return current_record.school_class
+        return None
+
 
     def average_score(self, academic_session, term):
         return StudentScore.objects.filter(

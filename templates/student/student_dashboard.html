@@ -155,56 +155,6 @@
         margin-bottom: 20px;
     }
     
-    /* Section management styles */
-    .content-section {
-        display: none;
-        animation: fadeIn 0.5s ease;
-    }
-    
-    .content-section.active {
-        display: block;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    .section-nav {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .section-nav .nav-pills .nav-link {
-        color: #495057;
-        font-weight: 500;
-        padding: 10px 20px;
-        margin: 0 5px;
-    }
-    
-    .section-nav .nav-pills .nav-link.active {
-        background-color: #4e73df;
-        color: white;
-    }
-    
-    .back-to-dashboard {
-        display: inline-flex;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding: 0.5rem 1rem;
-        background-color: #f8f9fa;
-        border-radius: 4px;
-        text-decoration: none;
-        color: #4e73df;
-        font-weight: 500;
-    }
-    
-    .back-to-dashboard i {
-        margin-right: 0.5rem;
-    }
-    
     /* Academic performance styles */
     .rank-badge {
         font-size: 1rem;
@@ -244,286 +194,240 @@
         background-color: #e8f4fd;
         border-left: 4px solid #4e73df;
     }
+    
+    /* Quick action buttons */
+    .quick-action-btn {
+        height: 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-5px);
+    }
+    
+    .quick-action-btn i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .quick-action-btn {
+            height: 100px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-action-btn i {
+            font-size: 2rem;
+        }
+        
+        .stats-card .h5 {
+            font-size: 1.5rem;
+        }
+        
+        .score-circle {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .score-value {
+            font-size: 1.2rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Dashboard Overview Section -->
-<div id="dashboard-section" class="content-section active">
-    <!-- Welcome Message -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 bg-primary text-white shadow">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h4 class="mb-2">Welcome, {{ student.full_name }}!</h4>
-                            <p class="mb-0">
-                                Student ID: {{ student.student_id }} • 
-                                Class: {{ student.current_class_name }} • 
-                                {% if academic_session %}
-                                Academic Year: {{ academic_session.name }}
-                                {% endif %}
-                            </p>
+<!-- Welcome Message -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">Welcome, {{ student.full_name }}!</h4>
+                        <p class="mb-0">
+                            Student ID: {{ student.student_id }} • 
+                            Class: {{ student.current_class_name }} • 
+                            {% if academic_session %}
+                            Academic Year: {{ academic_session.name }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if sponsorship %}
+                        <div class="badge bg-light text-primary p-2">
+                            <i class="fas fa-award me-1"></i>
+                            {{ sponsorship.get_sponsorship_type_display }}
                         </div>
-                        <div class="col-md-4 text-end">
-                            {% if sponsorship %}
-                            <div class="badge bg-light text-primary p-2">
-                                <i class="fas fa-award me-1"></i>
-                                {{ sponsorship.get_sponsorship_type_display }}
-                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <!-- Current Term Average -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-left-success h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Current Term Average
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if current_term_average %}
+                                {{ current_term_average }}%
+                            {% else %}
+                                N/A
                             {% endif %}
                         </div>
+                        <div class="mt-2">
+                            <small class="text-success">
+                                {% if current_term %}
+                                    {{ current_term.name }} Term
+                                {% else %}
+                                    No active term
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-success"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Stats -->
-    <div class="row mb-4">
-        <!-- Current Term Average -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card border-left-success h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Current Term Average
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if current_term_average %}
-                                    {{ current_term_average }}%
-                                {% else %}
-                                    N/A
-                                {% endif %}
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-success">
-                                    {% if current_term %}
-                                        {{ current_term.name }} Term
-                                    {% else %}
-                                        No active term
-                                    {% endif %}
-                                </small>
-                            </div>
+    <!-- Current Invoice -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-left-primary h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Current Invoice
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-chart-line fa-2x text-success"></i>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if current_invoice %}
+                                ${{ current_invoice.total_amount }}
+                            {% else %}
+                                Not Issued
+                            {% endif %}
                         </div>
+                        <div class="mt-2">
+                            {% if current_invoice %}
+                                <span class="invoice-status status-{{ current_invoice.status }}">
+                                    {{ current_invoice.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-file-invoice-dollar fa-2x text-primary"></i>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Current Invoice -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card border-left-primary h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Current Invoice
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if current_invoice %}
-                                    ${{ current_invoice.total_amount }}
+    <!-- Amount Due -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-left-danger h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Amount Due
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if current_invoice %}
+                                ${{ current_invoice.amount_due }}
+                            {% else %}
+                                $0
+                            {% endif %}
+                        </div>
+                        <div class="mt-2">
+                            <small class="text-danger">
+                                {% if current_invoice and current_invoice.amount_due > 0 %}
+                                    Due immediately
                                 {% else %}
-                                    Not Issued
+                                    All paid up!
                                 {% endif %}
-                            </div>
-                            <div class="mt-2">
-                                {% if current_invoice %}
-                                    <span class="invoice-status status-{{ current_invoice.status }}">
-                                        {{ current_invoice.get_status_display }}
-                                    </span>
-                                {% endif %}
-                            </div>
+                            </small>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-file-invoice-dollar fa-2x text-primary"></i>
-                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-money-check-alt fa-2x text-danger"></i>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Amount Due -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card border-left-danger h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Amount Due
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {% if current_invoice %}
-                                    ${{ current_invoice.amount_due }}
-                                {% else %}
-                                    $0
-                                {% endif %}
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-danger">
-                                    {% if current_invoice and current_invoice.amount_due > 0 %}
-                                        Due immediately
-                                    {% else %}
-                                        All paid up!
-                                    {% endif %}
-                                </small>
-                            </div>
+    <!-- Class Rank -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stats-card border-left-info h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Class Rank
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-money-check-alt fa-2x text-danger"></i>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if current_term_rank %}
+                                {{ current_term_rank }}{% if current_term_rank == 1 %}st{% elif current_term_rank == 2 %}nd{% elif current_term_rank == 3 %}rd{% else %}th{% endif %}
+                            {% else %}
+                                N/A
+                            {% endif %}
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Class Rank -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card stats-card border-left-info h-100">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Class Rank
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        <div class="mt-2">
+                            <small class="text-info">
                                 {% if current_term_rank %}
-                                    {{ current_term_rank }}{% if current_term_rank == 1 %}st{% elif current_term_rank == 2 %}nd{% elif current_term_rank == 3 %}rd{% else %}th{% endif %}
+                                    Out of {{ class_size|default:"?" }} students
                                 {% else %}
-                                    N/A
+                                    Rank not available
                                 {% endif %}
-                            </div>
-                            <div class="mt-2">
-                                <small class="text-info">
-                                    {% if current_term_rank %}
-                                        Out of {{ class_size|default:"?" }} students
-                                    {% else %}
-                                        Rank not available
-                                    {% endif %}
-                                </small>
-                            </div>
+                            </small>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-medal fa-2x text-info"></i>
-                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-medal fa-2x text-info"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Quick Actions -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <a href="#" class="btn btn-primary btn-lg w-100" onclick="showSection('invoice-section')">
-                                <i class="fas fa-file-invoice-dollar me-2"></i>
-                                View All Invoices
-                            </a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <a href="#" class="btn btn-success btn-lg w-100" onclick="showSection('scores-section')">
-                                <i class="fas fa-chart-line me-2"></i>
-                                View Academic Scores
-                            </a>
-                        </div>
-                    </div>
-                </div>
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
             </div>
-        </div>
-    </div>
-
-    <!-- Recent Summary -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-receipt me-2"></i>Recent Invoices
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if recent_invoices %}
-                        {% for invoice in recent_invoices %}
-                        <div class="invoice-item-row">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">{{ invoice.term.name }} Term</h6>
-                                    <small class="text-muted">{{ invoice.academic_year.name }}</small>
-                                </div>
-                                <div class="text-end">
-                                    <div class="h6 mb-1">${{ invoice.total_amount }}</div>
-                                    <span class="invoice-status status-{{ invoice.status }}">
-                                        {{ invoice.get_status_display }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-receipt"></i>
-                        <p class="mb-0">No invoices found</p>
-                    </div>
-                    {% endif %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-outline-primary" onclick="showSection('invoice-section')">
-                            View All Invoices
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'student_invoices' %}" class="btn btn-primary btn-lg w-100 quick-action-btn">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                            <span>View All Invoices</span>
                         </a>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-success">
-                        <i class="fas fa-chart-bar me-2"></i>Recent Scores
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% if term_scores %}
-                        {% for term_score in term_scores %}
-                        <div class="term-score-item {% if term_score.term.is_current %}current{% endif %}">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">{{ term_score.term.name }} Term</h6>
-                                    <small class="text-muted">{{ term_score.academic_year.name }}</small>
-                                </div>
-                                <div class="text-end">
-                                    {% if term_score.average_score %}
-                                    <div class="h4 mb-1">{{ term_score.average_score }}%</div>
-                                    {% if term_score.rank %}
-                                    <span class="badge bg-info">Rank: {{ term_score.rank }}</span>
-                                    {% endif %}
-                                    {% else %}
-                                    <div class="text-muted">No scores</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="empty-state">
-                        <i class="fas fa-chart-bar"></i>
-                        <p class="mb-0">No scores available</p>
-                    </div>
-                    {% endif %}
-                    <div class="text-center mt-3">
-                        <a href="#" class="btn btn-outline-success" onclick="showSection('scores-section')">
-                            View All Scores
+                    <div class="col-md-6 mb-3">
+                        <a href="{% url 'student_academic_scores' %}" class="btn btn-success btn-lg w-100 quick-action-btn">
+                            <i class="fas fa-chart-line"></i>
+                            <span>View Academic Scores</span>
                         </a>
                     </div>
                 </div>
@@ -532,410 +436,120 @@
     </div>
 </div>
 
-<!-- Invoices Section -->
-<div id="invoice-section" class="content-section">
-    <a href="#" class="back-to-dashboard" onclick="showSection('dashboard-section')">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-    </a>
-    
-    <div class="col-12">
-        <!-- Section Navigation -->
-        <div class="section-nav">
-            <ul class="nav nav-pills justify-content-center">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="showSection('dashboard-section')">
-                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('scores-section')">
-                        <i class="fas fa-chart-line me-1"></i>Scores
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h4 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-file-invoice-dollar me-2"></i>Invoices & Payments
-                    {% if academic_session %}
-                    <small class="text-muted">({{ academic_session.name }})</small>
-                    {% endif %}
-                </h4>
+<!-- Recent Summary -->
+<div class="row">
+    <!-- Recent Invoices -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-receipt me-2"></i>Recent Invoices
+                </h6>
+                <a href="{% url 'student_invoices' %}" class="btn btn-sm btn-outline-primary">
+                    View All
+                </a>
             </div>
             <div class="card-body">
-                {% if all_invoices_by_term %}
-                    {% for term_invoice in all_invoices_by_term %}
-                    <div class="card term-card {% if term_invoice.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                {{ term_invoice.term.name }} Term
-                                {% if term_invoice.term.is_current %}
-                                <span class="badge bg-primary ms-2">Current</span>
-                                {% endif %}
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {% if term_invoice.invoice %}
-                            <!-- Invoice Details -->
-                            <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <h6>Invoice Details</h6>
-                                    <table class="table table-sm invoice-details-table">
-                                        <tr>
-                                            <th width="40%">Invoice #:</th>
-                                            <td>{{ term_invoice.invoice.id }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Date Issued:</th>
-                                            <td>{{ term_invoice.invoice.created_at|date:"F d, Y" }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Status:</th>
-                                            <td>
-                                                <span class="invoice-status status-{{ term_invoice.invoice.status }}">
-                                                    {{ term_invoice.invoice.get_status_display }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-                                <div class="col-md-6">
-                                    <h6>Payment Summary</h6>
-                                    <table class="table table-sm invoice-details-table">
-                                        <tr>
-                                            <th width="40%">Total Amount:</th>
-                                            <td class="text-end">${{ term_invoice.invoice.total_amount }}</td>
-                                        </tr>
-                                        <tr>
-                                            <th>Amount Paid:</th>
-                                            <td class="text-end">
-                                                ${{ term_invoice.invoice.total_amount|add:term_invoice.invoice.amount_due|floatformat:2 }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>Amount Due:</th>
-                                            <td class="text-end">
-                                                <strong class="{% if term_invoice.invoice.amount_due > 0 %}text-danger{% else %}text-success{% endif %}">
-                                                    ${{ term_invoice.invoice.amount_due }}
-                                                </strong>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
+                {% if recent_invoices %}
+                    {% for invoice in recent_invoices %}
+                    <div class="invoice-item-row">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ invoice.term.name }} Term</h6>
+                                <small class="text-muted">{{ invoice.academic_year.name }}</small>
                             </div>
-
-                            <!-- Invoice Items -->
-                            <h6 class="mb-3">Invoice Items</h6>
-                            <div class="table-responsive mb-4">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Item</th>
-                                            <th class="text-end">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for item in term_invoice.invoice.items.all %}
-                                        <tr>
-                                            <td>{{ item.fee_type.name }}</td>
-                                            <td class="text-end">${{ item.amount }}</td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="2" class="text-center">No items found</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="table-active">
-                                            <th>Total</th>
-                                            <th class="text-end">${{ term_invoice.invoice.total_amount }}</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                            <div class="text-end">
+                                <div class="h6 mb-1">${{ invoice.total_amount }}</div>
+                                <span class="invoice-status status-{{ invoice.status }}">
+                                    {{ invoice.get_status_display }}
+                                </span>
                             </div>
-
-                            <!-- Payments -->
-                            <h6 class="mb-3">Payments</h6>
-                            {% if term_invoice.payments %}
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Payment Method</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Reference</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for payment in term_invoice.payments %}
-                                        <tr>
-                                            <td>{{ payment.payment_date|date:"M d, Y" }}</td>
-                                            <td>{{ payment.get_payment_method_display }}</td>
-                                            <td class="text-end">${{ payment.amount_paid }}</td>
-                                            <td>
-                                                <span class="badge bg-{{ payment.status_color }}">
-                                                    {{ payment.get_status_display }}
-                                                </span>
-                                            </td>
-                                            <td>{{ payment.transaction_id|default:"-" }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                No payments recorded for this invoice.
-                            </div>
-                            {% endif %}
-
-                            <div class="mt-3 text-end">
-                                <a href="{% url 'generate_invoice_pdf' term_invoice.invoice.id %}" class="btn btn-primary">
-                                    <i class="fas fa-download me-1"></i> Download Invoice
-                                </a>
-                            </div>
-                            {% else %}
-                            <div class="empty-state">
-                                <i class="fas fa-file-invoice"></i>
-                                <h5>No Invoice for this Term</h5>
-                                <p>An invoice has not been issued for the {{ term_invoice.term.name }} Term.</p>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
-                <div class="empty-state">
+                <div class="empty-state py-3">
                     <i class="fas fa-receipt"></i>
-                    <h5>No Invoices Available</h5>
-                    <p>You don't have any invoices for the current academic year.</p>
+                    <p class="mb-0">No invoices found</p>
                 </div>
                 {% endif %}
+                <div class="text-center mt-3">
+                    <a href="{% url 'student_invoice' %}" class="btn btn-outline-primary">
+                        View All Invoices
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Academic Scores Section -->
-<div id="scores-section" class="content-section">
-    <a href="#" class="back-to-dashboard" onclick="showSection('dashboard-section')">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-    </a>
-    
-    <div class="col-12">
-        <!-- Section Navigation -->
-        <div class="section-nav">
-            <ul class="nav nav-pills justify-content-center">
-                <li class="nav-item">
-                    <a class="nav-link" href="#" onclick="showSection('dashboard-section')">
-                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" onclick="showSection('invoice-section')">
-                        <i class="fas fa-file-invoice-dollar me-1"></i>Invoices
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h4 class="m-0 font-weight-bold text-success">
-                    <i class="fas fa-chart-line me-2"></i>Academic Performance
-                    {% if academic_session %}
-                    <small class="text-muted">({{ academic_session.name }})</small>
-                    {% endif %}
-                </h4>
+    <!-- Recent Scores -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-chart-bar me-2"></i>Recent Scores
+                </h6>
+                <a href="{% url 'student_academic_scores' %}" class="btn btn-sm btn-outline-success">
+                    View All
+                </a>
             </div>
             <div class="card-body">
                 {% if term_scores %}
-                    {% for term_score in term_scores %}
-                    <div class="card term-card {% if term_score.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
-                        <div class="card-header">
-                            <h5 class="mb-0">
-                                {{ term_score.term.name }} Term
-                                {% if term_score.term.is_current %}
-                                <span class="badge bg-success ms-2">Current</span>
+                    {% for term_score in term_scores|slice:":3" %}
+                    <div class="term-score-item {% if term_score.term.is_current %}current{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ term_score.term.name }} Term</h6>
+                                <small class="text-muted">{{ term_score.academic_year.name }}</small>
+                            </div>
+                            <div class="text-end">
+                                {% if term_score.average_score %}
+                                <div class="h4 mb-1">{{ term_score.average_score }}%</div>
+                                {% if term_score.rank %}
+                                <span class="badge bg-info">Rank: {{ term_score.rank }}</span>
                                 {% endif %}
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <!-- Average Score -->
-                                <div class="col-md-4 text-center">
-                                    <h6>Average Score</h6>
-                                    <div class="score-circle">
-                                        {% if term_score.average_score %}
-                                        <div class="circle-progress" 
-                                             style="background: conic-gradient(#1cc88a {{ term_score.average_score }}%, #e9ecef 0%);">
-                                        </div>
-                                        <div class="score-text">
-                                            <span class="score-value">{{ term_score.average_score }}%</span>
-                                            <span class="score-label">Average</span>
-                                        </div>
-                                        {% else %}
-                                        <div class="score-circle">
-                                            <div class="circle-progress" style="background: #e9ecef;"></div>
-                                            <div class="score-text">
-                                                <span class="score-value">N/A</span>
-                                                <span class="score-label">No Data</span>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
-                                <!-- Class Rank -->
-                                <div class="col-md-4 text-center">
-                                    <h6>Class Rank</h6>
-                                    {% if term_score.rank %}
-                                    <div class="h1 mb-3">{{ term_score.rank }}</div>
-                                    <div class="mb-2">
-                                        <span class="badge rank-badge rank-{{ term_score.rank }}">
-                                            {{ term_score.rank }}{% if term_score.rank == 1 %}st{% elif term_score.rank == 2 %}nd{% elif term_score.rank == 3 %}rd{% else %}th{% endif %}
-                                        </span>
-                                    </div>
-                                    <small class="text-muted">Out of {{ term_score.class_size|default:"?" }} students</small>
-                                    {% else %}
-                                    <div class="h1 mb-3 text-muted">-</div>
-                                    <div class="text-muted">Rank not available</div>
-                                    {% endif %}
-                                </div>
-
-                                <!-- Subject Scores -->
-                                <div class="col-md-4">
-                                    <h6>Subject Performance</h6>
-                                    {% if term_score.subject_scores %}
-                                        {% for subject_score in term_score.subject_scores %}
-                                        <div class="mb-2">
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <span>{{ subject_score.subject }}</span>
-                                                <span>{{ subject_score.score }}%</span>
-                                            </div>
-                                            <div class="progress-chart">
-                                                <div class="progress-bar" 
-                                                     style="width: {{ subject_score.score }}%; 
-                                                            background-color: {% if subject_score.score >= 80 %}#1cc88a{% elif subject_score.score >= 60 %}#f6c23e{% else %}#e74a3b{% endif %};">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    {% else %}
-                                    <div class="text-muted">No subject scores available</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Detailed Subject Scores Table -->
-                            {% if term_score.subject_scores %}
-                            <div class="mt-4">
-                                <h6>Detailed Subject Scores</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Subject</th>
-                                                <th>Score</th>
-                                                <th>Grade</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for subject_score in term_score.subject_scores %}
-                                            <tr>
-                                                <td>{{ subject_score.subject }}</td>
-                                                <td>{{ subject_score.score }}%</td>
-                                                <td>
-                                                    <span class="badge 
-                                                        {% if subject_score.score >= 80 %}bg-success
-                                                        {% elif subject_score.score >= 60 %}bg-warning
-                                                        {% else %}bg-danger{% endif %}">
-                                                        {% if subject_score.score >= 80 %}A
-                                                        {% elif subject_score.score >= 70 %}B
-                                                        {% elif subject_score.score >= 60 %}C
-                                                        {% elif subject_score.score >= 50 %}D
-                                                        {% else %}E{% endif %}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {% if subject_score.score >= 80 %}Excellent
-                                                    {% elif subject_score.score >= 60 %}Good
-                                                    {% else %}Needs Improvement{% endif %}
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            <!-- Report Card Download -->
-                            <div class="mt-3 text-end">
-                                <a href="{% url 'generate_report_card_pdf' term_score.academic_year.id term_score.term.id %}" 
-                                   class="btn btn-success {% if not term_score.average_score %}disabled{% endif %}">
-                                    <i class="fas fa-download me-1"></i> Download Report Card
-                                </a>
+                                {% else %}
+                                <div class="text-muted">No scores</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
-                <div class="empty-state">
+                <div class="empty-state py-3">
                     <i class="fas fa-chart-bar"></i>
-                    <h5>No Academic Data Available</h5>
-                    <p>Your academic scores have not been recorded yet.</p>
+                    <p class="mb-0">No scores available</p>
                 </div>
                 {% endif %}
-
-                <!-- Performance Summary -->
-                {% if term_scores %}
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Performance Summary</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Term Averages</h6>
-                                <canvas id="termAveragesChart" height="200"></canvas>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Overall Progress</h6>
-                                <div class="mt-4">
-                                    {% for term_score in term_scores %}
-                                    {% if term_score.average_score %}
-                                    <div class="mb-3">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span>{{ term_score.term.name }} Term</span>
-                                            <span>{{ term_score.average_score }}%</span>
-                                        </div>
-                                        <div class="progress-chart">
-                                            <div class="progress-bar" 
-                                                 style="width: {{ term_score.average_score }}%; 
-                                                        background-color: #4e73df;">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'student_academic_scores' %}" class="btn btn-outline-success">
+                        View All Scores
+                    </a>
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Academic Performance Chart -->
+{% if term_scores and term_scores|length > 1 %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-chart-line me-2"></i>Academic Performance Trend
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="termAveragesChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <!-- Make Payment Modal -->
 <div class="modal fade" id="paymentModal" tabindex="-1">
@@ -968,137 +582,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize sections
-    const sections = {
-        'dashboard-section': document.getElementById('dashboard-section'),
-        'invoice-section': document.getElementById('invoice-section'),
-        'scores-section': document.getElementById('scores-section')
-    };
-    
-    // Function to show a specific section
-    window.showSection = function(sectionId) {
-        // Hide all sections
-        Object.values(sections).forEach(section => {
-            if (section) {
-                section.classList.remove('active');
-            }
-        });
-        
-        // Show selected section
-        if (sections[sectionId]) {
-            sections[sectionId].classList.add('active');
-            
-            // Update URL hash
-            history.pushState(null, null, `#${sectionId}`);
-            
-            // Update page title
-            updatePageTitle(sectionId);
-            
-            // Update active state in sidebar
-            updateSidebarActiveState(sectionId);
-        }
-        
-        // Scroll to top
-        window.scrollTo(0, 0);
-    };
-    
-    // Update page title based on section
-    function updatePageTitle(sectionId) {
-        const pageTitle = document.querySelector('h1.page-title');
-        if (!pageTitle) return;
-        
-        const titles = {
-            'dashboard-section': 'Student Dashboard',
-            'invoice-section': 'Invoices & Payments',
-            'scores-section': 'Academic Performance'
-        };
-        
-        if (titles[sectionId]) {
-            pageTitle.textContent = titles[sectionId];
-        }
-    }
-    
-    // Update sidebar active state
-    function updateSidebarActiveState(sectionId) {
-        // Remove active class from all sidebar links
-        document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
-            link.classList.remove('active');
-        });
-        
-        // Add active class to the appropriate sidebar link
-        let targetLink = null;
-        if (sectionId === 'dashboard-section') {
-            targetLink = document.querySelector('.sidebar-nav a[href="{% url "student_dashboard" %}"]');
-        } else if (sectionId === 'invoice-section') {
-            targetLink = document.querySelector('.sidebar-nav a[href="#invoices"]');
-        } else if (sectionId === 'scores-section') {
-            targetLink = document.querySelector('.sidebar-nav a[href="#scores"]');
-        }
-        
-        if (targetLink) {
-            targetLink.classList.add('active');
-        }
-        
-        // Close sidebar on mobile
-        if (window.innerWidth <= 768) {
-            const sidebar = document.querySelector('.sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-            if (sidebar && sidebarOverlay) {
-                sidebar.classList.remove('show');
-                sidebarOverlay.classList.remove('show');
-                document.body.style.overflow = '';
-            }
-        }
-    }
-    
-    // Initialize from URL hash
-    if (window.location.hash) {
-        const sectionId = window.location.hash.substring(1);
-        if (sections[sectionId]) {
-            showSection(sectionId);
-        } else {
-            showSection('dashboard-section');
-        }
-    } else {
-        showSection('dashboard-section');
-    }
-    
-    // Handle browser back/forward buttons
-    window.addEventListener('popstate', function() {
-        if (window.location.hash) {
-            const sectionId = window.location.hash.substring(1);
-            if (sections[sectionId]) {
-                showSection(sectionId);
-            }
-        } else {
-            showSection('dashboard-section');
-        }
-    });
-    
-    // Update sidebar links to use section navigation
-    document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const href = this.getAttribute('href');
-            
-            if (href.startsWith('#')) {
-                const sectionMap = {
-                    '#invoices': 'invoice-section',
-                    '#scores': 'scores-section'
-                };
-                
-                if (sectionMap[href]) {
-                    showSection(sectionMap[href]);
-                }
-            } else if (href.includes('student_dashboard')) {
-                showSection('dashboard-section');
-            } else if (href.includes('generate_')) {
-                // Allow PDF download links to work normally
-                window.location.href = href;
-            }
-        });
-    });
-    
     // Initialize status badges
     const statusColors = {
         'paid': 'success',
@@ -1121,11 +604,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize term averages chart if data exists
     const termScoresData = {{ term_scores|safe|default:'[]' }};
-    if (termScoresData.length > 0) {
+    if (termScoresData.length > 1) {
         const ctx = document.getElementById('termAveragesChart');
         if (ctx) {
-            const labels = termScoresData.map(ts => ts.term.name + ' Term');
-            const data = termScoresData.map(ts => ts.average_score || 0);
+            // Sort term scores by term order
+            const sortedScores = termScoresData.sort((a, b) => a.term.order - b.term.order);
+            
+            const labels = sortedScores.map(ts => ts.term.name + ' Term');
+            const data = sortedScores.map(ts => ts.average_score || 0);
             
             new Chart(ctx, {
                 type: 'line',
@@ -1136,14 +622,34 @@ document.addEventListener('DOMContentLoaded', function() {
                         data: data,
                         borderColor: '#1cc88a',
                         backgroundColor: 'rgba(28, 200, 138, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.4
+                        tension: 0.4,
+                        pointBackgroundColor: '#1cc88a',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Average: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -1152,6 +658,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 callback: function(value) {
                                     return value + '%';
                                 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Average Score (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Term'
                             }
                         }
                     }
@@ -1160,19 +676,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Update progress circles in scores section
-    document.querySelectorAll('#scores-section .circle-progress').forEach(circle => {
-        const scoreText = circle.nextElementSibling.querySelector('.score-value');
-        if (scoreText && scoreText.textContent !== 'N/A') {
-            const score = parseFloat(scoreText.textContent);
-            circle.style.background = `conic-gradient(#1cc88a ${score}%, #e9ecef 0%)`;
+    // Update progress circle in sidebar
+    const progressCircle = document.querySelector('.circle-progress');
+    if (progressCircle) {
+        const value = progressCircle.dataset.value || 0;
+        if (value > 0) {
+            progressCircle.style.background = `conic-gradient(#4e73df ${value}%, #2d3748 0%)`;
         }
-    });
+    }
     
     // Payment modal handler
     document.querySelectorAll('[data-bs-target="#paymentModal"]').forEach(button => {
         button.addEventListener('click', function() {
             // You can add pre-fill logic here if needed
+        });
+    });
+    
+    // Add hover effects to stats cards
+    document.querySelectorAll('.stats-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
         });
     });
 });

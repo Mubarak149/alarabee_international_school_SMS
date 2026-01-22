@@ -1,0 +1,461 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block title %}My Invoices - School SMS{% endblock %}
+
+{% block page_title %}My Invoices{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'student_dashboard' %}">Home</a></li>
+<li class="breadcrumb-item active">Invoices</li>
+{% endblock %}
+
+{% block page_css %}
+<style>
+    /* Invoice-specific styles */
+    .invoice-card {
+        border-left: 4px solid;
+        transition: all 0.3s;
+        margin-bottom: 20px;
+    }
+    
+    .invoice-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .invoice-card.current-term {
+        border-color: #4e73df;
+    }
+    
+    .invoice-card.previous-term {
+        border-color: #6c757d;
+    }
+    
+    .invoice-status {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    
+    .status-partial {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-unpaid {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    
+    .invoice-details-table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 20px;
+    }
+    
+    /* Filter Form Styles */
+    .filter-group {
+        margin-bottom: 0;
+    }
+    
+    .filter-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+    
+    /* Payment method icons */
+    .payment-method-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        color: white;
+    }
+    
+    /* Badge colors */
+    .badge-paid { background-color: #28a745; }
+    .badge-partial { background-color: #ffc107; color: #212529; }
+    .badge-unpaid { background-color: #dc3545; }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .invoice-card .card-header h5 {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">Invoice Management</h4>
+                        <p class="mb-0">
+                            View and download all your invoices and payment history.
+                            Student ID: {{ student.student_id }}
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        {% if current_invoice %}
+                        <a href="{% url 'download_invoice_pdf' current_invoice.id %}" class="btn btn-light">
+                            <i class="fas fa-download me-2"></i> Download Current Invoice
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Search & Filters</h5>
+    </div>
+    <div class="card-body">
+        <form method="GET" action="{% url 'student_invoices' %}" id="filterForm">
+            <div class="row g-3">
+                <div class="col-md-4 col-12">
+                    <div class="filter-group">
+                        <label class="filter-label">Search Invoices</label>
+                        <input type="text" class="form-control" name="search" 
+                               value="{{ search_query }}" placeholder="Invoice ID, term, or year...">
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Academic Year</label>
+                        <select class="form-select" name="year">
+                            <option value="all" {% if year_filter == 'all' %}selected{% endif %}>All Years</option>
+                            <option value="current" {% if year_filter == 'current' %}selected{% endif %}>Current Year</option>
+                            {% for year in years %}
+                            <option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                            <option value="older" {% if year_filter == 'older' %}selected{% endif %}>Older Records</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="filter-group">
+                        <label class="filter-label">Invoice Status</label>
+                        <select class="form-select" name="status">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                            <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Paid</option>
+                            <option value="partial" {% if status_filter == 'partial' %}selected{% endif %}>Partial</option>
+                            <option value="unpaid" {% if status_filter == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2 col-12">
+                    <div class="filter-group d-flex align-items-end h-100">
+                        <div class="d-flex gap-2 w-100">
+                            <button class="btn btn-primary flex-grow-1" type="submit">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                            <a href="{% url 'student_invoices' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Invoices List -->
+{% if invoices_by_year %}
+    {% for year, year_invoices in invoices_by_year.items %}
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">{{ year }} Academic Year</h5>
+        </div>
+        <div class="card-body">
+            {% for invoice in year_invoices %}
+            <div class="card invoice-card {% if invoice.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">{{ invoice.term.name }} Term Invoice</h5>
+                        <small class="text-muted">Invoice #{{ invoice.id }} • Issued: {{ invoice.created_at|date:"F d, Y" }}</small>
+                    </div>
+                    <div>
+                        <span class="invoice-status status-{{ invoice.status }} badge-{{ invoice.status }}">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Invoice Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Invoice Summary</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Total Amount</small>
+                                            <h4>${{ invoice.total_amount }}</h4>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Amount Due</small>
+                                            <h4 class="{% if invoice.amount_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                                                ${{ invoice.amount_due }}
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Quick Actions</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-grid gap-2">
+                                        <a href="{% url 'download_invoice_pdf' invoice.id %}" class="btn btn-outline-primary">
+                                            <i class="fas fa-download me-2"></i> Download Invoice
+                                        </a>
+                                        {% if invoice.amount_due > 0 %}
+                                        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#paymentModal{{ invoice.id }}">
+                                            <i class="fas fa-credit-card me-2"></i> Make Payment
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Items -->
+                    <h6 class="mb-3">Invoice Items</h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in invoice.items.all %}
+                                <tr>
+                                    <td>{{ item.fee_type.name }}</td>
+                                    <td class="text-end">${{ item.amount }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">No items found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-active">
+                                    <th>Total</th>
+                                    <th class="text-end">${{ invoice.total_amount }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Payments -->
+                    <h6 class="mb-3">Payment History</h6>
+                    {% if invoice.payments.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Payment Method</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in invoice.payments.all %}
+                                <tr>
+                                    <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="payment-method-icon bg-{{ payment.status_color }}">
+                                                <i class="{{ payment.payment_method_icon }}"></i>
+                                            </span>
+                                            {{ payment.get_payment_method_display }}
+                                        </div>
+                                    </td>
+                                    <td class="text-end">${{ payment.amount_paid }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ payment.status_color }}">
+                                            {{ payment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ payment.notes|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No payments recorded for this invoice.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Payment Modal for this invoice -->
+            <div class="modal fade" id="paymentModal{{ invoice.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Make Payment - {{ invoice.term.name }} Term</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>To make a payment for invoice #{{ invoice.id }}, please use one of the following methods:</p>
+                            <ul>
+                                <li><strong>Bank Transfer:</strong> Account: 1234567890, Bank: School Bank</li>
+                                <li><strong>Mobile Money:</strong> Use code PAY{{ invoice.id }} for payment</li>
+                                <li><strong>In Person:</strong> Visit school accounts office</li>
+                            </ul>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Amount Due: <strong>${{ invoice.amount_due }}</strong>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <a href="mailto:accounts@school.edu?subject=Payment for Invoice {{ invoice.id }}" 
+                               class="btn btn-primary">
+                                <i class="fas fa-envelope me-1"></i> Contact Accounts
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <h5>No Invoices Found</h5>
+            <p>{% if search_query or year_filter != 'all' or status_filter != 'all' %}
+                No invoices match your search criteria. Try changing your filters.
+               {% else %}
+                You don't have any invoices yet.
+               {% endif %}
+            </p>
+            {% if search_query or year_filter != 'all' or status_filter != 'all' %}
+            <a href="{% url 'student_invoices' %}" class="btn btn-primary mt-2">
+                Clear Filters
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics Card -->
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-primary shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Invoices
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ invoices.count }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-receipt fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-success shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Paid Invoices
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ invoices|length|default:0 }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card border-left-warning shadow h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Total Amount Due
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            $0
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-money-check-alt fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

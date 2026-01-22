@@ -1,5 +1,7 @@
+from django import views
 from django.urls import path
 from .views import *
+
 
 urlpatterns = [
     path("dashboard", admin_dashboard, name="admin_dashboard"),
@@ -15,5 +17,6 @@ urlpatterns = [
     path('admin/academic-years/', manage_academic_years, name='manage_academic_years'),
     path("profile/", admin_profile, name="admin_profile"),
     path('teacher/<int:teacher_id>/bank-details/', manage_bank_details, name='manage_bank_details'),
+    path("check-student-id/", check_student_id, name="check_student_id")
 ]
 

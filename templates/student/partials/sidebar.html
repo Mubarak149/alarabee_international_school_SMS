@@ -12,32 +12,63 @@
         </div>
     </div>
     
-    <!-- In sidebar.html -->
+    <!-- Updated sidebar-nav with proper page navigation -->
     <nav class="sidebar-nav">
         <ul class="nav flex-column">
+            <!-- Dashboard -->
             <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'student_dashboard' %}">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}"
+                   href="{% url 'student_dashboard' %}">
                     <i class="fas fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>
             </li>
+
+            <!-- Invoices (real page) -->
             <li class="nav-item">
-                <a class="nav-link" href="#invoices">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_invoice' %}active{% endif %}"
+                   href="{% url 'student_invoice' %}">
                     <i class="fas fa-file-invoice-dollar"></i>
                     <span>All Invoices</span>
                 </a>
             </li>
+
+            <!-- Academic Scores (real page) -->
             <li class="nav-item">
-                <a class="nav-link" href="#scores">
+                <a class="nav-link {% if request.resolver_match.url_name == 'student_academic_scores' %}active{% endif %}"
+                   href="{% url 'student_academic_scores' %}">
                     <i class="fas fa-chart-line"></i>
                     <span>Academic Scores</span>
                 </a>
             </li>
-            <!-- Keep other links as needed -->
+
+            <!-- Profile -->
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+
+            <!-- Settings -->
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+
+            <!-- Logout -->
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
         </ul>
     </nav>
     
-    <!-- Update the sidebar-footer section in sidebar.html -->
+    <!-- Sidebar footer with average score -->
     <div class="sidebar-footer">
         <div class="average-score-display">
             <div class="score-circle">

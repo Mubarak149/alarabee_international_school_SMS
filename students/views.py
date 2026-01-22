@@ -1,33 +1,50 @@
+import io
+import os
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Sum
-from django.http import HttpResponse
-from django.template.loader import render_to_string
-from datetime import datetime
-
-from .models import StudentProfile, StudentScore, StudentClass
-from finance.models import Invoice, Payment, FeeStructure, Sponsorship
-from academics.models import AcademicYear, Term
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-import io
-
-
+from django.db.models import Avg, Sum, Count, Q
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Sum
 from django.http import HttpResponse
-import io
+from collections import defaultdict
+
+from .models import StudentProfile, StudentScore, StudentClass
+from finance.models import Invoice, Payment, FeeStructure, Sponsorship
+from academics.models import AcademicYear, Term, ScoreType
+from staff.models import TeacherSubject
+# students/views.py
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.db.models import Avg, Count, Q, Sum
+from django.conf import settings
+
+from .models import StudentProfile, StudentScore
+from finance.models import Invoice, Payment
+from academics.models import AcademicYear, Term, Subject, SchoolClass
+from io import BytesIO
+from datetime import datetime
+import textwrap
+
+# PDF Generation imports
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, A4, landscape
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, cm
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.graphics.shapes import Drawing, Line
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.charts.linecharts import HorizontalLineChart
+from reportlab.graphics.charts.piecharts import Pie
+from reportlab.graphics import renderPDF
+from reportlab.pdfbase.pdfmetrics import registerFontFamily
+
+
 
 @login_required
 def student_dashboard(request):
@@ -163,486 +180,775 @@ def student_dashboard(request):
     return render(request, "student/student_dashboard.html", context)
 
 
+
 @login_required
-def generate_invoice_pdf(request, invoice_id):
-    # Get invoice and student
-    student = get_object_or_404(StudentProfile, user=request.user)
-    invoice = get_object_or_404(Invoice, id=invoice_id, student=student)
+def student_invoices(request):
+    """Dedicated invoices page"""
+    student = get_object_or_404(StudentProfile, id=2)
     
-    # Create a file-like buffer to receive PDF data
-    buffer = io.BytesIO()
+    # Get filter parameters
+    year_filter = request.GET.get('year', 'all')
+    term_filter = request.GET.get('term', 'all')
+    status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('search', '')
+    
+    # Get all academic years the student has been in
+    academic_years = AcademicYear.objects.filter(
+        studentclass__student=student
+    ).distinct().order_by('-year')
+    
+    # Get current academic year
+    current_academic_year = AcademicYear.objects.filter(is_active=True).first()
+    
+    # Get all invoices with related data
+    invoices = Invoice.objects.filter(
+        student=student
+    ).select_related(
+        'academic_year', 'term'
+    ).prefetch_related(
+        'items', 'payments'
+    ).order_by('-academic_year__year', 'term__name')
+    
+    # Apply filters
+    if search_query:
+        invoices = invoices.filter(
+            Q(id__icontains=search_query) |
+            Q(term__name__icontains=search_query) |
+            Q(academic_year__year__icontains=search_query)
+        )
+    
+    if year_filter == 'current':
+        if current_academic_year:
+            invoices = invoices.filter(academic_year=current_academic_year)
+    elif year_filter not in ['all', 'older']:
+        invoices = invoices.filter(academic_year__year__icontains=year_filter)
+    elif year_filter == 'older':
+        # Get invoices from previous years
+        if current_academic_year:
+            invoices = invoices.exclude(academic_year=current_academic_year)
+    
+    if term_filter != 'all':
+        invoices = invoices.filter(term__name__icontains=term_filter)
+    
+    if status_filter != 'all':
+        invoices = invoices.filter(status=status_filter)
+    
+    # Group invoices by academic year
+    invoices_by_year = {}
+    for invoice in invoices:
+        year_name = invoice.academic_year.year  # Changed from .name to .year
+        if year_name not in invoices_by_year:
+            invoices_by_year[year_name] = []
+        invoices_by_year[year_name].append(invoice)
+    
+    # Get current invoice for download button
+    current_invoice = None
+    if current_academic_year:
+        current_term = Term.objects.filter(is_current=True).first()
+        if current_term:
+            current_invoice = invoices.filter(
+                academic_year=current_academic_year,
+                term=current_term
+            ).first()
+    
+    # Get all years for filter dropdown
+    years_list = AcademicYear.objects.values_list('year', flat=True).distinct().order_by('-year')
+    
+    context = {
+        'student': student,
+        'invoices': invoices,
+        'invoices_by_year': invoices_by_year,
+        'academic_years': academic_years,
+        'current_academic_year': current_academic_year,
+        'current_invoice': current_invoice,
+        'year_filter': year_filter,
+        'term_filter': term_filter,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'years': list(years_list),  # Use actual years from database
+    }
+    
+    return render(request, 'student/invoices.html', context)
+
+@login_required
+def student_academic_scores(request):
+    """Dedicated academic scores page"""
+    student = get_object_or_404(StudentProfile, id=2)
+    
+    # Get filter parameters
+    year_filter = request.GET.get('year', 'all')
+    term_filter = request.GET.get('term', 'all')
+    subject_filter = request.GET.get('subject', 'all')
+    search_query = request.GET.get('search', '')
+    
+    # Get all academic years the student has been in
+    academic_years = AcademicYear.objects.filter(
+        studentclass__student=student
+    ).distinct().order_by('-year')
+    
+    # Get current academic year
+    current_academic_year = AcademicYear.objects.filter(is_active=True).first()
+    
+    # Get all scores
+    scores = StudentScore.objects.filter(
+        student=student
+    ).select_related(
+        'academic_session', 'term', 'subject', 'score_type'
+    ).order_by('-academic_session__year', 'term__name', 'subject__name')
+    grouped_scores = {}
+
+    for s in scores:
+        subject_name = s.subject.name
+
+        if subject_name not in grouped_scores:
+            grouped_scores[subject_name] = {
+                "subject": subject_name,
+                "scores": []
+            }
+
+        grouped_scores[subject_name]["scores"].append({
+            "type": s.score_type.name,
+            "score": s.score
+        })
+
+    # Apply filters
+    if search_query:
+        scores = scores.filter(
+            Q(subject__name__icontains=search_query) |
+            Q(term__name__icontains=search_query) |
+            Q(academic_session__year__icontains=search_query)
+        )
+    
+    if year_filter == 'current':
+        if current_academic_year:
+            scores = scores.filter(academic_session=current_academic_year)
+    elif year_filter not in ['all', 'older']:
+        scores = scores.filter(academic_session__year__icontains=year_filter)
+    elif year_filter == 'older':
+        # Get scores from previous years
+        if current_academic_year:
+            scores = scores.exclude(academic_session=current_academic_year)
+    
+    if term_filter != 'all':
+        scores = scores.filter(term__name__icontains=term_filter)
+    
+    if subject_filter != 'all':
+        scores = scores.filter(subject__name__icontains=subject_filter)
+    
+    # Group scores by academic year and term
+    scores_by_term = {}
+    for score in scores:
+        year_name = score.academic_session.year  # Changed from .name to .year
+        term_name = score.term.name
+        
+        key = f"{year_name} - {term_name} Term"
+        if key not in scores_by_term:
+            scores_by_term[key] = {
+                'academic_year': score.academic_session,
+                'term': score.term,
+                'scores': [],
+                'subjects': set(),
+            }
+
+        if 'subject_table' not in scores_by_term[key]:
+            scores_by_term[key]['subject_table'] = defaultdict(lambda: {
+                "1st CA": 0,
+                "2nd CA": 0,
+                "Exam": 0,
+                "total": 0
+            })
+
+        subject_name = score.subject.name
+        score_type = score.score_type.name
+        score_value = float(score.score)
+
+        scores_by_term[key]['subject_table'][subject_name][score_type] = score_value
+        scores_by_term[key]['subject_table'][subject_name]["total"] += score_value
+
+        scores_by_term[key]['subjects'].add(subject_name)
+
+    
+    first_term_data = None
+    if scores_by_term:
+        first_term_data = next(iter(scores_by_term.values()))
+
+        # Calculate averages and ranks for each term
+        for term_data in scores_by_term.values():
+            # Calculate average for this term
+            scores_list = term_data['scores']
+            if scores_list:
+                total_score = sum(float(score.score) for score in scores_list)
+                term_data['average_score'] = round(total_score / len(scores_list), 2)
+                
+                # Get rank for this term
+                term_data['rank'] = student.class_rank(
+                    term_data['academic_year'],
+                    term_data['term']
+                )
+                
+                # Get class size for this term
+                term_class = student.class_records.filter(
+                    academic_year=term_data['academic_year']
+                ).first()
+                if term_class and term_class.school_class:
+                    term_data['class_size'] = StudentProfile.objects.filter(
+                        class_records__school_class=term_class.school_class,
+                        class_records__academic_year=term_data['academic_year']
+                    ).distinct().count()
+                else:
+                    term_data['class_size'] = 0
+            else:
+                term_data['average_score'] = None
+                term_data['rank'] = None
+                term_data['class_size'] = 0
+            
+            # Convert subjects set to sorted list
+            term_data['subjects'] = sorted(term_data['subjects'])
+        
+        # Get distinct subjects for filter dropdown
+        all_subjects = TeacherSubject.objects.filter(
+            class_assigned=student.current_class
+        ).values_list(
+            'subject__name', flat=True
+        ).distinct().order_by('subject__name')
+
+        
+        # Get all terms
+        terms = Term.objects.filter(
+            studentscore__student=student
+        ).distinct().order_by('name')
+        
+        # Get current term scores for download button
+        current_term_scores = None
+        if current_academic_year:
+            current_term = Term.objects.filter(is_current=True).first()
+            if current_term:
+                current_scores = scores.filter(
+                    academic_session=current_academic_year,
+                    term=current_term
+                )
+                if current_scores.exists():
+                    current_term_scores = {
+                        'academic_year': current_academic_year,
+                        'term': current_term,
+                        'scores': current_scores,
+                    }
+        
+        # Get all years for filter dropdown
+        years_list = AcademicYear.objects.values_list('year', flat=True).distinct().order_by('-year')
+        subject_scores = list(grouped_scores.values())
+        score_types = ScoreType.objects.all().order_by("id")
+
+        subject_data = {}
+
+        for subject_name, scores_dict in first_term_data['subject_table'].items():
+            subject_data[subject_name] = {
+                "scores": scores_dict,  # includes all score types + total
+                "total": scores_dict.get("total", 0)
+            }
+
+
+        context = {
+            'student': student,
+            "score_types": score_types,
+            "subject_rows" : subject_data,
+            'scores_by_term': scores_by_term,
+            "subject_scores": subject_scores,
+            'academic_years': academic_years,
+            'current_academic_year': current_academic_year,
+            'current_term_scores': current_term_scores,
+            'all_subjects': all_subjects,
+            'terms': terms,
+            'year_filter': year_filter,
+            'term_filter': term_filter,
+            'subject_filter': subject_filter,
+            'search_query': search_query,
+            'years': list(years_list),  # Use actual years from database
+        }
+        
+        return render(request, 'student/academic_scores.html', context)
+
+
+
+def register_fonts():
+    ROBOTO_DIR = os.path.join(settings.BASE_DIR, 'static', 'Roboto', 'static')
+
+    try:
+        pdfmetrics.registerFont(
+            TTFont('Roboto', os.path.join(ROBOTO_DIR, 'Roboto-Regular.ttf'))
+        )
+        pdfmetrics.registerFont(
+            TTFont('Roboto-Bold', os.path.join(ROBOTO_DIR, 'Roboto-Bold.ttf'))
+        )
+        pdfmetrics.registerFont(
+            TTFont('Roboto-Italic', os.path.join(ROBOTO_DIR, 'Roboto-Italic.ttf'))
+        )
+        pdfmetrics.registerFont(
+            TTFont('Roboto-BoldItalic', os.path.join(ROBOTO_DIR, 'Roboto-BoldItalic.ttf'))
+        )
+
+        # THIS LINE IS THE KEY 🔑
+        registerFontFamily(
+            'Roboto',
+            normal='Roboto',
+            bold='Roboto-Bold',
+            italic='Roboto-Italic',
+            boldItalic='Roboto-BoldItalic'
+        )
+
+    except Exception as e:
+        print("Font registration failed:", e)
+
+
+register_fonts()
+
+
+@login_required
+def download_invoice_pdf(request, invoice_id):
+    """Generate PDF for a specific invoice"""
+    invoice = get_object_or_404(Invoice, id=invoice_id, student__id=2)
+    
+    # Create the HttpResponse object with PDF headers
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.id}_{invoice.term.name}_{invoice.academic_year.year}.pdf"'
     
     # Create the PDF object
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, 
+                          rightMargin=72, leftMargin=72,
+                          topMargin=72, bottomMargin=72)
+    
+    # Container for PDF elements
+    elements = []
+    
+    # Get styles
     styles = getSampleStyleSheet()
     
     # Custom styles
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
-        fontSize=18,
-        spaceAfter=20,
-        alignment=1  # Center alignment
+        fontSize=24,
+        textColor=colors.HexColor('#2C3E50'),
+        spaceAfter=30,
+        alignment=TA_CENTER,
+        fontName='Roboto-Bold'
     )
     
-    heading_style = ParagraphStyle(
-        'CustomHeading',
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
         parent=styles['Heading2'],
-        fontSize=14,
-        spaceAfter=10,
-        textColor=colors.HexColor('#2c3e50')
+        fontSize=16,
+        textColor=colors.HexColor('#34495E'),
+        spaceAfter=20,
+        alignment=TA_CENTER,
+        fontName='Roboto-Bold'
     )
     
     normal_style = ParagraphStyle(
         'CustomNormal',
         parent=styles['Normal'],
-        fontSize=10
+        fontSize=10,
+        textColor=colors.black,
+        fontName='Roboto'
     )
     
-    # Build the PDF content
-    story = []
+    bold_style = ParagraphStyle(
+        'CustomBold',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.black,
+        fontName='Roboto-Bold'
+    )
     
     # Title
-    story.append(Paragraph(f"INVOICE #{invoice.id}", title_style))
-    story.append(Spacer(1, 20))
+    elements.append(Paragraph("INVOICE RECEIPT", title_style))
+    elements.append(Spacer(1, 0.2*inch))
     
-    # School info
+    # School information
     school_info = [
-        Paragraph("<b>School Management System</b>", heading_style),
-        Paragraph("123 Education Street", normal_style),
-        Paragraph("Academic City, AC 10001", normal_style),
-        Paragraph("Phone: (555) 123-4567", normal_style),
-        Paragraph("Email: accounts@school.edu", normal_style),
-        Paragraph(f"Date: {invoice.created_at.strftime('%B %d, %Y')}", normal_style),
+        ["SCHOOL MANAGEMENT SYSTEM", "", "", ""],
+        ["123 Education Street", "Phone: +123-456-7890", "", ""],
+        ["Academic City", "Email: info@school.edu", "", ""],
+        ["", "Website: www.school.edu", "", ""],
     ]
     
-    for info in school_info:
-        story.append(info)
+    school_table = Table(school_info, colWidths=[3*inch, 3*inch, 1.5*inch, 1.5*inch])
+    school_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (0, 0), 'Roboto-Bold'),
+        ('FONTSIZE', (0, 0), (0, 0), 14),
+        ('TEXTCOLOR', (0, 0), (0, 0), colors.HexColor('#2980B9')),
+        ('BOTTOMPADDING', (0, 0), (0, 0), 10),
+        ('TOPPADDING', (0, 0), (0, 0), 10),
+    ]))
+    elements.append(school_table)
+    elements.append(Spacer(1, 0.3*inch))
     
-    story.append(Spacer(1, 20))
-    
-    # Student info table
-    student_data = [
-        ['Student Information', ''],
-        ['Name:', student.full_name],
-        ['Student ID:', student.student_id],
-        ['Class:', student.current_class_name],
-        ['Academic Year:', f"{invoice.academic_year.name}"],
-        ['Term:', f"{invoice.term.name}"]
+    # Invoice header
+    invoice_header = [
+        ["Invoice Details", "", "Student Information", ""],
+        ["Invoice No:", f"INV-{invoice.id:06d}", "Name:", invoice.student.full_name],
+        ["Date Issued:", invoice.created_at.strftime("%B %d, %Y"), "Student ID:", invoice.student.student_id],
+        ["Academic Year:", invoice.academic_year.year, "Class:", invoice.student.current_class_name],
+        ["Term:", invoice.term.name, "Parent:", invoice.student.parent_name],
+        ["Status:", invoice.get_status_display().upper(), "Contact:", invoice.student.parent_contact],
     ]
     
-    student_table = Table(student_data, colWidths=[2*inch, 4*inch])
-    student_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4e73df')),
+    invoice_table = Table(invoice_header, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 2.5*inch])
+    invoice_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), colors.HexColor('#3498DB')),
+        ('BACKGROUND', (2, 0), (3, 0), colors.HexColor('#2ECC71')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
         ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-        ('ALIGN', (0, 1), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 1), (1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('FONTNAME', (0, 1), (-1, -1), 'Roboto'),
+        ('FONTSIZE', (0, 1), (-1, -1), 10),
         ('PADDING', (0, 0), (-1, -1), 6),
     ]))
+    elements.append(invoice_table)
+    elements.append(Spacer(1, 0.3*inch))
     
-    story.append(student_table)
-    story.append(Spacer(1, 30))
+    # Invoice items
+    elements.append(Paragraph("INVOICE ITEMS", subtitle_style))
     
-    # Invoice items table
-    items_data = [['Item', 'Description', 'Amount']]
+    # Prepare invoice items data
+    items_data = [["S/N", "Description", "Amount ($)"]]
     
-    # Get invoice items
-    invoice_items = invoice.items.all()
-    for item in invoice_items:
-        items_data.append([
-            item.fee_type.name,
-            f"{item.fee_type.name} Fee",
-            f"${item.amount:,.2f}"
-        ])
+    for i, item in enumerate(invoice.items.all(), 1):
+        items_data.append([str(i), item.fee_type.name, f"${item.amount:.2f}"])
     
-    # Add total row
-    items_data.append([
-        '', 
-        Paragraph('<b>TOTAL</b>', ParagraphStyle(
-            'BoldRight',
-            parent=styles['Normal'],
-            fontSize=10,
-            alignment=2
-        )), 
-        Paragraph(f'<b>${invoice.total_amount:,.2f}</b>', ParagraphStyle(
-            'BoldRight',
-            parent=styles['Normal'],
-            fontSize=10,
-            alignment=2
-        ))
-    ])
+    # Add totals row
+    items_data.append(["", "TOTAL AMOUNT", f"${invoice.total_amount:.2f}"])
     
-    items_table = Table(items_data, colWidths=[1.5*inch, 3*inch, 1.5*inch])
+    items_table = Table(items_data, colWidths=[0.5*inch, 6*inch, 1.5*inch])
     items_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2C3E50')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 11),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -2), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -2), colors.black),
-        ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -2), 10),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
         ('GRID', (0, 0), (-1, -2), 1, colors.grey),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('ALIGN', (2, 1), (2, -2), 'RIGHT'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('FONTNAME', (0, 1), (-1, -2), 'Roboto'),
+        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#ECF0F1')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Roboto-Bold'),
+        ('FONTSIZE', (0, -1), (-1, -1), 12),
+        ('LINEABOVE', (0, -1), (-1, -1), 2, colors.HexColor('#2C3E50')),
         ('PADDING', (0, 0), (-1, -1), 6),
-        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f8f9fa')),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, -1), (-1, -1), 11),
-        ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
-        ('LINEBELOW', (0, -1), (-1, -1), 2, colors.black),
     ]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 0.3*inch))
     
-    story.append(items_table)
-    story.append(Spacer(1, 30))
+    # Payment summary
+    elements.append(Paragraph("PAYMENT SUMMARY", subtitle_style))
     
-    # Payment status
     payment_data = [
-        ['Payment Status', 'Amount'],
-        ['Total Amount:', f"${invoice.total_amount:,.2f}"],
-        ['Amount Paid:', f"${(invoice.total_amount - invoice.amount_due):,.2f}"],
-        ['Amount Due:', f"<b>${invoice.amount_due:,.2f}</b>"],
-        ['Status:', f"<b>{invoice.get_status_display()}</b>"]
+        ["Total Amount:", f"${invoice.total_amount:.2f}"],
+        ["Amount Paid:", f"${float(invoice.total_amount) - float(invoice.amount_due):.2f}"],
+        ["Amount Due:", f"${invoice.amount_due:.2f}"],
     ]
     
-    payment_table = Table(payment_data, colWidths=[2*inch, 4*inch])
+    # Color code amount due
+    amount_due_color = colors.red if invoice.amount_due > 0 else colors.green
+    
+    payment_table = Table(payment_data, colWidths=[2*inch, 2*inch])
     payment_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#17a2b8')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
+        ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
         ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-        ('ALIGN', (0, 1), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 1), (1, -1), 'RIGHT'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#F8F9FA')),
+        ('FONTNAME', (0, -1), (-1, -1), 'Roboto-Bold'),
+        ('TEXTCOLOR', (1, -1), (1, -1), amount_due_color),
         ('PADDING', (0, 0), (-1, -1), 8),
-        ('FONTNAME', (1, 3), (1, 3), 'Helvetica-Bold'),
-        ('FONTNAME', (1, 4), (1, 4), 'Helvetica-Bold'),
-        ('TEXTCOLOR', (1, 3), (1, 3), colors.red),
-        ('TEXTCOLOR', (1, 4), (1, 4), colors.green if invoice.status == 'paid' else colors.orange),
     ]))
+    elements.append(payment_table)
     
-    story.append(payment_table)
-    story.append(Spacer(1, 40))
+    # Add payment history if exists
+    payments = invoice.payments.all()
+    if payments:
+        elements.append(Spacer(1, 0.3*inch))
+        elements.append(Paragraph("PAYMENT HISTORY", subtitle_style))
+        
+        payment_history = [["Date", "Method", "Amount", "Status", "Reference"]]
+        
+        for payment in payments:
+            payment_history.append([
+                payment.payment_date.strftime("%b %d, %Y"),
+                payment.get_payment_method_display(),
+                f"${payment.amount_paid:.2f}",
+                payment.get_status_display(),
+                payment.notes or "-"
+            ])
+        
+        payment_history_table = Table(payment_history, colWidths=[1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch, 2*inch])
+        payment_history_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#34495E')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Roboto-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ('FONTNAME', (0, 1), (-1, -1), 'Roboto'),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(payment_history_table)
     
-    # Footer note
-    footer_note = """
-    <para alignment="center">
-    <font size="9" color="grey">
-    <b>Payment Instructions:</b><br/>
-    Please make payment to the school accounts office or through any of our online payment platforms.<br/>
-    For inquiries, contact the accounts department at accounts@school.edu or call (555) 123-4567.<br/>
-    <br/>
-    <i>This is an official invoice from School Management System. Please keep this document for your records.</i>
-    </font>
-    </para>
-    """
+    # Footer notes
+    elements.append(Spacer(1, 0.5*inch))
+    notes = [
+        "**Important Notes:**",
+        "1. Please keep this invoice for your records.",
+        "2. Payments can be made via bank transfer, mobile money, or at the school accounts office.",
+        "3. For payment inquiries, contact: accounts@school.edu",
+        "4. Late payments may incur additional charges as per school policy.",
+    ]
     
-    story.append(Paragraph(footer_note, normal_style))
+    for note in notes:
+        elements.append(Paragraph(note, normal_style))
     
-    # Build PDF
-    doc.build(story)
+    # Generate PDF
+    doc.build(elements)
     
-    # Get the value of the BytesIO buffer
+    # Get PDF value and write to response
     pdf = buffer.getvalue()
     buffer.close()
-    
-    # Create HTTP response with PDF
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="invoice_{invoice.id}_{student.student_id}.pdf"'
+    response.write(pdf)
     
     return response
 
+# Dummy helper functions (replace with your own logic)
+def get_grade(score):
+    if score >= 90: return "A"
+    if score >= 80: return "B"
+    if score >= 70: return "C"
+    if score >= 60: return "D"
+    if score >= 50: return "E"
+    return "F"
+
+def get_remarks(score):
+    if score >= 90: return "Excellent"
+    if score >= 80: return "Very Good"
+    if score >= 70: return "Good"
+    if score >= 60: return "Pass"
+    if score >= 50: return "Fair"
+    return "Fail"
+
+
 @login_required
-def generate_report_card_pdf(request, academic_year_id, term_id):
-    # Get student
-    student = get_object_or_404(StudentProfile, user=request.user)
+def download_report_card_pdf(request, academic_year_id, term_id):
+    student = get_object_or_404(StudentProfile, id=2)
     academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
     term = get_object_or_404(Term, id=term_id)
-    
-    # Get scores
+
     scores = StudentScore.objects.filter(
         student=student,
         academic_session=academic_year,
         term=term
-    ).select_related('subject', 'score_type')
-    
-    # Calculate average
+    ).select_related('subject')
+
+    total_subjects = scores.count()
     average_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
-    
-    # Create a file-like buffer to receive PDF data
-    buffer = io.BytesIO()
-    
-    # Create the PDF object
-    doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+    # Identify best and weakest subject
+    best_subject = scores.order_by('-score').first().subject.name if scores.exists() else "N/A"
+    weakest_subject = scores.order_by('score').first().subject.name if scores.exists() else "N/A"
+
+    # PDF setup
+    buffer = BytesIO()
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="report_{student.student_id}_{academic_year.year}_{term.name}.pdf"'
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
     styles = getSampleStyleSheet()
-    
-    # Custom styles
-    title_style = ParagraphStyle(
-        'ReportTitle',
-        parent=styles['Heading1'],
-        fontSize=20,
-        spaceAfter=20,
-        alignment=1,
-        textColor=colors.HexColor('#2c3e50')
-    )
-    
-    subtitle_style = ParagraphStyle(
-        'ReportSubtitle',
-        parent=styles['Heading2'],
-        fontSize=14,
-        spaceAfter=15,
-        alignment=1,
-        textColor=colors.HexColor('#4e73df')
-    )
-    
-    student_style = ParagraphStyle(
-        'StudentInfo',
-        parent=styles['Normal'],
-        fontSize=10,
-        spaceAfter=5
-    )
-    
-    # Build the PDF content
-    story = []
-    
+
     # Title
-    story.append(Paragraph("OFFICIAL REPORT CARD", title_style))
-    story.append(Paragraph(f"{academic_year.name} - {term.name} Term", subtitle_style))
-    story.append(Spacer(1, 20))
-    
-    # Student info
+    elements.append(Paragraph("OFFICIAL REPORT CARD", styles['Title']))
+    elements.append(Spacer(1, 12))
+
+    # Student Info
     student_info = [
-        Paragraph(f"<b>Student:</b> {student.full_name}", student_style),
-        Paragraph(f"<b>Student ID:</b> {student.student_id}", student_style),
-        Paragraph(f"<b>Class:</b> {student.current_class_name}", student_style),
-        Paragraph(f"<b>Academic Year:</b> {academic_year.name}", student_style),
-        Paragraph(f"<b>Term:</b> {term.name}", student_style),
-        Paragraph(f"<b>Date Generated:</b> {datetime.now().strftime('%B %d, %Y')}", student_style),
+        ["Full Name:", student.full_name, "Student ID:", student.student_id],
+        ["Class:", student.class_records.first().school_class.name if student.class_records.exists() else "N/A",
+         "Term:", term.name],
+        ["Academic Year:", academic_year.year, "Parent:", student.parent_name],
     ]
-    
-    for info in student_info:
-        story.append(info)
-    
-    story.append(Spacer(1, 30))
-    
-    # Academic performance header
-    story.append(Paragraph("ACADEMIC PERFORMANCE", subtitle_style))
-    story.append(Spacer(1, 10))
-    
-    # Calculate scores by subject
-    subject_scores = {}
-    for score in scores:
-        if score.subject.name not in subject_scores:
-            subject_scores[score.subject.name] = []
-        subject_scores[score.subject.name].append({
-            'type': score.score_type.name,
-            'score': score.score
-        })
-    
-    # Create scores table
-    scores_data = [['Subject', '1st CA', '2nd CA', 'Exam', 'Total', 'Grade', 'Remark']]
-    
-    for subject, score_list in subject_scores.items():
-        ca1 = next((s['score'] for s in score_list if '1st' in s['type']), 0)
-        ca2 = next((s['score'] for s in score_list if '2nd' in s['type']), 0)
-        exam = next((s['score'] for s in score_list if 'Exam' in s['type']), 0)
-        total = ca1 + ca2 + exam
-        
-        # Determine grade
-        if total >= 80:
-            grade = 'A'
-            remark = 'Excellent'
-        elif total >= 70:
-            grade = 'B'
-            remark = 'Very Good'
-        elif total >= 60:
-            grade = 'C'
-            remark = 'Good'
-        elif total >= 50:
-            grade = 'D'
-            remark = 'Pass'
-        else:
-            grade = 'F'
-            remark = 'Fail'
-        
-        scores_data.append([
-            subject,
-            f"{ca1:.1f}" if ca1 else '-',
-            f"{ca2:.1f}" if ca2 else '-',
-            f"{exam:.1f}" if exam else '-',
-            f"{total:.1f}",
-            grade,
-            remark
-        ])
-    
-    # Add total row
-    scores_data.append([
-        '<b>TOTAL AVERAGE</b>',
-        '', '', '',
-        f"<b>{average_score:.1f}%</b>",
-        '',
-        '<b>See Comments</b>'
-    ])
-    
-    scores_table = Table(scores_data, colWidths=[1.5*inch, 0.8*inch, 0.8*inch, 0.8*inch, 0.8*inch, 0.6*inch, 1.5*inch])
-    scores_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2c3e50')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 11),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -2), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -2), colors.black),
-        ('FONTNAME', (0, 1), (-1, -2), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -2), 10),
-        ('GRID', (0, 0), (-1, -2), 1, colors.grey),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('ALIGN', (1, 1), (4, -2), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('PADDING', (0, 0), (-1, -1), 6),
-        ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#f8f9fa')),
-        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, -1), (-1, -1), 11),
-        ('LINEABOVE', (0, -1), (-1, -1), 2, colors.black),
-        ('LINEBELOW', (0, -1), (-1, -1), 2, colors.black),
-    ]))
-    
-    story.append(scores_table)
-    story.append(Spacer(1, 30))
-    
-    # Summary section
-    story.append(Paragraph("PERFORMANCE SUMMARY", subtitle_style))
-    story.append(Spacer(1, 10))
-    
-    # Calculate statistics
-    total_subjects = len(subject_scores)
-    passed_subjects = sum(1 for row in scores_data[1:-1] if row[4] and float(row[4].replace('-', '0')) >= 50)
-    failed_subjects = total_subjects - passed_subjects
-    
-    summary_data = [
-        ['Total Subjects:', str(total_subjects)],
-        ['Subjects Passed:', str(passed_subjects)],
-        ['Subjects Failed:', str(failed_subjects)],
-        ['Overall Average:', f"{average_score:.1f}%"],
-        ['Class Position:', '5th'],  # You can calculate this from your database
-        ['Attendance:', '94%'],  # You can add attendance tracking
+    table = Table(student_info, colWidths=[100, 150, 100, 150])
+    table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black),
+                               ('BACKGROUND', (0,0), (-1,0), colors.lightgrey)]))
+    elements.append(table)
+    elements.append(Spacer(1, 12))
+
+    # Performance Summary (like the table logic)
+    performance_summary = [
+        ["Total Subjects", total_subjects, "Average Score", f"{average_score:.1f}%"],
+        ["Best Subject", best_subject, "Weakest Subject", weakest_subject],
     ]
-    
-    summary_table = Table(summary_data, colWidths=[2*inch, 4*inch])
-    summary_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#17a2b8')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('FONTSIZE', (0, 0), (-1, 0), 11),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 10),
-        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
-        ('ALIGN', (0, 1), (0, -1), 'LEFT'),
-        ('ALIGN', (1, 1), (1, -1), 'LEFT'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('PADDING', (0, 0), (-1, -1), 8),
+    perf_table = Table(performance_summary, colWidths=[120, 120, 120, 120])
+    perf_table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
+        ('BACKGROUND', (0,1), (-1,1), colors.lightgreen),
     ]))
-    
-    story.append(summary_table)
-    story.append(Spacer(1, 30))
-    
-    # Comments section
-    story.append(Paragraph("TEACHER'S COMMENTS", subtitle_style))
-    story.append(Spacer(1, 10))
-    
-    comments = """
-    <para>
-    <font size="10">
-    John has shown consistent improvement throughout the term. His performance in Mathematics and Physics is particularly commendable. 
-    He participates actively in class discussions and shows great interest in learning. 
-    With continued effort, he has the potential to achieve even better results in the coming terms.
-    <br/><br/>
-    <b>Recommendation:</b> Promoted to next class.
-    </font>
-    </para>
-    """
-    
-    story.append(Paragraph(comments, student_style))
-    story.append(Spacer(1, 30))
-    
-    # Signatures
-    signature_data = [
-        ['Class Teacher:', 'Principal:'],
-        ['________________________', '________________________'],
-        ['Mrs. Sarah Johnson', 'Dr. Michael Williams'],
-        ['Date: __________________', 'Date: __________________']
-    ]
-    
-    signature_table = Table(signature_data, colWidths=[3*inch, 3*inch])
-    signature_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('PADDING', (0, 0), (-1, -1), 15),
-    ]))
-    
-    story.append(signature_table)
-    story.append(Spacer(1, 20))
-    
-    # Footer note
-    footer_note = """
-    <para alignment="center">
-    <font size="9" color="grey">
-    <i>This is an official report card from School Management System. Please keep this document for your records.</i><br/>
-    For inquiries, contact the academic office at academics@school.edu or call (555) 123-4567.
-    </font>
-    </para>
-    """
-    
-    story.append(Paragraph(footer_note, student_style))
-    
+    elements.append(perf_table)
+    elements.append(Spacer(1, 12))
+
+    # Detailed Scores Table
+    if scores.exists():
+        data = [["Subject", "Score", "Grade", "Remarks"]]
+        for score in scores:
+            data.append([
+                score.subject.name,
+                f"{score.score:.1f}",
+                get_grade(score.score),
+                get_remarks(score.score)
+            ])
+        score_table = Table(data, colWidths=[150, 80, 50, 150])
+        score_table.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 1, colors.black),
+            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ]))
+        elements.append(score_table)
+    else:
+        elements.append(Paragraph("No scores recorded for this term.", styles['Normal']))
+
+    elements.append(Spacer(1, 12))
+    elements.append(PageBreak())
+
+    # Teacher Comments
+    elements.append(Paragraph("TEACHER'S COMMENTS & RECOMMENDATIONS", styles['Heading2']))
+    elements.append(Paragraph(f"Overall, {student.full_name} has shown satisfactory progress this term.", styles['Normal']))
+    elements.append(Paragraph("Recommendations: Attend extra classes for weak subjects, complete assignments on time.", styles['Normal']))
+
+    elements.append(Spacer(1, 12))
+    elements.append(Paragraph("GRADING SYSTEM: A=90-100, B=80-89, C=70-79, D=60-69, E=50-59, F<50", styles['Normal']))
+
     # Build PDF
-    doc.build(story)
-    
-    # Get the value of the BytesIO buffer
+    doc.build(elements)
     pdf = buffer.getvalue()
     buffer.close()
-    
-    # Create HTTP response with PDF
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="report_card_{academic_year.name}_{term.name}_{student.student_id}.pdf"'
-    
+    response.write(pdf)
     return response
 
-    return render(request, "student/student_dashboard.html", context)
 
-def student_report_cards(request):
-    return render(request, 'student/report_cards.html')
+# Helper functions
+def get_performance_label(average_score):
+    if average_score >= 80:
+        return "EXCELLENT"
+    elif average_score >= 70:
+        return "VERY GOOD"
+    elif average_score >= 60:
+        return "GOOD"
+    elif average_score >= 50:
+        return "AVERAGE"
+    else:
+        return "NEEDS IMPROVEMENT"
 
-def student_subject(request):
-    return render(request, 'student/student_subject.html')
+def get_best_subject(scores):
+    if scores.exists():
+        best = max(scores, key=lambda x: x.score)
+        return f"{best.subject.name} ({best.score}%)"
+    return "N/A"
 
-def student_profile(request):
-    return render(request, 'student/profile.html')
+def get_weakest_subject(scores):
+    if scores.exists():
+        weakest = min(scores, key=lambda x: x.score)
+        return f"{weakest.subject.name} ({weakest.score}%)"
+    return "N/A"
 
-def student_settings(request):
-    return render(request, 'student/settings.html')
+def get_grade(score):
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    elif score >= 70:
+        return "C"
+    elif score >= 60:
+        return "D"
+    elif score >= 50:
+        return "E"
+    else:
+        return "F"
+
+def get_remarks(score):
+    if score >= 80:
+        return "Excellent"
+    elif score >= 60:
+        return "Good"
+    else:
+        return "Needs Improvement"
+
+def get_teacher_comment(score):
+    if score >= 90:
+        return "Outstanding performance!"
+    elif score >= 80:
+        return "Very good work."
+    elif score >= 70:
+        return "Good effort shown."
+    elif score >= 60:
+        return "Satisfactory."
+    elif score >= 50:
+        return "Can do better."
+    else:
+        return "Needs more attention."
+
+def get_score_color(score):
+    if score >= 90:
+        return colors.HexColor('#27AE60')  # Green
+    elif score >= 80:
+        return colors.HexColor('#2ECC71')  # Light Green
+    elif score >= 70:
+        return colors.HexColor('#F1C40F')  # Yellow
+    elif score >= 60:
+        return colors.HexColor('#E67E22')  # Orange
+    elif score >= 50:
+        return colors.HexColor('#E74C3C')  # Red
+    else:
+        return colors.HexColor('#C0392B')  # Dark Red
+
+def get_chart_color(score):
+    if score >= 90:
+        return colors.HexColor('#27AE60')
+    elif score >= 80:
+        return colors.HexColor('#2ECC71')
+    elif score >= 70:
+        return colors.HexColor('#F1C40F')
+    elif score >= 60:
+        return colors.HexColor('#E67E22')
+    elif score >= 50:
+        return colors.HexColor('#E74C3C')
+    else:
+        return colors.HexColor('#C0392B')
+
+# Additional view for downloading old results with filtering
+@login_required
+def download_report_card_filter(request):
+    """Page to filter and download old report cards"""
+    student = get_object_or_404(StudentProfile, user=request.user)
+    
+    # Get all academic years and terms the student has been in
+    academic_years = AcademicYear.objects.filter(
+        studentclass__student=student
+    ).distinct().order_by('-year')
+    
+    # Get all terms
+    terms = Term.objects.filter(
+        academic_year__in=academic_years
+    ).distinct().order_by('-academic_year__year', 'name')
+    
+    # Get recent report cards
+    recent_scores = StudentScore.objects.filter(
+        student=student
+    ).select_related('academic_session', 'term').distinct()[:5]
+    
+    context = {
+        'student': student,
+        'academic_years': academic_years,
+        'terms': terms,
+        'recent_scores': recent_scores,
+    }
+    
+    return render(request, 'student/download_report_card.html', context)

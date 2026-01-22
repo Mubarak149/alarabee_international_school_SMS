@@ -74,10 +74,14 @@
                 <div class="mb-3">
                     <strong>Sample Student ID:</strong><br>
                     {% if settings.student_id_option == 'auto' %}
-                        {{ settings.student_id_prefix }}1001
+                        {{ settings.student_id_prefix }}-2026-1001
                     {% else %}
                         User will input manually
                     {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>School Name:</strong><br>
+                    {{ settings.default_student_password }}
                 </div>
                 
                 <div class="alert alert-info">
