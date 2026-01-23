@@ -1,0 +1,14 @@
+aiofiles==24.1.0
+aiohappyeyeballs==2.6.1
+aiohttp==3.13.0
+dj-database-url==3.0.1
+Django==5.2.6
+django-allauth==65.11.2
+django-use-email-as-username==1.4.0
+djangorestframework==3.16.1
+pillow==11.3.0
+postgrest==2.22.1
+pypdf==6.1.1
+PyPDF2==3.0.1
+reportlab==4.4.4
+requests==2.32.5

@@ -3,7 +3,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'finance_dashboard' %}">
             <i class="fas fa-calculator me-2"></i>
-            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <span class="brand-text">{{ system_settings.school_name|default:"Our School" }}<span class="brand-highlight">SMS</span></span>
             <span class="badge bg-light text-dark ms-2">Finance</span>
         </a>
         

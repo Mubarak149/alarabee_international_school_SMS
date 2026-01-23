@@ -3,7 +3,7 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'student_dashboard' %}">
             <i class="fas fa-graduation-cap me-2"></i>
-            <span class="brand-text">School<span class="brand-highlight">SMS</span></span>
+            <span class="brand-text">{{ system_settings.school_name|default:"Our School" }}<span class="brand-highlight">SMS</span></span>
             <span class="user-role badge bg-light text-primary ms-2">Student</span>
         </a>
         
