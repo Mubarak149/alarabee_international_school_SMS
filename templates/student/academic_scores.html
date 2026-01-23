@@ -242,13 +242,13 @@
     <div class="card score-card {% if term_data.term.is_current %}current-term{% else %}previous-term{% endif %} mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-                <h5 class="mb-0">{{ term_data.term.name }} Term • {{ term_data.academic_year.name }}</h5>
+                <h5 class="mb-0">{{ term_data.term.name }} Term • {{ term_data.academic_year.year }}</h5>
                 <small class="text-muted">Subjects: {{ term_data.subjects|join:", " }}</small>
             </div>
             {% if term_data.term.is_current %}
-            <span class="badge bg-success">Current Term</span>
+                <span class="badge bg-success">Current Term</span>
             {% else %}
-            <span class="badge bg-secondary">Previous Term</span>
+                <span class="badge bg-secondary">Previous Term</span>
             {% endif %}
         </div>
         <div class="card-body">
@@ -258,13 +258,13 @@
                     <h6>Average Score</h6>
                     <div class="score-circle">
                         {% if term_data.average_score %}
-                        <div class="circle-progress" 
-                             style="background: conic-gradient(#1cc88a {{ term_data.average_score }}%, #e9ecef 0%);">
-                        </div>
-                        <div class="score-text">
-                            <span class="score-value">{{ term_data.average_score }}%</span>
-                            <span class="score-label">Average</span>
-                        </div>
+                            <div class="circle-progress" 
+                                style="background: conic-gradient(#1cc88a {{ term_data.average_score }}%, #e9ecef 0%);">
+                            </div>
+                            <div class="score-text">
+                                <span class="score-value">{{ term_data.average_score }}%</span>
+                                <span class="score-label">Average</span>
+                            </div>
                         {% else %}
                         <div class="circle-progress" style="background: #e9ecef;"></div>
                         <div class="score-text">
@@ -294,13 +294,10 @@
                 <div class="col-md-4">
                     <h6>Quick Actions</h6>
                     <div class="d-grid gap-2">
-                        <a href="{% url 'download_report_card_pdf' term_data.academic_year.id term_data.term.id %}" 
-                           class="btn btn-outline-success {% if not term_data.average_score %}disabled{% endif %}">
+                        <a href="{% url 'download_report_card_pdf' academic_year_id=term_data.academic_year.id term_id=term_data.term.id %}" 
+                            class="btn btn-outline-success {% if not term_data.average_score %}disabled{% endif %}">
                             <i class="fas fa-download me-2"></i> Download Report Card
                         </a>
-                        <button class="btn btn-outline-primary" onclick="showPerformanceChart('{{ term_name }}')">
-                            <i class="fas fa-chart-bar me-2"></i> View Performance Chart
-                        </button>
                     </div>
                 </div>
             </div>

@@ -296,17 +296,12 @@ def student_academic_scores(request):
     ).select_related(
         'academic_session', 'term', 'subject', 'score_type'
     ).order_by('-academic_session__year', 'term__name', 'subject__name')
+    
     grouped_scores = {}
-
     for s in scores:
         subject_name = s.subject.name
-
         if subject_name not in grouped_scores:
-            grouped_scores[subject_name] = {
-                "subject": subject_name,
-                "scores": []
-            }
-
+            grouped_scores[subject_name] = {"subject": subject_name, "scores": []}
         grouped_scores[subject_name]["scores"].append({
             "type": s.score_type.name,
             "score": s.score
@@ -319,75 +314,61 @@ def student_academic_scores(request):
             Q(term__name__icontains=search_query) |
             Q(academic_session__year__icontains=search_query)
         )
-    
-    if year_filter == 'current':
-        if current_academic_year:
-            scores = scores.filter(academic_session=current_academic_year)
+    if year_filter == 'current' and current_academic_year:
+        scores = scores.filter(academic_session=current_academic_year)
     elif year_filter not in ['all', 'older']:
         scores = scores.filter(academic_session__year__icontains=year_filter)
-    elif year_filter == 'older':
-        # Get scores from previous years
-        if current_academic_year:
-            scores = scores.exclude(academic_session=current_academic_year)
-    
+    elif year_filter == 'older' and current_academic_year:
+        scores = scores.exclude(academic_session=current_academic_year)
     if term_filter != 'all':
         scores = scores.filter(term__name__icontains=term_filter)
-    
     if subject_filter != 'all':
         scores = scores.filter(subject__name__icontains=subject_filter)
     
     # Group scores by academic year and term
     scores_by_term = {}
     for score in scores:
-        year_name = score.academic_session.year  # Changed from .name to .year
+        year_name = score.academic_session.year
         term_name = score.term.name
-        
         key = f"{year_name} - {term_name} Term"
+        
         if key not in scores_by_term:
             scores_by_term[key] = {
                 'academic_year': score.academic_session,
                 'term': score.term,
                 'scores': [],
                 'subjects': set(),
+                'subject_table': defaultdict(lambda: {"1st CA": 0, "2nd CA": 0, "Exam": 0, "total": 0})
             }
-
-        if 'subject_table' not in scores_by_term[key]:
-            scores_by_term[key]['subject_table'] = defaultdict(lambda: {
-                "1st CA": 0,
-                "2nd CA": 0,
-                "Exam": 0,
-                "total": 0
-            })
-
+        
+        # Populate scores and subject table
         subject_name = score.subject.name
         score_type = score.score_type.name
         score_value = float(score.score)
-
+        
         scores_by_term[key]['subject_table'][subject_name][score_type] = score_value
         scores_by_term[key]['subject_table'][subject_name]["total"] += score_value
-
+        scores_by_term[key]['scores'].append(score_value)
         scores_by_term[key]['subjects'].add(subject_name)
 
-    
     first_term_data = None
     if scores_by_term:
         first_term_data = next(iter(scores_by_term.values()))
 
-        # Calculate averages and ranks for each term
+        # Calculate averages and ranks
         for term_data in scores_by_term.values():
-            # Calculate average for this term
             scores_list = term_data['scores']
             if scores_list:
-                total_score = sum(float(score.score) for score in scores_list)
+                total_score = sum(scores_list)  # Already floats
                 term_data['average_score'] = round(total_score / len(scores_list), 2)
                 
-                # Get rank for this term
+                # Rank
                 term_data['rank'] = student.class_rank(
                     term_data['academic_year'],
                     term_data['term']
                 )
                 
-                # Get class size for this term
+                # Class size
                 term_class = student.class_records.filter(
                     academic_year=term_data['academic_year']
                 ).first()
@@ -402,24 +383,18 @@ def student_academic_scores(request):
                 term_data['average_score'] = None
                 term_data['rank'] = None
                 term_data['class_size'] = 0
-            
-            # Convert subjects set to sorted list
+
             term_data['subjects'] = sorted(term_data['subjects'])
-        
-        # Get distinct subjects for filter dropdown
+
+        # Subjects for filter
         all_subjects = TeacherSubject.objects.filter(
             class_assigned=student.current_class
-        ).values_list(
-            'subject__name', flat=True
-        ).distinct().order_by('subject__name')
+        ).values_list('subject__name', flat=True).distinct().order_by('subject__name')
 
-        
-        # Get all terms
-        terms = Term.objects.filter(
-            studentscore__student=student
-        ).distinct().order_by('name')
-        
-        # Get current term scores for download button
+        # All terms
+        terms = Term.objects.filter(studentscore__student=student).distinct().order_by('name')
+
+        # Current term scores for download button
         current_term_scores = None
         if current_academic_year:
             current_term = Term.objects.filter(is_current=True).first()
@@ -434,25 +409,23 @@ def student_academic_scores(request):
                         'term': current_term,
                         'scores': current_scores,
                     }
-        
-        # Get all years for filter dropdown
+
+        # Prepare data for template
         years_list = AcademicYear.objects.values_list('year', flat=True).distinct().order_by('-year')
         subject_scores = list(grouped_scores.values())
         score_types = ScoreType.objects.all().order_by("id")
 
         subject_data = {}
-
         for subject_name, scores_dict in first_term_data['subject_table'].items():
             subject_data[subject_name] = {
                 "scores": scores_dict,  # includes all score types + total
                 "total": scores_dict.get("total", 0)
             }
 
-
         context = {
             'student': student,
             "score_types": score_types,
-            "subject_rows" : subject_data,
+            "subject_rows": subject_data,
             'scores_by_term': scores_by_term,
             "subject_scores": subject_scores,
             'academic_years': academic_years,
@@ -464,10 +437,11 @@ def student_academic_scores(request):
             'term_filter': term_filter,
             'subject_filter': subject_filter,
             'search_query': search_query,
-            'years': list(years_list),  # Use actual years from database
+            'years': list(years_list),
         }
-        
+
         return render(request, 'student/academic_scores.html', context)
+
 
 
 
