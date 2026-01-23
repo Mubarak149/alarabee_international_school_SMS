@@ -335,15 +335,27 @@
             <div class="fees-grid">
                 {% for fee_structure in term_group.list %}
                 <div class="fee-item-grid" 
-                     onclick="showFeeDetails('{{ fee_structure.id }}')"
-                     style="cursor: pointer;"
-                     data-bs-toggle="tooltip"
-                     title="Click to edit {{ fee_structure.fee_type.name }} - ₦{{ fee_structure.amount|floatformat:2 }}">
+                    onclick="showFeeDetails('{{ fee_structure.id }}')"
+                    style="cursor: pointer;"
+                    data-bs-toggle="tooltip"
+                    title="Click to edit {{ fee_structure.fee_type.name }} - ₦{{ fee_structure.amount|floatformat:2 }}">
                     <div class="fee-name-grid">
                         {{ fee_structure.fee_type.name|truncatechars:15 }}
                     </div>
                     <div class="fee-amount-grid">
                         ₦{{ fee_structure.amount|floatformat:2 }}
+                    </div>
+                    <div class="d-flex justify-content-center gap-1 mt-2">
+                        <button class="btn btn-sm btn-primary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#editFeeStructureModal{{ fee_structure.id }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteFeeStructureModal{{ fee_structure.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -376,11 +388,21 @@
                     <i class="fas fa-file-invoice-dollar me-1"></i>
                     Generate All
                 </button>
-                <button class="btn btn-outline-primary btn-sm btn-grid-sm"
-                        onclick="viewClassInvoices('{{ key.0 }}', '{{ key.1 }}')">
-                    <i class="fas fa-list me-1"></i>
-                    View All Invoices
-                </button>
+                {% if term_group.grouper.id %}
+                    <button class="btn btn-outline-primary btn-sm btn-grid-sm"
+                            onclick="window.location.href='{% url 'term_invoices' class_id=fees.0.school_class.id term_id=term_group.grouper.id academic_year_id=fees.0.academic_year.id %}'"
+                            title="View {{ term_group.grouper.name }} invoices">
+                        <i class="fas fa-eye"></i>
+                        View All Invoices
+                    </button>
+                {% else %}
+                    <button class="btn btn-outline-secondary btn-sm btn-grid-sm" disabled
+                            title="No term available">
+                        <i class="fas fa-eye"></i>
+                        View All Invoices
+                    </button>
+                {% endif %}
+
             </div>
         </div>
     </div>
@@ -818,46 +840,116 @@
         </form>
     </div>
 </div>
-
 <!-- View Existing Fee Types Modal -->
 {% if fee_types %}
 <div class="modal fade" id="viewFeeTypesModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-tags me-2"></i> Available Fee Types
-                </h5>
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Existing Fee Types</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    {% for fee_type in fee_types %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6 class="card-title">{{ fee_type.name }}</h6>
-                                {% if fee_type.description %}
-                                <p class="card-text text-muted small">{{ fee_type.description }}</p>
-                                {% endif %}
-                                <span class="badge {% if fee_type.is_recurring %}bg-info{% else %}bg-secondary{% endif %}">
-                                    {{ fee_type.is_recurring|yesno:"Recurring,One-time" }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeeTypeModal">
-                    <i class="fas fa-plus me-1"></i> Add New
-                </button>
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Recurring</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee_type in fee_types %}
+                        <tr>
+                            <td>{{ fee_type.name }}</td>
+                            <td>{{ fee_type.description|default:"-" }}</td>
+                            <td>{{ fee_type.is_recurring|yesno:"Yes,No" }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editFeeTypeModal{{ fee_type.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteFeeTypeModal{{ fee_type.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Edit & Delete Modals for Fee Types -->
+{% for fee_type in fee_types %}
+<!-- Edit Fee Type Modal -->
+<div class="modal fade" id="editFeeTypeModal{{ fee_type.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_fee_type">
+            <input type="hidden" name="fee_type_id" value="{{ fee_type.id }}">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Edit Fee Type</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Name *</label>
+                    <input type="text" class="form-control" name="name" value="{{ fee_type.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description">{{ fee_type.description }}</textarea>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="is_recurring" id="is_recurring_{{ fee_type.id }}"
+                           {% if fee_type.is_recurring %}checked{% endif %}>
+                    <label class="form-check-label" for="is_recurring_{{ fee_type.id }}">
+                        Recurring Fee
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Fee Type Modal -->
+<div class="modal fade" id="deleteFeeTypeModal{{ fee_type.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_fee_type">
+            <input type="hidden" name="fee_type_id" value="{{ fee_type.id }}">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Delete Fee Type</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h5>Are you sure?</h5>
+                <p class="text-muted">
+                    Delete fee type: <strong>{{ fee_type.name }}</strong>?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
 {% endif %}
 
 {% endblock %}

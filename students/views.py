@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from collections import defaultdict
 
 from .models import StudentProfile, StudentScore, StudentClass
+from school_admin.models import SystemSettings
 from finance.models import Invoice, Payment, FeeStructure, Sponsorship
 from academics.models import AcademicYear, Term, ScoreType
 from staff.models import TeacherSubject
@@ -720,22 +721,6 @@ def download_invoice_pdf(request, invoice_id):
     
     return response
 
-# Dummy helper functions (replace with your own logic)
-def get_grade(score):
-    if score >= 90: return "A"
-    if score >= 80: return "B"
-    if score >= 70: return "C"
-    if score >= 60: return "D"
-    if score >= 50: return "E"
-    return "F"
-
-def get_remarks(score):
-    if score >= 90: return "Excellent"
-    if score >= 80: return "Very Good"
-    if score >= 70: return "Good"
-    if score >= 60: return "Pass"
-    if score >= 50: return "Fair"
-    return "Fail"
 
 
 @login_required
@@ -744,49 +729,107 @@ def download_report_card_pdf(request, academic_year_id, term_id):
     academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
     term = get_object_or_404(Term, id=term_id)
 
+    settings = SystemSettings.get_settings()
+    score_types = ScoreType.objects.all()
+
     scores = StudentScore.objects.filter(
         student=student,
         academic_session=academic_year,
         term=term
-    ).select_related('subject')
+    ).select_related('subject', 'score_type')
 
-    total_subjects = scores.count()
+    # =========================
+    # BASIC STATS
+    # =========================
+    total_subjects = scores.values('subject').distinct().count()
     average_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
 
-    # Identify best and weakest subject
-    best_subject = scores.order_by('-score').first().subject.name if scores.exists() else "N/A"
-    weakest_subject = scores.order_by('score').first().subject.name if scores.exists() else "N/A"
+    best_subject = (
+        scores.order_by('-score').first().subject.name
+        if scores.exists() else "N/A"
+    )
+    weakest_subject = (
+        scores.order_by('score').first().subject.name
+        if scores.exists() else "N/A"
+    )
 
-    # PDF setup
+    # =========================
+    # PDF SETUP
+    # =========================
     buffer = BytesIO()
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="report_{student.student_id}_{academic_year.year}_{term.name}.pdf"'
+    response['Content-Disposition'] = (
+        f'attachment; filename="report_{student.student_id}_{academic_year.year}_{term.name}.pdf"'
+    )
+
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
     styles = getSampleStyleSheet()
 
-    # Title
-    elements.append(Paragraph("OFFICIAL REPORT CARD", styles['Title']))
+    # =========================
+    # PROFESSIONAL SCHOOL HEADER
+    # =========================
+    if settings.school_logo:
+        logo = Image(settings.school_logo.path, width=70, height=70)
+    else:
+        logo = ""
+
+    school_info = f"""
+    <b>{settings.school_name}</b><br/>
+    {settings.school_address or ""}<br/>
+    Email: {settings.school_email or "N/A"} |
+    Phone: {settings.school_phone or "N/A"}
+    """
+
+    header_table = Table(
+        [[logo, Paragraph(school_info, styles['Normal'])]],
+        colWidths=[80, 400]
+    )
+
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
+    ]))
+
+    elements.append(header_table)
+    elements.append(Spacer(1, 15))
+
+    # =========================
+    # REPORT TITLE
+    # =========================
+    elements.append(Paragraph("<b>STUDENT REPORT CARD</b>", styles['Title']))
     elements.append(Spacer(1, 12))
 
-    # Student Info
+    # =========================
+    # STUDENT INFO
+    # =========================
     student_info = [
         ["Full Name:", student.full_name, "Student ID:", student.student_id],
-        ["Class:", student.class_records.first().school_class.name if student.class_records.exists() else "N/A",
-         "Term:", term.name],
+        [
+            "Class:",
+            student.class_records.first().school_class.name
+            if student.class_records.exists() else "N/A",
+            "Term:", term.name
+        ],
         ["Academic Year:", academic_year.year, "Parent:", student.parent_name],
     ]
-    table = Table(student_info, colWidths=[100, 150, 100, 150])
-    table.setStyle(TableStyle([('GRID', (0,0), (-1,-1), 1, colors.black),
-                               ('BACKGROUND', (0,0), (-1,0), colors.lightgrey)]))
-    elements.append(table)
+
+    info_table = Table(student_info, colWidths=[100, 150, 100, 150])
+    info_table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+    ]))
+    elements.append(info_table)
     elements.append(Spacer(1, 12))
 
-    # Performance Summary (like the table logic)
+    # =========================
+    # PERFORMANCE SUMMARY
+    # =========================
     performance_summary = [
         ["Total Subjects", total_subjects, "Average Score", f"{average_score:.1f}%"],
         ["Best Subject", best_subject, "Weakest Subject", weakest_subject],
     ]
+
     perf_table = Table(performance_summary, colWidths=[120, 120, 120, 120])
     perf_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 1, colors.black),
@@ -796,41 +839,76 @@ def download_report_card_pdf(request, academic_year_id, term_id):
     elements.append(perf_table)
     elements.append(Spacer(1, 12))
 
-    # Detailed Scores Table
+    # =========================
+    # DETAILED SCORES TABLE
+    # =========================
     if scores.exists():
-        data = [["Subject", "Score", "Grade", "Remarks"]]
-        for score in scores:
-            data.append([
-                score.subject.name,
-                f"{score.score:.1f}",
-                get_grade(score.score),
-                get_remarks(score.score)
-            ])
-        score_table = Table(data, colWidths=[150, 80, 50, 150])
+        subject_scores = defaultdict(dict)
+
+        for s in scores:
+            subject_scores[s.subject.name][s.score_type.name] = s.score
+
+        data = [["Subject"]]
+        for st in score_types:
+            data[0].append(st.name)
+        data[0] += ["Total Score", "Grade", "Remarks"]
+
+        for subject, score_map in subject_scores.items():
+            row = [subject]
+            total = 0
+
+            for st in score_types:
+                score = score_map.get(st.name, 0)
+                row.append(f"{score:.1f}")
+                total += score
+
+            row += [
+                f"{total:.1f}",
+                get_grade(total),
+                get_remarks(total)
+            ]
+
+            data.append(row)
+
+        score_table = Table(data, repeatRows=1)
         score_table.setStyle(TableStyle([
             ('GRID', (0,0), (-1,-1), 1, colors.black),
             ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+            ('ALIGN', (1,1), (-3,-1), 'CENTER'),
         ]))
         elements.append(score_table)
     else:
         elements.append(Paragraph("No scores recorded for this term.", styles['Normal']))
 
+    # =========================
+    # COMMENTS & FOOTER
+    # =========================
     elements.append(Spacer(1, 12))
     elements.append(PageBreak())
 
-    # Teacher Comments
     elements.append(Paragraph("TEACHER'S COMMENTS & RECOMMENDATIONS", styles['Heading2']))
-    elements.append(Paragraph(f"Overall, {student.full_name} has shown satisfactory progress this term.", styles['Normal']))
-    elements.append(Paragraph("Recommendations: Attend extra classes for weak subjects, complete assignments on time.", styles['Normal']))
+    elements.append(
+        Paragraph(
+            f"Overall, {student.full_name} has shown satisfactory progress this term.",
+            styles['Normal']
+        )
+    )
 
     elements.append(Spacer(1, 12))
-    elements.append(Paragraph("GRADING SYSTEM: A=90-100, B=80-89, C=70-79, D=60-69, E=50-59, F<50", styles['Normal']))
+    elements.append(
+        Paragraph(
+            "GRADING SYSTEM: A=70-100, B=60-69, C=50-59, D=40-49, F=0-39",
+            styles['Normal']
+        )
+    )
 
-    # Build PDF
+    # =========================
+    # BUILD PDF
+    # =========================
     doc.build(elements)
-    pdf = buffer.getvalue()
+    response.write(buffer.getvalue())
     buffer.close()
-    response.write(pdf)
+
     return response
 
 
@@ -860,18 +938,17 @@ def get_weakest_subject(scores):
     return "N/A"
 
 def get_grade(score):
-    if score >= 90:
+    if score >= 70:
         return "A"
-    elif score >= 80:
-        return "B"
-    elif score >= 70:
-        return "C"
     elif score >= 60:
-        return "D"
+        return "B"
     elif score >= 50:
-        return "E"
+        return "C"
+    elif score >= 40:
+        return "D"
     else:
         return "F"
+
 
 def get_remarks(score):
     if score >= 80:
@@ -908,20 +985,6 @@ def get_score_color(score):
         return colors.HexColor('#E74C3C')  # Red
     else:
         return colors.HexColor('#C0392B')  # Dark Red
-
-def get_chart_color(score):
-    if score >= 90:
-        return colors.HexColor('#27AE60')
-    elif score >= 80:
-        return colors.HexColor('#2ECC71')
-    elif score >= 70:
-        return colors.HexColor('#F1C40F')
-    elif score >= 60:
-        return colors.HexColor('#E67E22')
-    elif score >= 50:
-        return colors.HexColor('#E74C3C')
-    else:
-        return colors.HexColor('#C0392B')
 
 # Additional view for downloading old results with filtering
 @login_required

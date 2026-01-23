@@ -1,22 +1,43 @@
 <!-- Top Navigation -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'student_dashboard' %}">
-            <i class="fas fa-graduation-cap me-2"></i>
-            <span class="brand-text">{{ system_settings.school_name|default:"Our School" }}<span class="brand-highlight">SMS</span></span>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'student_dashboard' %}">
+            
+            <!-- School Logo -->
+            {% if system_settings.school_logo %}
+                <img src="{{ system_settings.school_logo.url }}" 
+                     alt="School Logo" 
+                     class="me-2" 
+                     style="height:40px; width:auto; border-radius:4px; object-fit:contain;">
+            {% else %}
+                <i class="fas fa-school me-2"></i>
+            {% endif %}
+            
+            <!-- School Name -->
+            <span class="brand-text d-flex align-items-center">
+                {{ system_settings.school_name|default:"Our School" }}
+                <span class="brand-highlight ms-1">SMS</span>
+            </span>
+            
+            <!-- User Role Badge -->
             <span class="user-role badge bg-light text-primary ms-2">Student</span>
         </a>
         
+        <!-- Navbar Toggler for mobile -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <!-- User Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <div class="user-avatar">
-                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" alt="User">
+                        <div class="user-avatar d-flex align-items-center">
+                            <img src="https://ui-avatars.com/api/?name={{ student.full_name|urlencode }}&background=0D8ABC&color=fff" 
+                                 alt="User" 
+                                 class="rounded-circle me-2" 
+                                 style="height:35px; width:35px;">
                             <span class="user-name">{{ student.full_name }}</span>
                         </div>
                     </a>

@@ -76,40 +76,13 @@
                 <small class="sidebar-text px-3 text-uppercase text-muted" style="font-size: 0.7rem;">Quick Access</small>
             </li>
             
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'payment_management' %}?view=form">
-                    <i class="fas fa-plus-circle"></i>
-                    <span class="sidebar-text">Record Payment</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'sponsorship_management' %}?view=form">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="sidebar-text">Assign Sponsorship</span>
-                </a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link" href="#">
-                    <i class="fas fa-cog"></i>
-                    <span class="sidebar-text">Settings</span>
-                </a>
-            </li>
         </ul>
         
         <!-- Sidebar Footer -->
         <div class="sidebar-footer">
             <div class="row g-2">
-                <div class="col-6">
-                    <a href="{% url 'payment_management' %}?view=form" 
-                       class="btn btn-success btn-sm w-100"
-                       title="Quick Record Payment">
-                        <i class="fas fa-plus"></i>
-                        <span class="sidebar-text">New Payment</span>
-                    </a>
-                </div>
-                <div class="col-6">
+                
+                <div class="col-12">
                     <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm w-100">
                         <i class="fas fa-sign-out-alt me-1"></i> 
                         <span class="sidebar-text">Logout</span>

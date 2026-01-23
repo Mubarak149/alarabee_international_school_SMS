@@ -1,40 +1,55 @@
 <!-- Top Navigation -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-finance-primary fixed-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'finance_dashboard' %}">
-            <i class="fas fa-calculator me-2"></i>
-            <span class="brand-text">{{ system_settings.school_name|default:"Our School" }}<span class="brand-highlight">SMS</span></span>
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'finance_dashboard' %}">
+
+            <!-- School Logo -->
+            {% if system_settings.school_logo %}
+                <img src="{{ system_settings.school_logo.url }}" 
+                     alt="School Logo" 
+                     class="me-2" 
+                     style="height:40px; width:auto; border-radius:4px; object-fit:contain;">
+            {% else %}
+                <i class="fas fa-school me-2"></i>
+            {% endif %}
+
+            <!-- School Name -->
+            <span class="brand-text d-flex align-items-center">
+                {{ system_settings.school_name|default:"Our School" }}
+                <span class="brand-highlight ms-1">SMS</span>
+            </span>
+
+            <!-- Role Badge -->
             <span class="badge bg-light text-dark ms-2">Finance</span>
         </a>
-        
+
         <!-- Mobile Toggle Buttons -->
         <div class="d-flex gap-2">
-            <!-- Mobile Sidebar Toggle -->
             <button class="navbar-toggler d-lg-none" type="button" id="mobileSidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            
-            <!-- Navbar Toggle -->
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
         </div>
-        
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+
                 <!-- Quick Actions -->
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'student_invoices' %}" data-bs-toggle="tooltip" title="Invoices">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'fee_management' %}" data-bs-toggle="tooltip" title="Fee Structure">
                         <i class="fas fa-money-bill-wave"></i>
                     </a>
                 </li>
-                
+
                 <!-- Notifications -->
                 <li class="nav-item dropdown">
                     <a class="nav-link" href="#" role="button" data-bs-toggle="dropdown">
@@ -65,14 +80,14 @@
                         {% endif %}
                     </div>
                 </li>
-                
+
                 <!-- Desktop Sidebar Toggle -->
                 <li class="nav-item d-none d-lg-block">
                     <button class="nav-link sidebar-toggle-btn" type="button" id="desktopSidebarToggle">
                         <i class="fas fa-bars"></i> Menu
                     </button>
                 </li>
-                
+
                 <!-- User Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -106,6 +121,7 @@
                         </a>
                     </div>
                 </li>
+
             </ul>
         </div>
     </div>
@@ -122,17 +138,17 @@
         left: 0;
         right: 0;
     }
-    
+
     .navbar-brand .brand-text {
         font-size: 1.25rem;
         font-weight: 600;
     }
-    
+
     .brand-highlight {
         color: #FFEB3B;
         font-weight: 700;
     }
-    
+
     .badge-notification {
         position: absolute;
         top: 5px;
@@ -140,14 +156,13 @@
         font-size: 0.7rem;
         padding: 2px 5px;
     }
-    
+
     .user-name {
         color: white;
     }
 </style>
 
 <script>
-    // Navbar-specific JavaScript
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize navbar tooltips
         var navbarTooltips = [].slice.call(document.querySelectorAll('#navbarNav [data-bs-toggle="tooltip"]'))

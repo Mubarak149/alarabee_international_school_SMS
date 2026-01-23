@@ -25,41 +25,8 @@
         justify-content: center;
         font-size: 1.5rem;
     }
-    
-    .revenue-chart-container {
-        height: 300px;
-        position: relative;
-    }
-    
-    .quick-action-btn {
-        padding: 10px 15px;
-        border-radius: 8px;
-        transition: all 0.3s;
-    }
-    
-    .quick-action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .status-badge {
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    
-    .payment-method-badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-    }
-    
+
     @media (max-width: 768px) {
-        .revenue-chart-container {
-            height: 250px;
-        }
-        
         .stat-card .card-body {
             padding: 15px;
         }
@@ -95,86 +62,56 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted mb-1">Total Revenue</h6>
-                        <h3 class="mb-0 text-finance-primary">
-                            ${{ total_revenue|floatformat:2|default:"0.00" }}
-                        </h3>
-                        <small class="text-success">
-                            <i class="fas fa-arrow-up me-1"></i>
-                            ${{ current_month_revenue|floatformat:2 }} this month
-                        </small>
-                    </div>
-                    <div class="stat-icon bg-primary bg-opacity-10 text-finance-primary">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-xl-3 col-md-6">
-        <div class="card stat-card border-success">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
                         <h6 class="text-muted mb-1">Total Students</h6>
-                        <h3 class="mb-0 text-success">{{ total_students }}</h3>
-                        <small class="text-muted">
-                            {% for summary in sponsorship_summary %}
-                                {% if summary.sponsorship_type == 'full' %}
-                                    {{ summary.count }} full scholarships
-                                {% endif %}
-                            {% endfor %}
-                        </small>
+                        <h3 class="mb-0 text-primary">{{ total_students }}</h3>
                     </div>
-                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
                         <i class="fas fa-users"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="col-xl-3 col-md-6">
-        <div class="card stat-card border-warning">
+        <div class="card stat-card border-success">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted mb-1">Total Invoices</h6>
-                        <h3 class="mb-0 text-warning">{{ total_invoices }}</h3>
-                        <small class="text-danger">
-                            <i class="fas fa-exclamation-circle me-1"></i>
-                            {{ pending_invoices }} pending invoices
-                        </small>
+                        <h3 class="mb-0 text-success">{{ total_invoices }}</h3>
                     </div>
-                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
                         <i class="fas fa-file-invoice"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card stat-card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Pending Invoices</h6>
+                        <h3 class="mb-0 text-warning">{{ pending_invoices }}</h3>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="col-xl-3 col-md-6">
         <div class="card stat-card border-info">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted mb-1">Payment Status</h6>
-                        <h3 class="mb-0 text-info">
-                            {% for status in invoice_status %}
-                                {% if status.status == 'paid' %}
-                                    {{ status.count }}
-                                {% endif %}
-                            {% endfor %}
-                        </h3>
-                        <small class="text-muted">
-                            {% for status in invoice_status %}
-                                {% if status.status == 'partial' %}
-                                    {{ status.count }} partial payments
-                                {% endif %}
-                            {% endfor %}
-                        </small>
+                        <h6 class="text-muted mb-1">Paid Invoices</h6>
+                        <h3 class="mb-0 text-info">{{ paid_invoices }}</h3>
                     </div>
                     <div class="stat-icon bg-info bg-opacity-10 text-info">
                         <i class="fas fa-check-circle"></i>
@@ -185,290 +122,22 @@
     </div>
 </div>
 
-<!-- Revenue Chart and Quick Actions -->
-<div class="row g-4 mb-4">
-    <!-- Revenue Chart -->
-    <div class="col-xl-8">
-        <div class="finance-card">
-            <div class="card-header bg-finance-primary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-chart-line me-2"></i>
-                    Revenue Overview (Last 7 Months)
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="revenue-chart-container">
-                    <canvas id="revenueChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="col-xl-4">
-        <div class="finance-card">
-            <div class="card-header bg-finance-secondary text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-bolt me-2"></i>
-                    Quick Actions
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <a href="{% url 'student_invoices' %}" 
-                           class="btn btn-finance-primary w-100 quick-action-btn d-flex flex-column align-items-center py-3">
-                            <i class="fas fa-file-invoice-dollar fa-2x mb-2"></i>
-                            <span>View Invoices</span>
-                            <small class="text-white opacity-75 mt-1">{{ pending_invoices }} pending</small>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{% url 'fee_management' %}" 
-                           class="btn btn-success w-100 quick-action-btn d-flex flex-column align-items-center py-3">
-                            <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
-                            <span>Fee Structure</span>
-                            <small class="text-white opacity-75 mt-1">Manage fees</small>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{% url 'sponsorship_management' %}" 
-                           class="btn btn-info w-100 quick-action-btn d-flex flex-column align-items-center py-3">
-                            <i class="fas fa-hand-holding-usd fa-2x mb-2"></i>
-                            <span>Sponsorships</span>
-                            <small class="text-white opacity-75 mt-1">
-                                {% for summary in sponsorship_summary %}
-                                    {% if summary.sponsorship_type == 'full' %}
-                                        {{ summary.count }} full
-                                    {% endif %}
-                                {% endfor %}
-                            </small>
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="#" 
-                           class="btn btn-warning w-100 quick-action-btn d-flex flex-column align-items-center py-3">
-                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
-                            <span>Reports</span>
-                            <small class="text-white opacity-75 mt-1">Generate reports</small>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- Invoice Status Summary -->
-                <div class="mt-4 pt-3 border-top">
-                    <h6 class="mb-3">Invoice Status Summary</h6>
-                    {% for status in invoice_status %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-muted">{{ status.status|title }}</span>
-                        <div class="d-flex align-items-center">
-                            <span class="me-2">${{ status.total_amount|default:0|floatformat:2 }}</span>
-                            <span class="status-badge badge-status-{{ status.status }}">
-                                {{ status.count }}
-                            </span>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Payments and Outstanding Invoices -->
+<!-- Helpful Links -->
 <div class="row g-4">
-    <!-- Recent Payments -->
-    <div class="col-xl-6">
-        <div class="finance-card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-history me-2"></i>
-                    Recent Payments
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                {% if recent_payments %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Student</th>
-                                <th>Amount</th>
-                                <th>Method</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for payment in recent_payments %}
-                            <tr>
-                                <td>
-                                    <div>
-                                        <strong>{{ payment.invoice.student.user.get_full_name }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ payment.invoice.student.admission_number }}</small>
-                                    </div>
-                                </td>
-                                <td class="amount positive">
-                                    ${{ payment.amount_paid|floatformat:2 }}
-                                </td>
-                                <td>
-                                    <span class="payment-method-badge bg-secondary text-white">
-                                        {{ payment.get_payment_method_display }}
-                                    </span>
-                                </td>
-                                <td>{{ payment.payment_date|date:"M d, Y" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No recent payments</p>
-                </div>
-                {% endif %}
-            </div>
-            <div class="card-footer text-center">
-                <a href="{% url 'student_invoices' %}" class="btn btn-sm btn-outline-success">
-                    View All Payments <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
+    <div class="col-md-4">
+        <a href="{% url 'student_invoices' %}" class="btn btn-primary w-100 py-3">
+            <i class="fas fa-file-invoice-dollar me-2"></i> Manage Invoices
+        </a>
     </div>
-    
-    <!-- Outstanding Invoices -->
-    <div class="col-xl-6">
-        <div class="finance-card">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Outstanding Invoices
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                {% if outstanding_invoices %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Student</th>
-                                <th>Class</th>
-                                <th>Amount Due</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for invoice in outstanding_invoices %}
-                            <tr>
-                                <td>
-                                    <div>
-                                        <strong>{{ invoice.student.user.get_full_name }}</strong>
-                                        <br>
-                                        <small class="text-muted">{{ invoice.student.admission_number }}</small>
-                                    </div>
-                                </td>
-                                <td>{{ invoice.student.current_class.name }}</td>
-                                <td class="amount negative">
-                                    ${{ invoice.amount_due|floatformat:2 }}
-                                </td>
-                                <td>
-                                    <span class="status-badge badge-status-{{ invoice.status }}">
-                                        {{ invoice.get_status_display }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="{% url 'invoice_detail' invoice.id %}" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        View
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                    <p class="text-success">All invoices are paid!</p>
-                    <small class="text-muted">No outstanding invoices</small>
-                </div>
-                {% endif %}
-            </div>
-            <div class="card-footer text-center">
-                <a href="{% url 'student_invoices' %}?status=unpaid" class="btn btn-sm btn-outline-danger">
-                    View All Outstanding <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
+    <div class="col-md-4">
+        <a href="{% url 'fee_management' %}" class="btn btn-success w-100 py-3">
+            <i class="fas fa-money-bill-wave me-2"></i> Fee Structure
+        </a>
+    </div>
+    <div class="col-md-4">
+        <a href="{% url 'sponsorship_management' %}" class="btn btn-info w-100 py-3">
+            <i class="fas fa-hand-holding-usd me-2"></i> Sponsorships
+        </a>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Revenue Chart
-        const monthlyRevenue = {{ monthly_revenue|safe }};
-        
-        const ctx = document.getElementById('revenueChart').getContext('2d');
-        const revenueChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: monthlyRevenue.map(item => item.month),
-                datasets: [{
-                    label: 'Monthly Revenue',
-                    data: monthlyRevenue.map(item => item.revenue),
-                    borderColor: '#4CAF50',
-                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Revenue: $${context.parsed.y.toFixed(2)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value;
-                            }
-                        },
-                        grid: {
-                            drawBorder: false
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-        
-        // Auto-refresh dashboard every 5 minutes
-        setTimeout(() => {
-            window.location.reload();
-        }, 5 * 60 * 1000);
-    });
-</script>
 {% endblock %}

@@ -105,12 +105,16 @@ def student_invoices(request):
     status_filter = request.GET.get('status', 'all')
     class_filter = request.GET.get('class', 'all')
     search_query = request.GET.get('search', '')
+    print(class_filter)
     
     if status_filter != 'all':
         invoices = invoices.filter(status=status_filter)
     
     if class_filter != 'all':
-        invoices = invoices.filter(student__current_class_id=class_filter)
+        invoices = invoices.filter(
+            student__class_records__school_class__name=class_filter,
+            student__class_records__is_current=True
+        ).distinct()
     
     if search_query:
         invoices = invoices.filter(
@@ -119,10 +123,8 @@ def student_invoices(request):
             Q(student__admission_number__icontains=search_query)
         )
     
-    # Order by creation date (newest first)
     invoices = invoices.order_by('-created_at')
     
-    # Pagination
     paginator = Paginator(invoices, 25)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -139,6 +141,7 @@ def student_invoices(request):
     }
     
     return render(request, 'finance/student_invoices.html', context)
+
 
 @login_required
 def invoice_detail(request, invoice_id):
@@ -1554,32 +1557,6 @@ def invoice_detail(request, invoice_id):
     }
     
     return render(request, 'finance/invoice_detail.html', context)
-
-
-@login_required
-def print_invoice(request, invoice_id):
-    """
-    View for printing invoice.
-    """
-    invoice = get_object_or_404(
-        Invoice.objects.select_related(
-            'student__user', 'term', 'academic_year'
-        ).prefetch_related('items', 'payments'),
-        id=invoice_id
-    )
-    
-    # Get sponsorship info if exists
-    try:
-        sponsorship = invoice.student.sponsorship
-    except Sponsorship.DoesNotExist:
-        sponsorship = None
-    
-    context = {
-        'invoice': invoice,
-        'sponsorship': sponsorship,
-    }
-    
-    return render(request, 'finance/print_invoice.html', context)
 
 
 @login_required

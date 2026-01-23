@@ -342,14 +342,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     
-                                    <!-- Print Invoice Button -->
-                                    <a href="{% url 'print_invoice' invoice.id %}" 
-                                       class="btn btn-secondary btn-sm"
-                                       target="_blank"
-                                       title="Print Invoice">
-                                        <i class="fas fa-print"></i>
-                                    </a>
-                                    
+                                   
                                     <!-- Send Reminder Button -->
                                     {% if invoice.status != 'paid' %}
                                     <button class="btn btn-warning btn-sm"

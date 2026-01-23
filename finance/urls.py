@@ -29,7 +29,6 @@ urlpatterns = [
 
     path('generate-term-invoices/', views.generate_term_invoices, name='generate_term_invoices'),
     path('term-invoices/send-reminder/<int:invoice_id>/', views.send_reminder, name='send_reminder'),
-    path('print-term-invoices/<int:invoice_id>/', views.print_invoice, name='print_invoice'),
     path('invoices/<int:invoice_id>/edit/', views.update_invoice, name='update_invoice'),
     path('invoices/<int:invoice_id>/delete/', views.delete_invoice, name='delete_invoice'),
 ]

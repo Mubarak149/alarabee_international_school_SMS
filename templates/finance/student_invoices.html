@@ -215,18 +215,6 @@
                                        title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    {% if invoice.status != 'paid' %}
-                                        <button class="btn btn-sm btn-success" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#recordPaymentModal{{ invoice.id }}"
-                                                data-bs-toggle="tooltip" 
-                                                title="Record Payment">
-                                            <i class="fas fa-money-bill-wave"></i>
-                                        </button>
-                                    {% endif %}
-                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Print">
-                                        <i class="fas fa-print"></i>
-                                    </button>
                                 </div>
                             </td>
                         </tr>
