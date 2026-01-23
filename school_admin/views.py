@@ -1028,22 +1028,23 @@ def manage_terms(request):
         'form': TermForm(),  # Add a blank form for the template
     })
 
-
 @login_required
 def system_settings(request):
-    """Simple system settings view"""
-    # Get current settings or create default
     settings_instance = SystemSettings.get_settings()
-    
+
     if request.method == 'POST':
-        form = SystemSettingsForm(request.POST, instance=settings_instance)
+        form = SystemSettingsForm(
+            request.POST,
+            request.FILES,          # ✅ REQUIRED FOR IMAGE UPLOAD
+            instance=settings_instance
+        )
         if form.is_valid():
             form.save()
             messages.success(request, "System settings saved successfully!")
             return redirect('system_settings')
     else:
         form = SystemSettingsForm(instance=settings_instance)
-    
+
     return render(request, 'school_admin/system_settings.html', {
         'form': form,
         'settings': settings_instance

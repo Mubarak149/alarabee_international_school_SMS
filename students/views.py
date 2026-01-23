@@ -1,50 +1,25 @@
-import io
-import os
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Sum, Count, Q
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Avg, Count, Sum
-from django.http import HttpResponse
+from io import BytesIO
 from collections import defaultdict
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.db.models import Avg, Q, Sum
+from django.conf import settings
 
 from .models import StudentProfile, StudentScore, StudentClass
 from school_admin.models import SystemSettings
-from finance.models import Invoice, Payment, FeeStructure, Sponsorship
+from finance.models import Invoice, Sponsorship
 from academics.models import AcademicYear, Term, ScoreType
 from staff.models import TeacherSubject
-# students/views.py
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.db.models import Avg, Count, Q, Sum
-from django.conf import settings
-
-from .models import StudentProfile, StudentScore
-from finance.models import Invoice, Payment
-from academics.models import AcademicYear, Term, Subject, SchoolClass
-from io import BytesIO
-from datetime import datetime
-import textwrap
-
 # PDF Generation imports
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter, A4, landscape
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch, cm
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.graphics.shapes import Drawing, Line
-from reportlab.graphics.charts.barcharts import VerticalBarChart
-from reportlab.graphics.charts.linecharts import HorizontalLineChart
-from reportlab.graphics.charts.piecharts import Pie
-from reportlab.graphics import renderPDF
-from reportlab.pdfbase.pdfmetrics import registerFontFamily
+from reportlab.lib.pagesizes import A4
 
+from .utils import *
 
 
 @login_required
@@ -179,7 +154,6 @@ def student_dashboard(request):
     }
     
     return render(request, "student/student_dashboard.html", context)
-
 
 
 @login_required
@@ -443,41 +417,6 @@ def student_academic_scores(request):
         return render(request, 'student/academic_scores.html', context)
 
 
-
-
-def register_fonts():
-    ROBOTO_DIR = os.path.join(settings.BASE_DIR, 'static', 'Roboto', 'static')
-
-    try:
-        pdfmetrics.registerFont(
-            TTFont('Roboto', os.path.join(ROBOTO_DIR, 'Roboto-Regular.ttf'))
-        )
-        pdfmetrics.registerFont(
-            TTFont('Roboto-Bold', os.path.join(ROBOTO_DIR, 'Roboto-Bold.ttf'))
-        )
-        pdfmetrics.registerFont(
-            TTFont('Roboto-Italic', os.path.join(ROBOTO_DIR, 'Roboto-Italic.ttf'))
-        )
-        pdfmetrics.registerFont(
-            TTFont('Roboto-BoldItalic', os.path.join(ROBOTO_DIR, 'Roboto-BoldItalic.ttf'))
-        )
-
-        # THIS LINE IS THE KEY 🔑
-        registerFontFamily(
-            'Roboto',
-            normal='Roboto',
-            bold='Roboto-Bold',
-            italic='Roboto-Italic',
-            boldItalic='Roboto-BoldItalic'
-        )
-
-    except Exception as e:
-        print("Font registration failed:", e)
-
-
-register_fonts()
-
-
 @login_required
 def download_invoice_pdf(request, invoice_id):
     """Generate PDF for a specific invoice"""
@@ -699,182 +638,188 @@ def download_invoice_pdf(request, invoice_id):
 
 @login_required
 def download_report_card_pdf(request, academic_year_id, term_id):
+
+    # =========================
+    # BASIC DATA
+    # =========================
     student = get_object_or_404(StudentProfile, id=2)
     academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
     term = get_object_or_404(Term, id=term_id)
-
     settings = SystemSettings.get_settings()
-    score_types = ScoreType.objects.all()
+
+    score_types = ScoreType.objects.all().order_by("id")
 
     scores = StudentScore.objects.filter(
         student=student,
         academic_session=academic_year,
         term=term
-    ).select_related('subject', 'score_type')
+    ).select_related("subject", "score_type")
 
     # =========================
-    # BASIC STATS
+    # STUDENT CLASS (FIXED)
     # =========================
-    total_subjects = scores.values('subject').distinct().count()
-    average_score = scores.aggregate(avg=Avg('score'))['avg'] or 0
+    class_record = student.class_records.filter(is_current=True).first()
+    school_class = class_record.school_class if class_record else None
+    student_class_name = school_class.name if school_class else "N/A"
 
-    best_subject = (
-        scores.order_by('-score').first().subject.name
-        if scores.exists() else "N/A"
+    # =========================
+    # CLASS STUDENTS (FIXED)
+    # =========================
+    class_students = StudentProfile.objects.filter(
+        class_records__school_class=school_class,
+        class_records__is_current=True
+    ).distinct()
+
+    total_students = class_students.count()
+
+    # =========================
+    # POSITION CALCULATION
+    # =========================
+    student_totals = (
+        StudentScore.objects.filter(
+            student__in=class_students,
+            academic_session=academic_year,
+            term=term
+        )
+        .values("student")
+        .annotate(total=Sum("score"))
+        .order_by("-total")
     )
-    weakest_subject = (
-        scores.order_by('score').first().subject.name
-        if scores.exists() else "N/A"
-    )
+
+    position = 0
+    for index, record in enumerate(student_totals, start=1):
+        if record["student"] == student.id:
+            position = index
+            break
+
+    # =========================
+    # STATS
+    # =========================
+    total_subjects = scores.values("subject").distinct().count()
+    average_score = scores.aggregate(avg=Avg("score"))["avg"] or 0
 
     # =========================
     # PDF SETUP
     # =========================
     buffer = BytesIO()
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = (
-        f'attachment; filename="report_{student.student_id}_{academic_year.year}_{term.name}.pdf"'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="report_{student.student_id}.pdf"'
     )
 
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    elements = []
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=20,
+        leftMargin=20,
+        topMargin=20,
+        bottomMargin=20,
+    )
+
     styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name="CenterBold",
+        alignment=1,
+        fontSize=12,
+        spaceAfter=6,
+        leading=14,
+        fontName="Helvetica-Bold"
+    ))
+
+    elements = []
 
     # =========================
-    # PROFESSIONAL SCHOOL HEADER
+    # HEADER
     # =========================
+    logo = ""
     if settings.school_logo:
         logo = Image(settings.school_logo.path, width=70, height=70)
-    else:
-        logo = ""
-
-    school_info = f"""
-    <b>{settings.school_name}</b><br/>
-    {settings.school_address or ""}<br/>
-    Email: {settings.school_email or "N/A"} |
-    Phone: {settings.school_phone or "N/A"}
-    """
 
     header_table = Table(
-        [[logo, Paragraph(school_info, styles['Normal'])]],
-        colWidths=[80, 400]
+        [[
+            logo,
+            Paragraph(
+                f"""
+                <para align="center">
+                <b>{settings.school_name.upper()}</b><br/>
+                {settings.school_address}<br/>
+                ACADEMIC SESSION: {academic_year.year}<br/>
+                <b>{term.name.upper()} TERM EXAMINATION</b>
+                </para>
+                """,
+                styles["Normal"]
+            )
+        ]],
+        colWidths=[80, 440]
     )
 
     header_table.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('LINEBELOW', (0,0), (-1,0), 1, colors.black),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
 
     elements.append(header_table)
-    elements.append(Spacer(1, 15))
+    elements.append(Spacer(1, 6))
 
     # =========================
-    # REPORT TITLE
+    # STUDENT SUMMARY
     # =========================
-    elements.append(Paragraph("<b>STUDENT REPORT CARD</b>", styles['Title']))
-    elements.append(Spacer(1, 12))
-
-    # =========================
-    # STUDENT INFO
-    # =========================
-    student_info = [
-        ["Full Name:", student.full_name, "Student ID:", student.student_id],
-        [
-            "Class:",
-            student.class_records.first().school_class.name
-            if student.class_records.exists() else "N/A",
-            "Term:", term.name
-        ],
-        ["Academic Year:", academic_year.year, "Parent:", student.parent_name],
+    summary_data = [
+        ["Name", student.full_name, "Register No", student.student_id],
+        ["Class", student_class_name, "Term", term.name],
+        ["Total Subjects", total_subjects, "Student Average", f"{average_score:.1f}%"],
+        ["Position", f"{position} out of {total_students}", "Class Size", total_students],
     ]
 
-    info_table = Table(student_info, colWidths=[100, 150, 100, 150])
-    info_table.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 1, colors.black),
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+    summary_table = Table(summary_data, colWidths=[90, 150, 90, 150])
+    summary_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
     ]))
-    elements.append(info_table)
-    elements.append(Spacer(1, 12))
+
+    elements.append(summary_table)
+    elements.append(Spacer(1, 8))
 
     # =========================
-    # PERFORMANCE SUMMARY
+    # SUBJECT SCORE TABLE
     # =========================
-    performance_summary = [
-        ["Total Subjects", total_subjects, "Average Score", f"{average_score:.1f}%"],
-        ["Best Subject", best_subject, "Weakest Subject", weakest_subject],
-    ]
+    subject_scores = defaultdict(dict)
 
-    perf_table = Table(performance_summary, colWidths=[120, 120, 120, 120])
-    perf_table.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 1, colors.black),
-        ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
-        ('BACKGROUND', (0,1), (-1,1), colors.lightgreen),
-    ]))
-    elements.append(perf_table)
-    elements.append(Spacer(1, 12))
+    for s in scores:
+        subject_scores[s.subject.name][s.score_type.name] = s.score
 
-    # =========================
-    # DETAILED SCORES TABLE
-    # =========================
-    if scores.exists():
-        subject_scores = defaultdict(dict)
+    table_data = [["Subject"]]
+    for st in score_types:
+        table_data[0].append(st.name)
 
-        for s in scores:
-            subject_scores[s.subject.name][s.score_type.name] = s.score
+    table_data[0] += ["Total", "Grade", "Remark"]
 
-        data = [["Subject"]]
+    for subject, score_map in subject_scores.items():
+        row = [subject]
+        total = 0
+
         for st in score_types:
-            data[0].append(st.name)
-        data[0] += ["Total Score", "Grade", "Remarks"]
+            val = score_map.get(st.name, 0)
+            row.append(val)
+            total += val
 
-        for subject, score_map in subject_scores.items():
-            row = [subject]
-            total = 0
+        row.extend([
+            total,
+            get_grade(total),
+            get_remarks(total)
+        ])
+        table_data.append(row)
 
-            for st in score_types:
-                score = score_map.get(st.name, 0)
-                row.append(f"{score:.1f}")
-                total += score
+    score_table = Table(table_data, repeatRows=1)
+    score_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+        ("ALIGN", (1, 1), (-3, -1), "CENTER"),
+        ("ALIGN", (-2, 1), (-1, -1), "CENTER"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+    ]))
 
-            row += [
-                f"{total:.1f}",
-                get_grade(total),
-                get_remarks(total)
-            ]
-
-            data.append(row)
-
-        score_table = Table(data, repeatRows=1)
-        score_table.setStyle(TableStyle([
-            ('GRID', (0,0), (-1,-1), 1, colors.black),
-            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-            ('ALIGN', (1,1), (-3,-1), 'CENTER'),
-        ]))
-        elements.append(score_table)
-    else:
-        elements.append(Paragraph("No scores recorded for this term.", styles['Normal']))
-
-    # =========================
-    # COMMENTS & FOOTER
-    # =========================
-    elements.append(Spacer(1, 12))
-    elements.append(PageBreak())
-
-    elements.append(Paragraph("TEACHER'S COMMENTS & RECOMMENDATIONS", styles['Heading2']))
-    elements.append(
-        Paragraph(
-            f"Overall, {student.full_name} has shown satisfactory progress this term.",
-            styles['Normal']
-        )
-    )
-
-    elements.append(Spacer(1, 12))
-    elements.append(
-        Paragraph(
-            "GRADING SYSTEM: A=70-100, B=60-69, C=50-59, D=40-49, F=0-39",
-            styles['Normal']
-        )
-    )
+    elements.append(score_table)
+    elements.append(Spacer(1, 10))
 
     # =========================
     # BUILD PDF
@@ -886,106 +831,3 @@ def download_report_card_pdf(request, academic_year_id, term_id):
     return response
 
 
-# Helper functions
-def get_performance_label(average_score):
-    if average_score >= 80:
-        return "EXCELLENT"
-    elif average_score >= 70:
-        return "VERY GOOD"
-    elif average_score >= 60:
-        return "GOOD"
-    elif average_score >= 50:
-        return "AVERAGE"
-    else:
-        return "NEEDS IMPROVEMENT"
-
-def get_best_subject(scores):
-    if scores.exists():
-        best = max(scores, key=lambda x: x.score)
-        return f"{best.subject.name} ({best.score}%)"
-    return "N/A"
-
-def get_weakest_subject(scores):
-    if scores.exists():
-        weakest = min(scores, key=lambda x: x.score)
-        return f"{weakest.subject.name} ({weakest.score}%)"
-    return "N/A"
-
-def get_grade(score):
-    if score >= 70:
-        return "A"
-    elif score >= 60:
-        return "B"
-    elif score >= 50:
-        return "C"
-    elif score >= 40:
-        return "D"
-    else:
-        return "F"
-
-
-def get_remarks(score):
-    if score >= 80:
-        return "Excellent"
-    elif score >= 60:
-        return "Good"
-    else:
-        return "Needs Improvement"
-
-def get_teacher_comment(score):
-    if score >= 90:
-        return "Outstanding performance!"
-    elif score >= 80:
-        return "Very good work."
-    elif score >= 70:
-        return "Good effort shown."
-    elif score >= 60:
-        return "Satisfactory."
-    elif score >= 50:
-        return "Can do better."
-    else:
-        return "Needs more attention."
-
-def get_score_color(score):
-    if score >= 90:
-        return colors.HexColor('#27AE60')  # Green
-    elif score >= 80:
-        return colors.HexColor('#2ECC71')  # Light Green
-    elif score >= 70:
-        return colors.HexColor('#F1C40F')  # Yellow
-    elif score >= 60:
-        return colors.HexColor('#E67E22')  # Orange
-    elif score >= 50:
-        return colors.HexColor('#E74C3C')  # Red
-    else:
-        return colors.HexColor('#C0392B')  # Dark Red
-
-# Additional view for downloading old results with filtering
-@login_required
-def download_report_card_filter(request):
-    """Page to filter and download old report cards"""
-    student = get_object_or_404(StudentProfile, user=request.user)
-    
-    # Get all academic years and terms the student has been in
-    academic_years = AcademicYear.objects.filter(
-        studentclass__student=student
-    ).distinct().order_by('-year')
-    
-    # Get all terms
-    terms = Term.objects.filter(
-        academic_year__in=academic_years
-    ).distinct().order_by('-academic_year__year', 'name')
-    
-    # Get recent report cards
-    recent_scores = StudentScore.objects.filter(
-        student=student
-    ).select_related('academic_session', 'term').distinct()[:5]
-    
-    context = {
-        'student': student,
-        'academic_years': academic_years,
-        'terms': terms,
-        'recent_scores': recent_scores,
-    }
-    
-    return render(request, 'student/download_report_card.html', context)
