@@ -1,11 +1,5 @@
-name= "lakwa"
-print(name[1:4])
-
-
-
-
-
-
-
-
-
+num = 10
+if num % 2 == 0:
+    print("Even Number")
+else:
+    print("Odd Number")

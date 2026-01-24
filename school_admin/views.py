@@ -34,7 +34,6 @@ def admin_dashboard(request):
     
     return render(request, "school_admin/admin_dashboard.html", context)
 
-
 def manage_admins(request):
     # Get all admins with related data
     admins_list = AdminProfile.objects.select_related('user').all().order_by('-id')
@@ -160,10 +159,8 @@ def manage_admins(request):
 
     return render(request, "school_admin/manage_admins.html", context)
 
-
 def admin_profile(request):
     return render(request, "school_admin/admin_profile.html")
-
 
 # views.py
 def manage_students(request):
@@ -366,8 +363,6 @@ def manage_students(request):
         "class_form": class_form,
         "students": students,
     })
-
-
 
 @require_GET
 def check_student_id(request):
