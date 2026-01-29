@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-6l&va$01=3s*@x=3bv4khz_#=s=xv#!iqy776cifx9-%^+n@%-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','alarabeeinternational.com.ng', 'www.alarabeeinternational.com.ng']
+ALLOWED_HOSTS = ["10.42.0.1",'127.0.0.1','alarabeeinternational.com.ng', 'www.alarabeeinternational.com.ng']
 
 
 

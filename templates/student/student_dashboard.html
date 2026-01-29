@@ -319,7 +319,7 @@
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             {% if current_invoice %}
-                                ${{ current_invoice.total_amount }}
+                                ₦{{ current_invoice.total_amount }}
                             {% else %}
                                 Not Issued
                             {% endif %}
@@ -351,9 +351,9 @@
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             {% if current_invoice %}
-                                ${{ current_invoice.amount_due }}
+                                ₦{{ current_invoice.amount_due }}
                             {% else %}
-                                $0
+                                ₦0
                             {% endif %}
                         </div>
                         <div class="mt-2">
@@ -459,7 +459,7 @@
                                 <small class="text-muted">{{ invoice.academic_year.name }}</small>
                             </div>
                             <div class="text-end">
-                                <div class="h6 mb-1">${{ invoice.total_amount }}</div>
+                                <div class="h6 mb-1">₦{{ invoice.total_amount }}</div>
                                 <span class="invoice-status status-{{ invoice.status }}">
                                     {{ invoice.get_status_display }}
                                 </span>

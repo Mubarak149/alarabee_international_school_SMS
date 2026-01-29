@@ -1529,10 +1529,12 @@ def invoice_detail(request, invoice_id):
 
     
     # Get sponsorship info if exists
+    # Get sponsorship info if exists
     try:
-        sponsorship = invoice.student.sponsorship.select_related('sponsor').first()
+        sponsorship = invoice.student.sponsorship
     except Sponsorship.DoesNotExist:
         sponsorship = None
+
     
     # Get payment history
     payments = invoice.payments.all().order_by('-payment_date')

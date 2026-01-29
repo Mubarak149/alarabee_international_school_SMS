@@ -231,12 +231,12 @@
                                     <div class="row">
                                         <div class="col-6">
                                             <small class="text-muted">Total Amount</small>
-                                            <h4>${{ invoice.total_amount }}</h4>
+                                            <h4>₦{{ invoice.total_amount }}</h4>
                                         </div>
                                         <div class="col-6">
                                             <small class="text-muted">Amount Due</small>
                                             <h4 class="{% if invoice.amount_due > 0 %}text-danger{% else %}text-success{% endif %}">
-                                                ${{ invoice.amount_due }}
+                                                ₦{{ invoice.amount_due }}
                                             </h4>
                                         </div>
                                     </div>
@@ -278,7 +278,7 @@
                                 {% for item in invoice.items.all %}
                                 <tr>
                                     <td>{{ item.fee_type.name }}</td>
-                                    <td class="text-end">${{ item.amount }}</td>
+                                    <td class="text-end">₦{{ item.amount }}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -289,7 +289,7 @@
                             <tfoot>
                                 <tr class="table-active">
                                     <th>Total</th>
-                                    <th class="text-end">${{ invoice.total_amount }}</th>
+                                    <th class="text-end">₦{{ invoice.total_amount }}</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -321,7 +321,7 @@
                                             {{ payment.get_payment_method_display }}
                                         </div>
                                     </td>
-                                    <td class="text-end">${{ payment.amount_paid }}</td>
+                                    <td class="text-end">₦{{ payment.amount_paid }}</td>
                                     <td>
                                         <span class="badge bg-{{ payment.status_color }}">
                                             {{ payment.get_status_display }}
@@ -359,7 +359,7 @@
                             </ul>
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
-                                Amount Due: <strong>${{ invoice.amount_due }}</strong>
+                                Amount Due: <strong>₦{{ invoice.amount_due }}</strong>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -447,7 +447,7 @@
                             Total Amount Due
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                            $0
+                            ₦0
                         </div>
                     </div>
                     <div class="col-auto">
